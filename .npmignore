@@ -1,0 +1,33 @@
+# Source files (dist is published)
+src/
+tests/
+reports/
+
+# Config files
+.agent/
+.github/
+.bun/
+eslint.config.js
+tsconfig.json
+vitest.config.js
+rollup.config.js
+.prettierrc
+.gitignore
+.npmrc
+
+# Development files
+*.log
+coverage/
+.nyc_output/
+
+# Large lock files
+bun.lock
+bun.lockb
+
+# Documentation source (docs site is separate)
+# Keep these for reference:
+# docs/
+
+# IDE
+.idea/
+.vscode/

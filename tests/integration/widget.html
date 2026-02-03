@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrossBus Widget</title>
+    <style>
+        body {
+            font-family: system-ui;
+            padding: 10px;
+            background: #16213e;
+            color: #eee;
+            margin: 0;
+            font-size: 12px;
+        }
+
+        .status {
+            padding: 5px;
+            background: #0f3460;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+
+        .log {
+            font-family: monospace;
+            font-size: 10px;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+
+        .success {
+            color: #4ade80;
+        }
+
+        .error {
+            color: #f87171;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="status">
+        <strong id="widgetId">Loading...</strong>
+        <span id="connectionStatus">🔴 Disconnected</span>
+    </div>
+    <div id="log" class="log"></div>
+
+    <script type="module">
+        // Get widget ID from URL
+        const params = new URLSearchParams(window.location.search);
+        const widgetId = params.get('id') || `widget-${Date.now()}`;
+
+        document.getElementById('widgetId').textContent = widgetId;
+
+        function log(msg, type = 'info') {
+            const logEl = document.getElementById('log');
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = msg;
+            logEl.appendChild(div);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        // Handlers registry
+        const handlers = {
+            getStatus: () => ({
+                status: 'healthy',
+                widgetId,
+                timestamp: Date.now()
+            }),
+
+            echo: (payload) => ({
+                echo: payload,
+                from: widgetId
+            })
+        };
+
+        // Listen for messages from hub
+        window.addEventListener('message', async (event) => {
+            const { data, source } = event;
+
+            // Registration confirmation
+            if (data && data.__crossbus_registered) {
+                log('✅ Registered with hub', 'success');
+                document.getElementById('connectionStatus').textContent = '🟢 Connected';
+                return;
+            }
+
+            // Normalization
+            const isSota = !!data.type;
+            const isLegacy = !!data.t;
+
+            if (!isSota && !isLegacy) return;
+
+            let innerMessage = data;
+            if (isLegacy && data.p) {
+                innerMessage = data.p;
+            }
+
+            const type = innerMessage.type || innerMessage.t;
+            const id = innerMessage.id || data.id;
+
+            // Handle signals
+            if (type === 'sig' || type === 'signal') {
+                const name = innerMessage.name || innerMessage.payload?.name;
+                log(`Signal: ${name}`);
+                return;
+            }
+
+            // Handle requests
+            if ((type === 'req' || type === 'request') && (innerMessage.handler || innerMessage.payload?.name)) {
+                const handlerName = innerMessage.handler || innerMessage.payload?.name;
+                const reqData = innerMessage.payload?.data ?? innerMessage.p; // Legacy params in p or SOTA data
+
+                const handler = handlers[handlerName];
+                let response;
+
+                if (handler) {
+                    try {
+                        const result = handler(reqData);
+                        // Send 'res' as per MessageType.RESPONSE
+                        response = {
+                            type: 'res',
+                            id: id,
+                            success: true,
+                            payload: { data: result }
+                        };
+                        log(`→ ${handlerName}() OK`, 'success');
+                    } catch (error) {
+                        response = {
+                            type: 'res',
+                            id: id,
+                            success: false,
+                            error: { message: error.message }
+                        };
+                        log(`→ ${handlerName}() Error`, 'error');
+                    }
+                } else {
+                    response = {
+                        type: 'res',
+                        id: id,
+                        success: false,
+                        error: { message: 'Handler not found' }
+                    };
+                    log(`→ ${handlerName}() Not found`, 'error');
+                }
+
+                // Send response back to hub
+                if (window.parent !== window) {
+                    window.parent.postMessage(response, '*');
+                }
+            }
+        });
+
+        // Register with hub
+        function registerWithHub() {
+            if (window.parent !== window) {
+                log('Registering with hub...');
+                window.parent.postMessage({
+                    __crossbus_register: true,
+                    peerId: widgetId,
+                    meta: {
+                        type: 'widget',
+                        version: '1.0'
+                    }
+                }, '*');
+            }
+        }
+
+        // Register after a short delay
+        setTimeout(registerWithHub, 100);
+
+        log(`Widget ${widgetId} loaded`);
+    </script>
+</body>
+
+</html>

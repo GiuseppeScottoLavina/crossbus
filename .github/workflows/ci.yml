@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: latest
+
+    - name: Install dependencies
+      run: npm install --legacy-peer-deps || (sleep 30 && npm install --legacy-peer-deps) || (sleep 60 && npm install --legacy-peer-deps)
+
+    - name: Lint
+      run: bun run lint
+
+    - name: Type Check
+      run: bun run typecheck
+
+    - name: Build
+      run: bun run build
+
+    - name: Test with Coverage
+      run: bun test tests/unit/ --coverage --coverage-reporter=lcov
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage/lcov.info
+        fail_ci_if_error: false
+        verbose: true
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

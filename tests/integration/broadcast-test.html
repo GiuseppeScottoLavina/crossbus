@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>BroadcastChannel Test</title>
+</head>
+
+<body>
+    <h1>BroadcastChannel Test Page</h1>
+    <div id="status">Initializing...</div>
+    <div id="log"></div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "cbor-x": "https://esm.sh/cbor-x@1.6.0"
+        }
+    }
+    </script>
+
+
+    <script type="module">
+        import { CrossBus } from '/src/index.js';
+
+        const tabId = Math.random().toString(36).substr(2, 6);
+
+        function log(msg) {
+            const div = document.getElementById('log');
+            div.innerHTML += `<div>[${tabId}] ${msg}</div>`;
+            console.log(`[${tabId}]`, msg);
+        }
+
+        // Create bus
+        const bus = new CrossBus({
+            peerId: `tab-${tabId}`,
+            isHub: false
+        });
+
+        // Store for tests
+        window.bus = bus;
+        window.lastSignal = null;
+        window.receivedMessages = [];
+        window.busReady = false;
+
+        // Listen for sync signals
+        bus.on('sync:test', (event) => {
+            log(`Received sync:test: ${JSON.stringify(event.payload)}`);
+            window.lastSignal = event.payload;
+        });
+
+        // Listen for multi-message tests
+        bus.on('multi:test', (event) => {
+            log(`Received multi:test: ${JSON.stringify(event.payload)}`);
+            window.receivedMessages.push(event.payload);
+        });
+
+        // Mark ready
+        window.busReady = true;
+        document.getElementById('status').textContent = `Ready (Tab: ${tabId})`;
+        log('Bus initialized and ready');
+    </script>
+</body>
+
+</html>

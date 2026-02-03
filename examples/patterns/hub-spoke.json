@@ -1,0 +1,64 @@
+{
+    "name": "hub-spoke",
+    "title": "Hub-Spoke Pattern",
+    "description": "Central orchestrator communicates with multiple agents. The hub coordinates all communication.",
+    "difficulty": "beginner",
+    "useCases": [
+        "multi-agent AI orchestration",
+        "microservices in browser",
+        "iframe orchestration",
+        "worker coordination"
+    ],
+    "prerequisites": [
+        "crossbus installed",
+        "understanding of postMessage"
+    ],
+    "steps": [
+        {
+            "order": 1,
+            "action": "create-hub",
+            "title": "Create the Hub",
+            "explanation": "Create the central hub that will coordinate all agents. Set isHub: true to enable hub mode.",
+            "code": "const hub = new CrossBus({ isHub: true, peerId: 'hub', allowedOrigins: ['*'] });"
+        },
+        {
+            "order": 2,
+            "action": "register-handler",
+            "title": "Register Handler on Hub",
+            "explanation": "Register a handler that agents can call via request(). This implements the RPC pattern.",
+            "code": "hub.handle('getData', async (payload) => {\n  return { data: await fetchData(payload.id) };\n});"
+        },
+        {
+            "order": 3,
+            "action": "create-agent",
+            "title": "Create an Agent",
+            "explanation": "Create an agent that will connect to the hub. Each agent needs a unique peerId.",
+            "code": "const agent = new CrossBus({ peerId: 'agent-1', allowedOrigins: ['*'] });"
+        },
+        {
+            "order": 4,
+            "action": "connect-transport",
+            "title": "Connect Transport",
+            "explanation": "Add a transport to connect the agent to the hub. In a browser, this would be PostMessageTransport for iframes.",
+            "code": "hub.addTransport(new PostMessageTransport(iframe.contentWindow, { targetOrigin: '*' }), { peerId: 'agent-1' });"
+        },
+        {
+            "order": 5,
+            "action": "make-request",
+            "title": "Agent Requests Data",
+            "explanation": "The agent sends an RPC request to the hub and awaits the response.",
+            "code": "const result = await agent.request('hub', 'getData', { id: 5 });"
+        }
+    ],
+    "completeExample": "./hub-spoke.js",
+    "relatedPatterns": [
+        "multi-tab-sync",
+        "worker-offload",
+        "pipeline"
+    ],
+    "tips": [
+        "Always use unique peerIds for each agent",
+        "Wait for iframe.onload before adding transport",
+        "Use specific targetOrigin in production for security"
+    ]
+}

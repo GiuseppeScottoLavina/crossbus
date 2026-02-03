@@ -1,0 +1,91 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "crossbus://schemas/index",
+    "title": "CrossBus Schema Registry",
+    "description": "Registry of all available JSON schemas for CrossBus payloads and handlers",
+    "type": "object",
+    "properties": {
+        "version": {
+            "const": "1.0.0"
+        },
+        "baseUri": {
+            "const": "crossbus://schemas"
+        },
+        "schemas": {
+            "type": "object",
+            "properties": {
+                "core": {
+                    "type": "array",
+                    "description": "Core payload schemas",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "path": {
+                                "type": "string"
+                            },
+                            "description": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "handlers": {
+                    "type": "array",
+                    "description": "Handler-specific schemas",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "path": {
+                                "type": "string"
+                            },
+                            "description": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "default": {
+        "version": "1.0.0",
+        "baseUri": "crossbus://schemas",
+        "schemas": {
+            "core": [
+                {
+                    "id": "message-payload",
+                    "path": "./message-payload.schema.json",
+                    "description": "Payload structure for bus.signal()"
+                },
+                {
+                    "id": "request-payload",
+                    "path": "./request-payload.schema.json",
+                    "description": "Payload structure for bus.request()"
+                }
+            ],
+            "handlers": [
+                {
+                    "id": "getData",
+                    "path": "./handlers/getData.schema.json",
+                    "description": "Retrieve data by ID"
+                },
+                {
+                    "id": "store",
+                    "path": "./handlers/store.schema.json",
+                    "description": "Store data in memory/state"
+                },
+                {
+                    "id": "execute",
+                    "path": "./handlers/execute.schema.json",
+                    "description": "Execute code or tool"
+                }
+            ]
+        }
+    }
+}

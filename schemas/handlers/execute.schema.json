@@ -1,0 +1,121 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "crossbus://schemas/handlers/execute",
+    "title": "execute Handler",
+    "description": "Execute code or a tool in a sandboxed agent. Standard pattern for tool invocation.",
+    "type": "object",
+    "properties": {
+        "request": {
+            "type": "object",
+            "description": "Request payload",
+            "properties": {
+                "tool": {
+                    "type": "string",
+                    "description": "Name of the tool to execute"
+                },
+                "language": {
+                    "type": "string",
+                    "description": "Programming language (for code execution)",
+                    "enum": [
+                        "javascript",
+                        "python",
+                        "typescript",
+                        "shell"
+                    ]
+                },
+                "code": {
+                    "type": "string",
+                    "description": "Code to execute (for code execution tools)"
+                },
+                "params": {
+                    "type": "object",
+                    "description": "Parameters to pass to the tool",
+                    "additionalProperties": true
+                },
+                "timeout": {
+                    "type": "integer",
+                    "description": "Execution timeout in milliseconds",
+                    "default": 30000,
+                    "minimum": 100
+                }
+            },
+            "oneOf": [
+                {
+                    "required": [
+                        "tool",
+                        "params"
+                    ]
+                },
+                {
+                    "required": [
+                        "language",
+                        "code"
+                    ]
+                }
+            ]
+        },
+        "response": {
+            "type": "object",
+            "description": "Response payload",
+            "properties": {
+                "success": {
+                    "type": "boolean"
+                },
+                "result": {
+                    "description": "Execution result"
+                },
+                "output": {
+                    "type": "string",
+                    "description": "stdout/stderr output"
+                },
+                "error": {
+                    "type": "object",
+                    "properties": {
+                        "code": {
+                            "type": "string"
+                        },
+                        "message": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "executionTime": {
+                    "type": "integer",
+                    "description": "Execution time in ms"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        }
+    },
+    "examples": [
+        {
+            "request": {
+                "tool": "web_search",
+                "params": {
+                    "query": "CrossBus documentation"
+                }
+            },
+            "response": {
+                "success": true,
+                "result": {
+                    "results": []
+                },
+                "executionTime": 150
+            }
+        },
+        {
+            "request": {
+                "language": "javascript",
+                "code": "return 2 + 2"
+            },
+            "response": {
+                "success": true,
+                "result": 4,
+                "output": "",
+                "executionTime": 5
+            }
+        }
+    ]
+}

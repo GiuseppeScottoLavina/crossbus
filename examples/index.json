@@ -1,0 +1,57 @@
+{
+    "version": "1.0.0",
+    "description": "CrossBus Examples Registry - Machine-readable patterns and templates for AI agents",
+    "patterns": [
+        {
+            "id": "hub-spoke",
+            "title": "Hub-Spoke Pattern",
+            "description": "Central orchestrator communicates with multiple agents",
+            "difficulty": "beginner",
+            "path": "./patterns/hub-spoke.json",
+            "code": "./patterns/hub-spoke.js"
+        },
+        {
+            "id": "multi-tab-sync",
+            "title": "Multi-Tab Sync Pattern",
+            "description": "Synchronize state across multiple browser tabs",
+            "difficulty": "beginner",
+            "path": "./patterns/multi-tab-sync.json",
+            "code": "./patterns/multi-tab-sync.js"
+        },
+        {
+            "id": "worker-offload",
+            "title": "Worker Offload Pattern",
+            "description": "Offload heavy computation to a Web Worker",
+            "difficulty": "intermediate",
+            "path": "./patterns/worker-offload.json",
+            "code": "./patterns/worker-offload.js",
+            "additionalFiles": [
+                "./patterns/compute-worker.js"
+            ]
+        }
+    ],
+    "templates": [
+        {
+            "id": "llm-agent",
+            "title": "LLM Agent Template",
+            "description": "Template for creating an LLM-based agent",
+            "path": "./templates/llm-agent.js"
+        },
+        {
+            "id": "tool-agent",
+            "title": "Tool Agent Template",
+            "description": "Template for creating a tool/function agent",
+            "path": "./templates/tool-agent.js"
+        },
+        {
+            "id": "orchestrator",
+            "title": "Orchestrator Template",
+            "description": "Template for creating a central orchestrator",
+            "path": "./templates/orchestrator.js"
+        }
+    ],
+    "usage": {
+        "forAIAgents": "AI agents can read the .json files to understand patterns step-by-step.",
+        "forDevelopers": "Developers can copy the .js files directly into their projects."
+    }
+}

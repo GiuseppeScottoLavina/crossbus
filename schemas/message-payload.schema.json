@@ -1,0 +1,28 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "crossbus://schemas/signal-payload",
+    "title": "CrossBus Signal Payload",
+    "description": "Payload structure for broadcasting signals via bus.signal()",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "description": "Signal name/event type (e.g., 'user:update', 'agent:ready')",
+            "pattern": "^[a-z][a-z0-9]*(?::[a-z][a-z0-9]*)*$",
+            "examples": [
+                "agent:ready",
+                "task:complete",
+                "ui:update"
+            ]
+        },
+        "data": {
+            "type": "object",
+            "description": "Arbitrary payload data to broadcast",
+            "additionalProperties": true
+        }
+    },
+    "required": [
+        "name",
+        "data"
+    ]
+}

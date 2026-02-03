@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrossBus — Unified Messaging for Browser Applications</title>
+    <meta name="description"
+        content="Zero dependencies. Blazing fast. Secure by default. The #1 cross-context messaging library for iframes, workers, tabs, and AI-powered apps.">
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="CrossBus — Stop Wrestling with postMessage">
+    <meta property="og:description"
+        content="Dead-simple RPC for iframes, workers, tabs. Designed for AI-powered apps. 181M ops/sec. Zero dependencies. Secure by default.">
+    <meta property="og:type" content="website">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated gradient background */
+        .hero-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100vh;
+            background:
+                radial-gradient(ellipse at 20% 20%, var(--accent-glow) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.2) 0%, transparent 50%),
+                var(--bg-primary);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 0;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .cta-button {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px var(--accent-glow);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding-top: 80px;
+        }
+
+        .hero-content {
+            max-width: 800px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        h1 .gradient {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary), #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            max-width: 600px;
+        }
+
+        .hero-ctas {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .secondary-button {
+            padding: 10px 24px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .secondary-button:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--accent-primary);
+        }
+
+        /* Stats Strip */
+        .stats {
+            display: flex;
+            gap: 48px;
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 1px solid var(--border);
+        }
+
+        .stat {
+            text-align: left;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent-primary);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        /* Features Grid */
+        .features {
+            padding: 120px 0;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 60px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Code Example */
+        .code-section {
+            padding: 80px 0;
+            background: var(--bg-secondary);
+        }
+
+        .code-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .code-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .code-block {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .code-dot.red {
+            background: #ff5f56;
+        }
+
+        .code-dot.yellow {
+            background: #ffbd2e;
+        }
+
+        .code-dot.green {
+            background: #27ca3f;
+        }
+
+        .code-title {
+            margin-left: 16px;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        pre {
+            padding: 24px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.7;
+        }
+
+        .keyword {
+            color: #c792ea;
+        }
+
+        .string {
+            color: #c3e88d;
+        }
+
+        .function {
+            color: #82aaff;
+        }
+
+        .comment {
+            color: #546e7a;
+        }
+
+        .variable {
+            color: #f78c6c;
+        }
+
+        /* Comparison Table */
+        .comparison {
+            padding: 120px 0;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 20px 24px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comparison-table th {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+        }
+
+        .comparison-table th:first-child,
+        .comparison-table td:first-child {
+            text-align: left;
+        }
+
+        .check {
+            color: var(--success);
+            font-size: 1.25rem;
+        }
+
+        .cross {
+            color: var(--text-muted);
+            font-size: 1.25rem;
+        }
+
+        /* CTA Section */
+        .final-cta {
+            padding: 120px 0;
+            text-align: center;
+            background: linear-gradient(180deg, var(--bg-primary), var(--bg-secondary));
+        }
+
+        .final-cta h2 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 24px;
+        }
+
+        .install-command {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px 24px;
+            margin: 32px 0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .install-command code {
+            font-size: 1.125rem;
+        }
+
+        .copy-btn {
+            background: var(--bg-tertiary);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        /* Footer */
+        footer {
+            padding: 40px 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin: 0 16px;
+        }
+
+        footer a:hover {
+            color: var(--accent-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .stats {
+                flex-wrap: wrap;
+                gap: 24px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="hero-bg"></div>
+
+    <nav>
+        <div class="container">
+            <div class="logo"><img src="logo-400.png" alt="CB"
+                    style="width: 28px; height: 28px; border-radius: 50%; vertical-align: middle; margin-right: 8px;">CrossBus
+            </div>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#code">Examples</a></li>
+                <li><a href="#comparison">Compare</a></li>
+                <li><a href="https://github.com/giuseppescottolavina/crossbus">GitHub</a></li>
+            </ul>
+            <a href="#install" class="cta-button">Get Started →</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="badge">
+                    <span class="badge-dot"></span>
+                    v0.1.0 — Cross-Context Messaging for Browsers
+                </div>
+
+                <h1>
+                    Stop wrestling with<br>
+                    <span class="gradient">postMessage.</span>
+                </h1>
+
+                <p class="hero-subtitle">
+                    Dead-simple RPC for iframes, workers, tabs, and AI-powered apps.
+                    Zero dependencies. Blazing fast. Secure by default.
+                </p>
+
+                <div class="hero-ctas">
+                    <a href="#install" class="cta-button">npm install crossbus →</a>
+                    <a href="https://github.com/giuseppescottolavina/crossbus" class="secondary-button">View on
+                        GitHub</a>
+                </div>
+
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value">181M</div>
+                        <div class="stat-label">ops/second</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">dependencies</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">1072</div>
+                        <div class="stat-label">tests passing</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">12KB</div>
+                        <div class="stat-label">gzipped</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">Everything you need.</h2>
+            <p class="section-subtitle">
+                The only library with enterprise security, AI-first design, and 7 transport types out of the box.
+            </p>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Secure by Default</h3>
+                    <p>createSecure() enforces best practices. Dev warnings catch insecure configs. AES-256-GCM
+                        encryption built-in.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Blazing Fast</h3>
+                    <p>181M ops/sec EventEmitter. 1.88x faster than nanoevents on multi-listener workloads. Zero runtime
+                        overhead.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>Agent-Ready Design</h3>
+                    <p>Optimized for AI agent usage. llms.txt + GEMINI.md docs.
+                        Schema validation. Copy-paste patterns for agents.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📡</div>
+                    <h3>7 Transport Types</h3>
+                    <p>PostMessage, BroadcastChannel, SharedWorker, ServiceWorker, WebSocket, NativeBridge,
+                        MessageChannel.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔌</div>
+                    <h3>Plugin Ecosystem</h3>
+                    <p>Retry, Circuit Breaker, Rate Limiter, Compression, Batching, Encryption. All tree-shakeable.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🏢</div>
+                    <h3>Enterprise Ready</h3>
+                    <p>Distributed tracing, Prometheus metrics, backpressure control, message versioning with migration.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="code-section" id="code">
+        <div class="container">
+            <h2 class="section-title">Two files. That's it.</h2>
+            <p class="section-subtitle">
+                Connect any iframe to your main page with secure RPC in under 30 seconds.
+            </p>
+
+            <div class="code-container">
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-dot red"></span>
+                        <span class="code-dot yellow"></span>
+                        <span class="code-dot green"></span>
+                        <span class="code-title">main.js — Hub (Parent Page)</span>
+                    </div>
+                    <pre><code><span class="keyword">import</span> { CrossBus } <span class="keyword">from</span> <span class="string">'crossbus'</span>;
+
+<span class="comment">// 1. Create secure hub</span>
+<span class="keyword">const</span> hub = CrossBus.<span class="function">createSecure</span>({
+  peerId: <span class="string">'hub'</span>,
+  isHub: <span class="keyword">true</span>,
+  allowedOrigins: [<span class="string">'https://yourdomain.com'</span>]
+});
+
+<span class="comment">// 2. Register handlers</span>
+hub.<span class="function">handle</span>(<span class="string">'getData'</span>, <span class="keyword">async</span> ({ userId }) => {
+  <span class="keyword">return</span> <span class="keyword">await</span> <span class="function">db.query</span>({ userId });
+});
+
+<span class="comment">// 3. Connect iframe</span>
+hub.<span class="function">addTransport</span>(
+  <span class="keyword">new</span> <span class="function">PostMessageTransport</span>(iframe.contentWindow),
+  { peerId: <span class="string">'agent'</span> }
+);</code></pre>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-dot red"></span>
+                        <span class="code-dot yellow"></span>
+                        <span class="code-dot green"></span>
+                        <span class="code-title">iframe.js — Agent (Child Frame)</span>
+                    </div>
+                    <pre><code><span class="keyword">import</span> { CrossBus } <span class="keyword">from</span> <span class="string">'crossbus'</span>;
+
+<span class="comment">// 1. Create agent</span>
+<span class="keyword">const</span> agent = <span class="keyword">new</span> <span class="function">CrossBus</span>({
+  peerId: <span class="string">'agent'</span>,
+  allowedOrigins: [<span class="string">'*'</span>]
+});
+
+<span class="comment">// 2. Connect to parent</span>
+agent.<span class="function">addTransport</span>(
+  <span class="keyword">new</span> <span class="function">PostMessageTransport</span>(window.parent),
+  { peerId: <span class="string">'hub'</span> }
+);
+
+<span class="comment">// 3. Make RPC calls — that's it!</span>
+<span class="keyword">const</span> user = <span class="keyword">await</span> agent.<span class="function">request</span>(
+  <span class="string">'hub'</span>, <span class="string">'getData'</span>, { userId: <span class="variable">123</span> }
+);</code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="comparison" id="comparison">
+        <div class="container">
+            <h2 class="section-title">Why developers choose CrossBus</h2>
+            <p class="section-subtitle">
+                The only library with AI-first features, enterprise security, and modern DX.
+            </p>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>CrossBus</th>
+                        <th>Comlink</th>
+                        <th>Penpal</th>
+                        <th>Post-Robot</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>llms.txt + agent.json</td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                    </tr>
+                    <tr>
+                        <td>createSecure() factory</td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                    </tr>
+                    <tr>
+                        <td>Handler rate limiting</td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                    </tr>
+                    <tr>
+                        <td>Schema validation</td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                    </tr>
+                    <tr>
+                        <td>7 transport types</td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                    </tr>
+                    <tr>
+                        <td>WebSocket + auto-reconnect</td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                    </tr>
+                    <tr>
+                        <td>healthCheck() + diagnose()</td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="final-cta" id="install">
+        <div class="container">
+            <h2>Ready to build?</h2>
+            <p class="section-subtitle" style="margin-bottom: 0;">
+                Join thousands of developers building the next generation of web applications.
+            </p>
+
+            <div class="install-command">
+                <code>npm install crossbus</code>
+                <button class="copy-btn" onclick="navigator.clipboard.writeText('npm install crossbus')">Copy</button>
+            </div>
+
+            <div style="display: flex; gap: 16px; justify-content: center;">
+                <a href="https://github.com/giuseppescottolavina/crossbus" class="cta-button">⭐ Star on GitHub</a>
+                <a href="./doc.html?file=API.md" class="secondary-button">Read the Docs →</a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>
+                <a href="https://github.com/giuseppescottolavina/crossbus">GitHub</a>
+                <a href="./doc.html?file=API.md">Documentation</a>
+                <a href="https://www.npmjs.com/package/crossbus">NPM</a>
+                <a href="../LICENSE">Apache 2.0 License</a>
+            </p>
+            <p style="margin-top: 16px;">Built with ❤️ for developers who care about security and performance.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

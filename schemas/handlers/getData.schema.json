@@ -1,0 +1,81 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "crossbus://schemas/handlers/getData",
+    "title": "getData Handler",
+    "description": "Request data from a peer by ID. Standard pattern for data retrieval.",
+    "type": "object",
+    "properties": {
+        "request": {
+            "type": "object",
+            "description": "Request payload",
+            "properties": {
+                "id": {
+                    "type": [
+                        "string",
+                        "integer"
+                    ],
+                    "description": "Unique identifier of the item to retrieve"
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Optional: specific fields to return"
+                }
+            },
+            "required": [
+                "id"
+            ]
+        },
+        "response": {
+            "type": "object",
+            "description": "Response payload",
+            "properties": {
+                "data": {
+                    "type": "object",
+                    "description": "Retrieved data object",
+                    "additionalProperties": true
+                },
+                "found": {
+                    "type": "boolean",
+                    "description": "Whether the item was found"
+                }
+            },
+            "required": [
+                "data"
+            ]
+        }
+    },
+    "examples": [
+        {
+            "request": {
+                "id": 5
+            },
+            "response": {
+                "data": {
+                    "id": 5,
+                    "name": "User",
+                    "email": "user@example.com"
+                },
+                "found": true
+            }
+        },
+        {
+            "request": {
+                "id": "abc123",
+                "fields": [
+                    "name",
+                    "status"
+                ]
+            },
+            "response": {
+                "data": {
+                    "name": "Task",
+                    "status": "pending"
+                },
+                "found": true
+            }
+        }
+    ]
+}

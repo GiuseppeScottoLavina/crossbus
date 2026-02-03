@@ -1,0 +1,320 @@
+{
+  "metadata": {
+    "timestamp": "2026-01-25T08:05:20.768Z",
+    "runtime": "Bun 1.3.6",
+    "platform": "darwin arm64"
+  },
+  "benchmarks": {
+    "emitSync": {
+      "name": "emitSync (1 listener)",
+      "iterations": 1000000,
+      "totalTime": "117.10ms",
+      "opsPerSec": "8.54M",
+      "opsPerSecRaw": 8539910.202844217,
+      "latency": {
+        "p50": "0.08μs",
+        "p95": "0.12μs",
+        "p99": "0.13μs",
+        "avg": "0.08μs"
+      },
+      "memory": {
+        "heapDelta": "0 B",
+        "heapUsed": "205.02 KB"
+      }
+    },
+    "emitSyncPayload": {
+      "name": "emitSync (10KB payload)",
+      "iterations": 100000,
+      "totalTime": "67.48ms",
+      "opsPerSec": "1.48M",
+      "opsPerSecRaw": 1482027.6361103433,
+      "latency": {
+        "p50": "0.37μs",
+        "p95": "0.75μs",
+        "p99": "1.83μs",
+        "avg": "0.64μs"
+      },
+      "memory": {
+        "heapDelta": "-27516703 B",
+        "heapUsed": "1.04 MB"
+      }
+    },
+    "emit": {
+      "name": "emit (async)",
+      "iterations": 100000,
+      "totalTime": "48.09ms",
+      "opsPerSec": "2.08M",
+      "opsPerSecRaw": 2079441.5717883331,
+      "latency": {
+        "p50": "0.33μs",
+        "p95": "0.58μs",
+        "p99": "1.92μs",
+        "avg": "0.44μs"
+      },
+      "memory": {
+        "heapDelta": "544.59 KB",
+        "heapUsed": "1.58 MB"
+      }
+    },
+    "emitSync10Listeners": {
+      "name": "emitSync (10 listeners)",
+      "iterations": 500000,
+      "totalTime": "67.69ms",
+      "opsPerSec": "7.39M",
+      "opsPerSecRaw": 7386710.937687554,
+      "latency": {
+        "p50": "0.08μs",
+        "p95": "0.13μs",
+        "p99": "0.17μs",
+        "avg": "0.11μs"
+      },
+      "memory": {
+        "heapDelta": "2.26 MB",
+        "heapUsed": "3.83 MB"
+      }
+    },
+    "emitWildcard": {
+      "name": "emit with wildcard",
+      "iterations": 50000,
+      "totalTime": "42.24ms",
+      "opsPerSec": "1.18M",
+      "opsPerSecRaw": 1183700.4635560382,
+      "latency": {
+        "p50": "0.62μs",
+        "p95": "1.17μs",
+        "p99": "2.96μs",
+        "avg": "0.81μs"
+      },
+      "memory": {
+        "heapDelta": "299.99 KB",
+        "heapUsed": "4.13 MB"
+      }
+    },
+    "signalNoPeers": {
+      "name": "signal (no peers)",
+      "iterations": 100000,
+      "totalTime": "78.80ms",
+      "opsPerSec": "1.27M",
+      "opsPerSecRaw": 1269052.974420958,
+      "latency": {
+        "p50": "0.62μs",
+        "p95": "1.00μs",
+        "p99": "2.21μs",
+        "avg": "0.75μs"
+      },
+      "memory": {
+        "heapDelta": "256.14 KB",
+        "heapUsed": "4.38 MB"
+      }
+    },
+    "signalWith10Peers": {
+      "name": "signal (10 peers)",
+      "iterations": 50000,
+      "totalTime": "123.57ms",
+      "opsPerSec": "404.64K",
+      "opsPerSecRaw": 404641.91610183596,
+      "latency": {
+        "p50": "2.04μs",
+        "p95": "3.17μs",
+        "p99": "9.92μs",
+        "avg": "2.44μs"
+      },
+      "memory": {
+        "heapDelta": "206.46 KB",
+        "heapUsed": "4.64 MB"
+      }
+    },
+    "handleRegister": {
+      "name": "handle registration",
+      "iterations": 50000,
+      "totalTime": "16.34ms",
+      "opsPerSec": "3.06M",
+      "opsPerSecRaw": 3060279.8625934264,
+      "latency": {
+        "p50": "0.21μs",
+        "p95": "0.38μs",
+        "p99": "1.46μs",
+        "avg": "0.29μs"
+      },
+      "memory": {
+        "heapDelta": "151.16 KB",
+        "heapUsed": "4.79 MB"
+      }
+    },
+    "peerLookupEmpty": {
+      "name": "getPeer (empty router)",
+      "iterations": 1000000,
+      "totalTime": "116.79ms",
+      "opsPerSec": "8.56M",
+      "opsPerSecRaw": 8562578.534900011,
+      "latency": {
+        "p50": "0.08μs",
+        "p95": "0.08μs",
+        "p99": "0.13μs",
+        "avg": "0.08μs"
+      },
+      "memory": {
+        "heapDelta": "15.00 MB",
+        "heapUsed": "19.79 MB"
+      }
+    },
+    "peerLookup100": {
+      "name": "getPeer (100 peers)",
+      "iterations": 1000000,
+      "totalTime": "124.38ms",
+      "opsPerSec": "8.04M",
+      "opsPerSecRaw": 8039689.24446434,
+      "latency": {
+        "p50": "0.08μs",
+        "p95": "0.13μs",
+        "p99": "0.13μs",
+        "avg": "0.10μs"
+      },
+      "memory": {
+        "heapDelta": "0 B",
+        "heapUsed": "19.79 MB"
+      }
+    },
+    "routeUnicast": {
+      "name": "route unicast",
+      "iterations": 500000,
+      "totalTime": "119.70ms",
+      "opsPerSec": "4.18M",
+      "opsPerSecRaw": 4176943.688533667,
+      "latency": {
+        "p50": "0.17μs",
+        "p95": "0.25μs",
+        "p99": "0.54μs",
+        "avg": "0.21μs"
+      },
+      "memory": {
+        "heapDelta": "2.06 MB",
+        "heapUsed": "40.87 MB"
+      }
+    },
+    "broadcast100": {
+      "name": "broadcast (100 peers)",
+      "iterations": 10000,
+      "totalTime": "148.30ms",
+      "opsPerSec": "67.43K",
+      "opsPerSecRaw": 67432.00145173012,
+      "latency": {
+        "p50": "12.75μs",
+        "p95": "20.71μs",
+        "p99": "29.83μs",
+        "avg": "14.79μs"
+      },
+      "memory": {
+        "heapDelta": "5.84 MB",
+        "heapUsed": "50.55 MB"
+      }
+    },
+    "requestCreateResolve": {
+      "name": "create + resolve",
+      "iterations": 50000,
+      "totalTime": "56.03ms",
+      "opsPerSec": "892.38K",
+      "opsPerSecRaw": 892380.420488227,
+      "latency": {
+        "p50": "0.79μs",
+        "p95": "1.58μs",
+        "p99": "3.37μs",
+        "avg": "1.08μs"
+      },
+      "memory": {
+        "heapDelta": "22.07 MB",
+        "heapUsed": "72.62 MB"
+      }
+    },
+    "requestLookup500": {
+      "name": "has() with 500 pending",
+      "iterations": 500000,
+      "totalTime": "63.33ms",
+      "opsPerSec": "7.89M",
+      "opsPerSecRaw": 7894669.321907083,
+      "latency": {
+        "p50": "0.08μs",
+        "p95": "0.13μs",
+        "p99": "0.13μs",
+        "avg": "0.10μs"
+      },
+      "memory": {
+        "heapDelta": "0 B",
+        "heapUsed": "72.62 MB"
+      }
+    },
+    "originExact": {
+      "name": "exact origin match",
+      "iterations": 1000000,
+      "totalTime": "126.17ms",
+      "opsPerSec": "7.93M",
+      "opsPerSecRaw": 7925748.983873404,
+      "latency": {
+        "p50": "0.08μs",
+        "p95": "0.13μs",
+        "p99": "0.13μs",
+        "avg": "0.09μs"
+      },
+      "memory": {
+        "heapDelta": "0 B",
+        "heapUsed": "72.62 MB"
+      }
+    },
+    "originWildcard": {
+      "name": "wildcard origin match",
+      "iterations": 500000,
+      "totalTime": "86.63ms",
+      "opsPerSec": "5.77M",
+      "opsPerSecRaw": 5771556.040366232,
+      "latency": {
+        "p50": "0.13μs",
+        "p95": "0.17μs",
+        "p99": "0.29μs",
+        "avg": "0.14μs"
+      },
+      "memory": {
+        "heapDelta": "0 B",
+        "heapUsed": "28.70 MB"
+      }
+    },
+    "originReDoS": {
+      "name": "ReDoS-resistant (200 char subdomain)",
+      "iterations": 100000,
+      "totalTime": "44.77ms",
+      "opsPerSec": "2.23M",
+      "opsPerSecRaw": 2233815.326644781,
+      "latency": {
+        "p50": "0.33μs",
+        "p95": "0.42μs",
+        "p99": "1.54μs",
+        "avg": "0.41μs"
+      },
+      "memory": {
+        "heapDelta": "71.74 KB",
+        "heapUsed": "28.77 MB"
+      }
+    },
+    "scaling": [
+      {
+        "peers": 1,
+        "opsPerSec": 857291.0460236777,
+        "formatted": "857.29K"
+      },
+      {
+        "peers": 10,
+        "opsPerSec": 391539.866546142,
+        "formatted": "391.54K"
+      },
+      {
+        "peers": 50,
+        "opsPerSec": 113321.56405788097,
+        "formatted": "113.32K"
+      },
+      {
+        "peers": 100,
+        "opsPerSec": 65190.64188335774,
+        "formatted": "65.19K"
+      }
+    ]
+  }
+}

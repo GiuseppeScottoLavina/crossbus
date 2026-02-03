@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrossBus Integration Test - Hub</title>
+    <style>
+        body {
+            font-family: system-ui;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+        }
+
+        .log {
+            background: #16213e;
+            padding: 10px;
+            border-radius: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .log div {
+            padding: 4px 0;
+            border-bottom: 1px solid #0f3460;
+        }
+
+        .success {
+            color: #4ade80;
+        }
+
+        .error {
+            color: #f87171;
+        }
+
+        .info {
+            color: #60a5fa;
+        }
+
+        h1 {
+            color: #e94560;
+        }
+
+        iframe {
+            border: 2px solid #0f3460;
+            border-radius: 8px;
+            margin: 10px;
+        }
+
+        button {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #c73e54;
+        }
+
+        #status {
+            padding: 10px;
+            background: #16213e;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🚌 CrossBus Integration Test</h1>
+
+    <div id="status">
+        <strong>Status:</strong> <span id="statusText">Initializing...</span>
+    </div>
+
+    <div>
+        <button onclick="sendSignal()">Send Signal to All</button>
+        <button onclick="sendRequest()">Request from Widget</button>
+        <button onclick="broadcastRequest()">Broadcast Request</button>
+        <button onclick="runAllTests()">🧪 Run All Tests</button>
+    </div>
+
+    <h3>Widget iframes:</h3>
+    <iframe id="widget1" src="widget.html?id=widget-1" width="300" height="150"></iframe>
+    <iframe id="widget2" src="widget.html?id=widget-2" width="300" height="150"></iframe>
+
+    <h3>Log:</h3>
+    <div id="log" class="log"></div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "cbor-x": "https://esm.sh/cbor-x@1.6.0"
+        }
+    }
+    </script>
+
+
+    <script type="module">
+        // Import CrossBus from local build
+        import { CrossBus, MessageType } from '../../src/index.js';
+
+        window.log = function (msg, type = 'info') {
+            const logEl = document.getElementById('log');
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = `[${new Date().toISOString().substr(11, 12)}] ${msg}`;
+            logEl.appendChild(div);
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(`[${type}]`, msg);
+        };
+
+        window.setStatus = function (text) {
+            document.getElementById('statusText').textContent = text;
+        };
+
+        // Create hub
+        const hub = new CrossBus({
+            isHub: true,
+            peerId: 'hub',
+            allowedOrigins: ['*']
+        });
+
+        window.hub = hub;
+
+        // Listen for peer events
+        // Listen for peer events
+        hub.on('peer:connected', (e) => {
+            const peerId = e.peerId || e.data?.peerId || e.payload?.peerId;
+            log(`Peer connected: ${peerId}`, 'success');
+            setStatus(`${hub.peerCount} peer(s) connected`);
+        });
+
+        hub.on('peer:disconnected', (e) => {
+            const peerId = e.peerId || e.data?.peerId || e.payload?.peerId;
+            log(`Peer disconnected: ${peerId}`, 'error');
+            setStatus(`${hub.peerCount} peer(s) connected`);
+        });
+
+        // Register handler
+        hub.handle('hubStatus', () => {
+            return {
+                status: 'ok',
+                peerCount: hub.peerCount,
+                uptime: Date.now()
+            };
+        });
+
+        // Listen for widget registration via postMessage
+        window.addEventListener('message', async (event) => {
+            const { data, source, origin } = event;
+
+            if (data && data.__crossbus_register) {
+                const widgetId = data.peerId;
+                log(`Widget registering: ${widgetId}`);
+
+                // Add peer with send function
+                hub.addPeer(widgetId, (msg) => {
+                    source.postMessage(msg, '*');
+                }, { meta: data.meta, origin });
+
+                // Confirm registration
+                source.postMessage({
+                    __crossbus_registered: true,
+                    peerId: widgetId
+                }, '*');
+            } else if (data && (data.t || data.type)) {
+                // Handle CrossBus messages
+                const sourcePeerId = data.source || 'unknown';
+                await hub.handleMessage(data, origin, sourcePeerId, (reply) => {
+                    source.postMessage(reply, '*');
+                });
+            }
+        });
+
+        // Test functions
+        window.sendSignal = function () {
+            log('Sending signal to all widgets...');
+            const result = hub.signal('test:ping', { timestamp: Date.now() });
+            log(`Signal delivered to ${result.delivered} peers`, 'success');
+        };
+
+        window.sendRequest = async function () {
+            const peers = hub.peers;
+            if (peers.length === 0) {
+                log('No peers connected', 'error');
+                return;
+            }
+
+            try {
+                log(`Requesting status from ${peers[0]}...`);
+                const result = await hub.request(peers[0], 'getStatus', {}, { timeout: 5000 });
+                log(`Response: ${JSON.stringify(result)}`, 'success');
+            } catch (error) {
+                log(`Request failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.broadcastRequest = async function () {
+            log('Broadcasting request to all peers...');
+            const results = await hub.broadcastRequest('getStatus', {}, { timeout: 5000 });
+
+            for (const [peerId, result] of results) {
+                if (result.success) {
+                    log(`${peerId}: ${JSON.stringify(result.data)}`, 'success');
+                } else {
+                    log(`${peerId}: ${result.error}`, 'error');
+                }
+            }
+        };
+
+        window.runAllTests = async function () {
+            log('=== Starting Integration Tests ===', 'info');
+            let passed = 0;
+            let failed = 0;
+
+            // Test 1: Peer connection
+            log('Test 1: Peer connection');
+            if (hub.peerCount >= 1) {
+                log('  ✅ At least one peer connected', 'success');
+                passed++;
+            } else {
+                log('  ❌ No peers connected', 'error');
+                failed++;
+            }
+
+            // Test 2: Signal broadcast
+            log('Test 2: Signal broadcast');
+            const signalResult = hub.signal('test:integration', { test: true });
+            if (signalResult.delivered > 0) {
+                log(`  ✅ Signal delivered to ${signalResult.delivered} peers`, 'success');
+                passed++;
+            } else {
+                log('  ❌ Signal not delivered', 'error');
+                failed++;
+            }
+
+            // Test 3: Request/Response
+            log('Test 3: Request/Response');
+            try {
+                const peers = hub.peers;
+                if (peers.length > 0) {
+                    const response = await hub.request(peers[0], 'getStatus', {}, { timeout: 3000 });
+                    if (response && response.status) {
+                        log(`  ✅ Request/Response works: ${response.status}`, 'success');
+                        passed++;
+                    } else {
+                        log('  ❌ Invalid response', 'error');
+                        failed++;
+                    }
+                } else {
+                    log('  ⚠️ Skipped - no peers', 'info');
+                }
+            } catch (error) {
+                log(`  ❌ Request failed: ${error.message}`, 'error');
+                failed++;
+            }
+
+            // Test 4: Broadcast Request
+            log('Test 4: Broadcast Request');
+            try {
+                const results = await hub.broadcastRequest('getStatus', {}, { timeout: 3000 });
+                if (results.size > 0) {
+                    log(`  ✅ Broadcast collected ${results.size} responses`, 'success');
+                    passed++;
+                } else {
+                    log('  ⚠️ No responses collected', 'info');
+                }
+            } catch (error) {
+                log(`  ❌ Broadcast failed: ${error.message}`, 'error');
+                failed++;
+            }
+
+            log(`=== Tests Complete: ${passed} passed, ${failed} failed ===`,
+                failed === 0 ? 'success' : 'error');
+
+            // Set window result for Puppeteer
+            window.__testResults = { passed, failed, total: passed + failed };
+        };
+
+        log('Hub initialized, waiting for widgets...', 'info');
+        setStatus('Waiting for widgets to connect...');
+    </script>
+</body>
+
+</html>

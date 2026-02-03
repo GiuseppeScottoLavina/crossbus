@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrossBus - Cross-Context Messaging for Browsers</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <!-- Marked.js for full GFM Markdown support (tables, etc.) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Highlight.js for code syntax -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11/highlight.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #1e3a5f;
+            --accent: #00d4ff;
+            --bg: #0a0f1a;
+            --bg-card: #111827;
+            --text: #e5e7eb;
+            --text-muted: #9ca3af;
+            --border: #1f2937;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(10, 15, 26, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .logo img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--accent);
+        }
+
+        /* Main layout */
+        .layout {
+            display: flex;
+            margin-top: 60px;
+            min-height: calc(100vh - 60px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.5rem;
+            position: fixed;
+            top: 60px;
+            bottom: 0;
+            overflow-y: auto;
+        }
+
+        .sidebar h3 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .sidebar h3:first-child {
+            margin-top: 0;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 0.5rem 0;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .sidebar a:hover {
+            color: var(--accent);
+        }
+
+        .sidebar a.active {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Content */
+        .content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 3rem;
+            max-width: 900px;
+        }
+
+        /* Markdown styles */
+        .markdown h1,
+        .markdown h2,
+        .markdown h3,
+        .markdown h4,
+        .markdown h5,
+        .markdown h6 {
+            scroll-margin-top: 80px;
+            /* Account for fixed navbar */
+        }
+
+        .markdown h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .markdown h2 {
+            font-size: 1.75rem;
+            margin: 2rem 0 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .markdown h3 {
+            font-size: 1.25rem;
+            margin: 1.5rem 0 0.75rem;
+        }
+
+        .markdown p {
+            margin-bottom: 1rem;
+        }
+
+        .markdown a {
+            color: var(--accent);
+        }
+
+        .markdown code {
+            background: var(--bg-card);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.875rem;
+        }
+
+        .markdown pre {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            border: 1px solid var(--border);
+        }
+
+        .markdown pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .markdown ul,
+        .markdown ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+
+        .markdown li {
+            margin: 0.5rem 0;
+        }
+
+        .markdown table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .markdown th,
+        .markdown td {
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+
+        .markdown th {
+            background: var(--bg-card);
+        }
+
+        .markdown blockquote {
+            border-left: 4px solid var(--accent);
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: var(--text-muted);
+        }
+
+        /* Hero section */
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+            background: linear-gradient(180deg, rgba(0, 212, 255, 0.1) 0%, transparent 100%);
+            border-radius: 16px;
+            margin-bottom: 3rem;
+        }
+
+        .hero img {
+            width: 80px;
+            margin-bottom: 1rem;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--accent);
+            color: var(--bg);
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 1rem;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="#home" class="logo" data-page="home">
+            <img src="logo-400.png" alt="CrossBus" style="width: 32px; height: 32px; border-radius: 50%;">
+            CrossBus
+        </a>
+        <div class="nav-links">
+            <a href="#home" data-page="home" class="active">Home</a>
+            <a href="#getting-started" data-page="getting-started">Docs</a>
+            <a href="#api" data-page="api">API</a>
+            <a href="#examples" data-page="examples">Examples</a>
+            <a href="https://github.com/giuseppescottolavina/crossbus" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <h3>Getting Started</h3>
+            <a href="#getting-started" data-page="getting-started">Installation</a>
+            <a href="#getting-started" data-page="getting-started">Quick Start</a>
+
+            <h3>Documentation</h3>
+            <a href="#api" data-page="api">API Reference</a>
+            <a href="#examples" data-page="examples">Examples</a>
+            <a href="#architecture" data-page="architecture">Architecture</a>
+
+            <h3>Plugins</h3>
+            <a href="#examples" data-page="examples">Retry Plugin</a>
+            <a href="#examples" data-page="examples">Circuit Breaker</a>
+
+            <h3>Resources</h3>
+            <a href="bundle-stats.html">Bundle Analyzer</a>
+            <a href="demo.html">Live Demo</a>
+        </aside>
+
+        <main class="content">
+            <div id="page-content" class="markdown">
+                <div class="loading">Loading...</div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Configure marked.js with GFM (tables, strikethrough, etc.)
+        marked.setOptions({
+            gfm: true,
+            breaks: true
+        });
+
+        // Custom renderer to add IDs to headers for anchor navigation
+        // Compatible with marked.js v4-v12+ (handles both object and string args)
+        const renderer = new marked.Renderer();
+        renderer.heading = function (args, level) {
+            // Handle both old API (text, level) and new API (object with text/depth)
+            let text, depth;
+            if (typeof args === 'object' && args !== null) {
+                text = args.text || '';
+                depth = args.depth || level || 1;
+            } else {
+                text = String(args || '');
+                depth = level || 1;
+            }
+            // GitHub-compatible slug: spaces to hyphens, remove punctuation
+            const slug = text.toLowerCase().replace(/ /g, '-').replace(/[^a-z0-9-]/g, '');
+            return `<h${depth} id="${slug}">${text}</h${depth}>`;
+        };
+
+        marked.use({ renderer });
+
+        const parseMarkdown = (text) => marked.parse(text);
+
+        // Page configurations
+        const pages = {
+            'home': { type: 'home' },
+            'getting-started': { type: 'md', file: 'GETTING_STARTED.md' },
+            'api': { type: 'md', file: 'API.md' },
+            'examples': { type: 'md', file: 'EXAMPLES.md' },
+            'architecture': { type: 'md', file: 'ARCHITECTURE.md' }
+        };
+
+        // Home page content
+        function renderHome() {
+            return `
+                <div class="hero">
+                    <img src="logo.png" alt="CrossBus">
+                    <h1>CrossBus</h1>
+                    <p>Modern cross-context messaging for browsers</p>
+                    <div class="hero-stats">
+                        <div class="stat">
+                            <div class="stat-value">6.5KB</div>
+                            <div class="stat-label">brotli</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">0</div>
+                            <div class="stat-label">dependencies</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">283</div>
+                            <div class="stat-label">tests</div>
+                        </div>
+                    </div>
+                    <a href="#getting-started" class="btn" data-page="getting-started">Get Started →</a>
+                </div>
+                
+                <h2>Features</h2>
+                <ul>
+                    <li>🚀 <strong>Zero dependencies</strong> - Lightweight and fast</li>
+                    <li>📨 <strong>Multiple transports</strong> - PostMessage, BroadcastChannel, MessageChannel</li>
+                    <li>🔒 <strong>Security</strong> - Origin validation, 3-way handshake</li>
+                    <li>📞 <strong>RPC</strong> - Request/response pattern with timeouts</li>
+                    <li>🔌 <strong>Plugins</strong> - Retry, Circuit Breaker</li>
+                    <li>📝 <strong>TypeScript</strong> - Full type definitions</li>
+                </ul>
+                
+                <h2>Quick Install</h2>
+                <pre><code class="language-bash">npm install crossbus</code></pre>
+                
+                <h2>Basic Usage</h2>
+                <pre><code class="language-javascript">import { CrossBus } from 'crossbus';
+
+// Create hub (main page)
+const hub = new CrossBus({ peerId: 'hub', isHub: true });
+
+// Register handler
+hub.handle('getData', () => ({ hello: 'world' }));
+
+// Request from widget
+const data = await widget.request('hub', 'getData', {});
+</code></pre>
+            `;
+        }
+
+        // Load page content
+        async function loadPage(pageId) {
+            const content = document.getElementById('page-content');
+            const config = pages[pageId] || pages['home'];
+
+            // Update active states
+            document.querySelectorAll('[data-page]').forEach(el => {
+                el.classList.toggle('active', el.dataset.page === pageId);
+            });
+
+            if (config.type === 'home') {
+                content.innerHTML = renderHome();
+            } else if (config.type === 'md') {
+                content.innerHTML = '<div class="loading">Loading...</div>';
+                try {
+                    const response = await fetch(config.file);
+                    const text = await response.text();
+                    content.innerHTML = parseMarkdown(text);
+                } catch (err) {
+                    content.innerHTML = `<p>Error loading ${config.file}: ${err.message}</p>`;
+                }
+            }
+
+            // Re-highlight code blocks
+            document.querySelectorAll('pre code').forEach(block => {
+                hljs.highlightElement(block);
+            });
+        }
+
+        // Handle navigation
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('[data-page]');
+            if (link) {
+                e.preventDefault();
+                const pageId = link.dataset.page;
+                window.location.hash = pageId;
+                loadPage(pageId);
+            }
+        });
+
+        // Handle hash changes - only for known page IDs
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.slice(1) || 'home';
+            // Only navigate if it's a known page ID
+            if (pages[hash]) {
+                loadPage(hash);
+            }
+            // Otherwise, let the browser handle the anchor link normally
+        });
+
+        // Initial load
+        const initialPage = window.location.hash.slice(1) || 'home';
+        loadPage(initialPage);
+    </script>
+</body>
+
+</html>

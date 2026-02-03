@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Agent Memory</title>
+</head>
+
+<body>
+    <script type="importmap">
+    {
+        "imports": {
+            "cbor-x": "https://esm.sh/cbor-x@1.6.0"
+        }
+    }
+    </script>
+    <script type="module">
+        import { CrossBus, PostMessageTransport } from '../../dist/crossbus.js';
+
+        const agent = new CrossBus({
+            peerId: 'agent-memory',
+            isHub: false
+        });
+
+        const transport = new PostMessageTransport(window.parent);
+        transport.onMessage((msg) => agent.handleMessage(msg, window.location.origin, 'demo-hub', (res) => transport.send(res)));
+        agent.addPeer('demo-hub', (msg) => transport.send(msg));
+
+        // Simula db
+        const db = new Map();
+
+        agent.handle('memory:store', async ({ key, value }) => {
+            console.log('[Memory] Storing:', key);
+
+            // Simulate IO
+            await new Promise(r => setTimeout(r, 200));
+
+            const id = 'mem_' + key + '_' + Date.now();
+            db.set(id, value);
+
+            return {
+                stored: true,
+                id,
+                totalItems: db.size
+            };
+        });
+
+        console.log('[Memory] Ready');
+
+        // Signal to parent that agent is ready
+        window.parent.postMessage({
+            __crossbus__: true,
+            type: 'agent:ready',
+            peerId: 'agent-memory'
+        }, '*');
+    </script>
+</body>
+
+</html>

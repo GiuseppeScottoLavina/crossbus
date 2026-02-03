@@ -1,0 +1,42 @@
+{
+  "version": "1.0.3",
+  "timestamp": "2026-01-23T22:22:26.427Z",
+  "benchmarks": {
+    "signal.10_peers": {
+      "ops_sec": 4872057,
+      "latency_us": 0.20525210000000005
+    },
+    "route.unicast": {
+      "ops_sec": 6141186,
+      "latency_us": 0.16283499999999995
+    },
+    "getPeer.lookup": {
+      "ops_sec": 205920206,
+      "latency_us": 0.004856249999999988
+    },
+    "emit.1_listener": {
+      "ops_sec": 2334735,
+      "latency_us": 0.42831418
+    },
+    "emit.10_listeners": {
+      "ops_sec": 568511,
+      "latency_us": 1.75898125
+    },
+    "on.register": {
+      "ops_sec": 1642223,
+      "latency_us": 0.6089308400000002
+    },
+    "pending.create_cancel": {
+      "ops_sec": 572107,
+      "latency_us": 1.7479236333333337
+    },
+    "handle.register": {
+      "ops_sec": 5843169,
+      "latency_us": 0.17114000000000032
+    },
+    "handle.lookup": {
+      "ops_sec": 72661217,
+      "latency_us": 0.013762500000000273
+    }
+  }
+}

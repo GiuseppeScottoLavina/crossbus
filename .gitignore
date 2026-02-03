@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+.bun/
+
+# Build outputs (keep in git for distribution)
+# dist/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS files
+Thumbs.db
+
+# Test artifacts
+tests/e2e/screenshots/
+tests/e2e/videos/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Bun specific
+bun.lockb
+.npmrc
+
+# Agent-specific (local development)
+.agent/
+reports/

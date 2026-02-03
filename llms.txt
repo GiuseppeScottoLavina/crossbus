@@ -1,0 +1,161 @@
+# CrossBus - LLM Documentation
+
+> Cross-context messaging library for browsers. Zero dependencies, 181M ops/sec.
+
+## What is CrossBus?
+
+CrossBus enables communication between different browser contexts:
+- Iframes ↔ Parent windows
+- Browser tabs ↔ Browser tabs  
+- Main thread ↔ Web Workers
+- Browser ↔ WebSocket servers
+- WebView ↔ Native mobile apps
+
+## Quick Start
+
+```javascript
+// Hub (orchestrator)
+import { CrossBus, PostMessageTransport } from 'crossbus';
+
+const hub = new CrossBus({ 
+  isHub: true, 
+  peerId: 'hub', 
+  allowedOrigins: ['*'] 
+});
+hub.addTransport(new PostMessageTransport(iframe.contentWindow, {
+  targetOrigin: '*'
+}), { peerId: 'agent-1' });
+hub.handle('getData', async (payload) => ({ data: fetchData(payload.id) }));
+
+// Agent (spoke)
+const agent = new CrossBus({ 
+  peerId: 'agent-1', 
+  allowedOrigins: ['*'] 
+});
+agent.addTransport(new PostMessageTransport(window.parent, {
+  targetOrigin: '*'
+}), { peerId: 'hub' });
+const result = await agent.request('hub', 'getData', { id: 5 });
+```
+
+## Core API
+
+| Method | Purpose | Example |
+|--------|---------|---------|
+| `signal(name, data)` | Broadcast to all | `bus.signal('update', {x:1})` |
+| `request(peer, handler, data)` | RPC call | `await bus.request('hub', 'get', {})` |
+| `handle(name, fn)` | Register handler | `bus.handle('get', () => data)` |
+| `on(event, fn)` | Listen for signals | `bus.on('update', (e) => {})` |
+| `addTransport(t, opts)` | Add channel | `bus.addTransport(transport, { peerId: 'remote' })` |
+| `destroy()` | Cleanup | `bus.destroy()` |
+
+## Transports
+
+| Transport | Use Case |
+|-----------|----------|
+| `PostMessageTransport` | iframe ↔ parent |
+| `BroadcastChannelTransport` | tab ↔ tab sync |
+| `WebSocketTransport` | browser ↔ server |
+| `SharedWorkerTransport` | shared worker |
+| `ServiceWorkerTransport` | offline/background |
+| `NativeBridgeTransport` | iOS/Android WebView |
+
+## Plugins
+
+```javascript
+import { withEncryption } from 'crossbus/plugins/encryption';
+import { withRateLimiter } from 'crossbus/plugins/rate-limiter';
+import { withBatching } from 'crossbus/plugins/batch';
+import { withRetry } from 'crossbus/plugins/retry';
+import { createPeerCircuitBreaker } from 'crossbus/plugins/circuit-breaker';
+```
+
+## Common Patterns
+
+### Multi-Tab Sync
+```javascript
+const bus = new CrossBus({ 
+  peerId: `tab-${Date.now()}`, 
+  allowedOrigins: ['*'] 
+});
+bus.addTransport(new BroadcastChannelTransport('my-app'), { peerId: '*' });
+bus.on('sync', (e) => updateState(e.data));
+bus.signal('sync', { key: 'value' });
+```
+
+### Worker Offloading
+```javascript
+// Main
+const bus = new CrossBus({ peerId: 'main', allowedOrigins: ['*'] });
+bus.addTransport(new PostMessageTransport(worker), { peerId: 'worker' });
+const result = await bus.request('worker', 'compute', { data });
+
+// Worker
+const bus = new CrossBus({ peerId: 'worker', allowedOrigins: ['*'] });
+bus.addTransport(new PostMessageTransport(self), { peerId: 'main' });
+bus.handle('compute', ({ data }) => heavyComputation(data));
+```
+
+## Error Handling
+
+```javascript
+try {
+  const result = await bus.request('peer', 'action', data, { timeout: 5000 });
+} catch (error) {
+  if (error.code === 'TIMEOUT') { /* peer not responding */ }
+  if (error.code === 'PEER_DISCONNECTED') { /* peer left */ }
+  if (error.code === 'HANDLER_NOT_FOUND') { /* no handler */ }
+}
+```
+
+## Files for AI Agents
+
+- `GEMINI.md` - Instructions for AI coding assistants
+- `docs/AI-GUIDE.md` - Comprehensive patterns and anti-patterns
+- `agent.json` - A2A-compatible Agent Card
+- `schemas/` - **JSON Schemas** for handler contracts
+- `examples/` - Machine-readable patterns and templates
+
+## AI Agent Safety Features
+
+### Production Setup
+```javascript
+// createSecure() enforces security
+const hub = CrossBus.createSecure({
+  peerId: 'prod-hub',
+  allowedOrigins: ['https://trusted.com']
+});
+```
+
+### Handler Security
+```javascript
+bus.handle('sensitiveAction', handler, {
+  allowedPeers: ['trusted-agent'],  // Whitelist
+  rateLimit: 10,                    // 10/sec per peer
+  validatePayload: (p) => p.id != null
+});
+```
+
+### Schema Validation
+```javascript
+import { withSchemaValidation } from 'crossbus/plugins/schema-validation';
+bus.handle('createUser', withSchemaValidation(userSchema, handler));
+```
+
+### Health Monitoring
+```javascript
+const health = bus.healthCheck();
+// { status, uptime, peers, handlers, memory }
+```
+
+### Debug Mode
+```javascript
+const bus = new CrossBus({ debug: true, debugPrefix: '[MyAgent]' });
+// Logs all message flow
+```
+
+## Links
+
+- Documentation: https://crossbus.dev
+- GitHub: https://github.com/giuseppescottolavina/crossbus
+- npm: https://npmjs.com/package/crossbus

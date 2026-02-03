@@ -1,0 +1,209 @@
+{
+    "name": "CrossBus",
+    "version": "0.1.0",
+    "description": "Cross-context messaging library for browsers - iframes, workers, tabs, and AI agents. Zero dependencies, 181M ops/sec.",
+    "homepage": "https://github.com/giuseppescottolavina/crossbus",
+    "documentation": "https://crossbus.dev/docs",
+    "capabilities": [
+        "messaging",
+        "rpc",
+        "streaming",
+        "presence",
+        "encryption",
+        "rate-limiting",
+        "batching"
+    ],
+    "transports": [
+        {
+            "name": "PostMessageTransport",
+            "description": "Communication between iframes and parent windows",
+            "useCase": "iframe ↔ parent"
+        },
+        {
+            "name": "BroadcastChannelTransport",
+            "description": "Sync state across browser tabs",
+            "useCase": "tab ↔ tab"
+        },
+        {
+            "name": "WebSocketTransport",
+            "description": "Real-time server communication",
+            "useCase": "browser ↔ server"
+        },
+        {
+            "name": "SharedWorkerTransport",
+            "description": "Single shared worker instance across tabs",
+            "useCase": "multiple tabs ↔ shared worker"
+        },
+        {
+            "name": "ServiceWorkerTransport",
+            "description": "Background sync and offline support",
+            "useCase": "page ↔ service worker"
+        },
+        {
+            "name": "NativeBridgeTransport",
+            "description": "iOS/Android WebView communication",
+            "useCase": "webview ↔ native app"
+        },
+        {
+            "name": "MessageChannelTransport",
+            "description": "Direct MessageChannel port communication",
+            "useCase": "worker ↔ main thread"
+        }
+    ],
+    "tools": [
+        {
+            "name": "signal",
+            "description": "Broadcast a message to all connected peers",
+            "parameters": {
+                "name": {
+                    "type": "string",
+                    "description": "Signal name/event type"
+                },
+                "data": {
+                    "type": "object",
+                    "description": "Payload to send"
+                }
+            },
+            "returns": {
+                "delivered": {
+                    "type": "number",
+                    "description": "Count of peers that received"
+                },
+                "failed": {
+                    "type": "array",
+                    "description": "List of failed peer IDs"
+                }
+            },
+            "example": "bus.signal('user:update', { id: 1, name: 'John' })"
+        },
+        {
+            "name": "request",
+            "description": "Send RPC request to specific peer and await response",
+            "parameters": {
+                "peerId": {
+                    "type": "string",
+                    "description": "Target peer identifier"
+                },
+                "handler": {
+                    "type": "string",
+                    "description": "Handler name on target"
+                },
+                "data": {
+                    "type": "object",
+                    "description": "Request payload"
+                },
+                "options": {
+                    "type": "object",
+                    "properties": {
+                        "timeout": {
+                            "type": "number",
+                            "default": 30000
+                        }
+                    }
+                }
+            },
+            "returns": {
+                "type": "any",
+                "description": "Response from handler"
+            },
+            "example": "await bus.request('hub', 'getData', { id: 5 })"
+        },
+        {
+            "name": "handle",
+            "description": "Register handler for incoming requests",
+            "parameters": {
+                "name": {
+                    "type": "string",
+                    "description": "Handler name"
+                },
+                "fn": {
+                    "type": "function",
+                    "description": "Handler function (payload) => response"
+                }
+            },
+            "example": "bus.handle('getData', (p) => ({ data: db.get(p.id) }))"
+        },
+        {
+            "name": "on",
+            "description": "Subscribe to signal events",
+            "parameters": {
+                "event": {
+                    "type": "string",
+                    "description": "Event name to listen for"
+                },
+                "callback": {
+                    "type": "function",
+                    "description": "Callback function"
+                }
+            },
+            "example": "bus.on('user:update', (e) => console.log(e.data))"
+        },
+        {
+            "name": "addTransport",
+            "description": "Add a transport and automatically wire up message handling",
+            "parameters": {
+                "transport": {
+                    "type": "Transport",
+                    "description": "Transport instance with send() and onMessage() methods"
+                },
+                "options": {
+                    "type": "object",
+                    "description": "Optional: { peerId: 'remote-peer-id' }",
+                    "optional": true
+                }
+            },
+            "returns": {
+                "type": "function",
+                "description": "Cleanup function to remove the transport"
+            },
+            "example": "bus.addTransport(new PostMessageTransport(iframe.contentWindow, { targetOrigin: '*' }), { peerId: 'agent-1' })"
+        },
+        {
+            "name": "destroy",
+            "description": "Cleanup and disconnect all transports",
+            "parameters": {},
+            "example": "bus.destroy()"
+        }
+    ],
+    "plugins": [
+        {
+            "name": "withEncryption",
+            "description": "AES-256-GCM encryption for all messages",
+            "import": "crossbus/plugins/encryption"
+        },
+        {
+            "name": "withRateLimiter",
+            "description": "Rate limit requests to peers",
+            "import": "crossbus/plugins/rate-limiter"
+        },
+        {
+            "name": "withBatching",
+            "description": "Batch high-frequency signals for efficiency",
+            "import": "crossbus/plugins/batch"
+        },
+        {
+            "name": "withRetry",
+            "description": "Automatic retry with exponential backoff",
+            "import": "crossbus/plugins/retry"
+        },
+        {
+            "name": "createPeerCircuitBreaker",
+            "description": "Circuit breaker pattern for fault tolerance",
+            "import": "crossbus/plugins/circuit-breaker"
+        },
+        {
+            "name": "withCompression",
+            "description": "Compress large payloads",
+            "import": "crossbus/plugins/compression"
+        }
+    ],
+    "quickStart": {
+        "hub": "const hub = new CrossBus({ isHub: true, peerId: 'hub' });",
+        "agent": "const agent = new CrossBus({ peerId: 'agent-1' });",
+        "connect": "bus.addTransport(new PostMessageTransport(target));"
+    },
+    "aiGuide": "./docs/AI-GUIDE.md",
+    "geminiMd": "./GEMINI.md",
+    "license": "Apache-2.0",
+    "lastUpdated": "2026-01-25"
+}

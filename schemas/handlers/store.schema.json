@@ -1,0 +1,103 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "crossbus://schemas/handlers/store",
+    "title": "store Handler",
+    "description": "Store data in a memory/state agent. Standard pattern for persistence.",
+    "type": "object",
+    "properties": {
+        "request": {
+            "type": "object",
+            "description": "Request payload",
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "description": "Unique key for the stored item",
+                    "minLength": 1
+                },
+                "value": {
+                    "description": "Value to store (any JSON-serializable type)",
+                    "type": [
+                        "object",
+                        "array",
+                        "string",
+                        "number",
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "metadata": {
+                    "type": "object",
+                    "description": "Optional metadata about the stored value",
+                    "properties": {
+                        "ttl": {
+                            "type": "integer",
+                            "description": "Time-to-live in milliseconds"
+                        },
+                        "tags": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "required": [
+                "key",
+                "value"
+            ]
+        },
+        "response": {
+            "type": "object",
+            "description": "Response payload",
+            "properties": {
+                "success": {
+                    "type": "boolean"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "previousValue": {
+                    "description": "Previous value if overwritten"
+                }
+            },
+            "required": [
+                "success",
+                "key"
+            ]
+        }
+    },
+    "examples": [
+        {
+            "request": {
+                "key": "user:123",
+                "value": {
+                    "name": "John",
+                    "age": 30
+                }
+            },
+            "response": {
+                "success": true,
+                "key": "user:123"
+            }
+        },
+        {
+            "request": {
+                "key": "cache:api",
+                "value": [
+                    1,
+                    2,
+                    3
+                ],
+                "metadata": {
+                    "ttl": 60000
+                }
+            },
+            "response": {
+                "success": true,
+                "key": "cache:api",
+                "previousValue": null
+            }
+        }
+    ]
+}

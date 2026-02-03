@@ -1,0 +1,56 @@
+{
+    "name": "multi-tab-sync",
+    "title": "Multi-Tab Sync Pattern",
+    "description": "Synchronize state across multiple browser tabs using BroadcastChannel.",
+    "difficulty": "beginner",
+    "useCases": [
+        "shopping cart sync",
+        "auth state sync",
+        "theme preferences",
+        "real-time collaboration"
+    ],
+    "prerequisites": [
+        "crossbus installed",
+        "understanding of BroadcastChannel"
+    ],
+    "steps": [
+        {
+            "order": 1,
+            "action": "create-bus",
+            "title": "Create CrossBus with unique peerId",
+            "explanation": "Each tab needs a unique peerId. Using timestamp ensures uniqueness.",
+            "code": "const bus = new CrossBus({ peerId: `tab-${Date.now()}`, allowedOrigins: ['*'] });"
+        },
+        {
+            "order": 2,
+            "action": "add-transport",
+            "title": "Add BroadcastChannel Transport",
+            "explanation": "BroadcastChannelTransport enables cross-tab communication. Use peerId: '*' for broadcast mode.",
+            "code": "bus.addTransport(new BroadcastChannelTransport('my-app-channel'), { peerId: '*' });"
+        },
+        {
+            "order": 3,
+            "action": "listen-events",
+            "title": "Listen for Sync Events",
+            "explanation": "Subscribe to sync signals from other tabs.",
+            "code": "bus.on('state:sync', (event) => {\n  console.log('State from other tab:', event.data);\n  updateLocalState(event.data);\n});"
+        },
+        {
+            "order": 4,
+            "action": "broadcast-changes",
+            "title": "Broadcast State Changes",
+            "explanation": "When local state changes, broadcast to all other tabs.",
+            "code": "function updateState(newState) {\n  localState = newState;\n  bus.signal('state:sync', newState);\n}"
+        }
+    ],
+    "completeExample": "./multi-tab-sync.js",
+    "relatedPatterns": [
+        "hub-spoke",
+        "presence"
+    ],
+    "tips": [
+        "Use a consistent channel name across all tabs",
+        "Consider using localStorage as a fallback",
+        "Debounce high-frequency updates to reduce noise"
+    ]
+}

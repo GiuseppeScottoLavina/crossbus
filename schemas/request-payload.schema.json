@@ -1,0 +1,51 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "crossbus://schemas/request-payload",
+    "title": "CrossBus Request Payload",
+    "description": "Payload structure for RPC requests via bus.request()",
+    "type": "object",
+    "properties": {
+        "peerId": {
+            "type": "string",
+            "description": "Target peer identifier to send request to",
+            "minLength": 1,
+            "examples": [
+                "hub",
+                "agent-1",
+                "worker"
+            ]
+        },
+        "handler": {
+            "type": "string",
+            "description": "Handler name on the target peer",
+            "minLength": 1,
+            "examples": [
+                "getData",
+                "execute",
+                "store"
+            ]
+        },
+        "data": {
+            "type": "object",
+            "description": "Request payload data",
+            "additionalProperties": true
+        },
+        "options": {
+            "type": "object",
+            "properties": {
+                "timeout": {
+                    "type": "integer",
+                    "description": "Request timeout in milliseconds",
+                    "default": 30000,
+                    "minimum": 100,
+                    "maximum": 300000
+                }
+            }
+        }
+    },
+    "required": [
+        "peerId",
+        "handler",
+        "data"
+    ]
+}

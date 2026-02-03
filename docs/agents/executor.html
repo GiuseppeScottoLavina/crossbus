@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Agent Executor</title>
+</head>
+
+<body>
+    <script type="importmap">
+    {
+        "imports": {
+            "cbor-x": "https://esm.sh/cbor-x@1.6.0"
+        }
+    }
+    </script>
+    <script type="module">
+        import { CrossBus, PostMessageTransport } from '../../dist/crossbus.js';
+
+        const agent = new CrossBus({
+            peerId: 'agent-executor',
+            isHub: false
+        });
+
+        const transport = new PostMessageTransport(window.parent);
+        transport.onMessage((msg) => agent.handleMessage(msg, window.location.origin, 'demo-hub', (res) => transport.send(res)));
+        agent.addPeer('demo-hub', (msg) => transport.send(msg));
+
+        agent.handle('task:run', async ({ step }) => {
+            console.log('[Executor] Running step:', step);
+            // Simulate work
+            await new Promise(r => setTimeout(r, 400));
+            return {
+                status: 'completed',
+                step,
+                duration: 400,
+                timestamp: Date.now()
+            };
+        });
+
+        console.log('[Executor] Ready');
+
+        // Signal to parent that agent is ready
+        window.parent.postMessage({
+            __crossbus__: true,
+            type: 'agent:ready',
+            peerId: 'agent-executor'
+        }, '*');
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Error Handling Test</title>
+</head>
+
+<body>
+    <h1>Error Handling Test Page</h1>
+    <div id="status">Initializing...</div>
+
+    <script type="module">
+        import { CrossBus } from '/src/index.js';
+
+        function log(msg) {
+            console.log('[ErrorTest]', msg);
+        }
+
+        // Create bus
+        const bus = new CrossBus({
+            peerId: 'error-test-hub',
+            isHub: true
+        });
+
+        // Add a "slow peer" that never responds
+        bus.addPeer('slow-peer', () => {
+            // This peer receives messages but never responds
+            log('slow-peer received message, ignoring...');
+        });
+
+        // Store for tests
+        window.bus = bus;
+        window.busReady = false;
+
+        // Mark ready
+        window.busReady = true;
+        document.getElementById('status').textContent = 'Ready';
+        log('Bus initialized');
+    </script>
+</body>
+
+</html>

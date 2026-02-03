@@ -1,0 +1,63 @@
+{
+    "name": "worker-offload",
+    "title": "Worker Offload Pattern",
+    "description": "Offload heavy computation to a Web Worker while keeping the main thread responsive.",
+    "difficulty": "intermediate",
+    "useCases": [
+        "data processing",
+        "image manipulation",
+        "crypto operations",
+        "large dataset sorting"
+    ],
+    "prerequisites": [
+        "crossbus installed",
+        "understanding of Web Workers"
+    ],
+    "steps": [
+        {
+            "order": 1,
+            "action": "create-main-bus",
+            "title": "Create Main Thread Bus",
+            "explanation": "Create a CrossBus instance on the main thread.",
+            "code": "const bus = new CrossBus({ peerId: 'main', allowedOrigins: ['*'] });"
+        },
+        {
+            "order": 2,
+            "action": "create-worker",
+            "title": "Create and Connect Worker",
+            "explanation": "Create a Web Worker and add PostMessageTransport to connect it.",
+            "code": "const worker = new Worker('worker.js');\nbus.addTransport(new PostMessageTransport(worker), { peerId: 'worker' });"
+        },
+        {
+            "order": 3,
+            "action": "setup-worker-bus",
+            "title": "Setup Worker-side Bus",
+            "explanation": "In the worker file, create a bus and connect back to main thread.",
+            "code": "// worker.js\nconst bus = new CrossBus({ peerId: 'worker', allowedOrigins: ['*'] });\nbus.addTransport(new PostMessageTransport(self), { peerId: 'main' });"
+        },
+        {
+            "order": 4,
+            "action": "register-handler",
+            "title": "Register Compute Handler in Worker",
+            "explanation": "Register a handler in the worker for heavy computation.",
+            "code": "bus.handle('compute', ({ data }) => {\n  // Heavy computation here\n  const result = data.reduce((a, b) => a + b, 0);\n  return { result };\n});"
+        },
+        {
+            "order": 5,
+            "action": "offload-work",
+            "title": "Offload Work from Main Thread",
+            "explanation": "Send computation request to worker and await result.",
+            "code": "const result = await bus.request('worker', 'compute', {\n  data: Array(1000000).fill(0).map(() => Math.random())\n});"
+        }
+    ],
+    "completeExample": "./worker-offload.js",
+    "relatedPatterns": [
+        "hub-spoke",
+        "pipeline"
+    ],
+    "tips": [
+        "Workers can't access DOM - only pure computation",
+        "Use Transferable objects for large ArrayBuffers",
+        "Consider SharedArrayBuffer for real-time data sharing"
+    ]
+}

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>E2E Widget - Advanced</title>
+    <style>
+        body {
+            font-family: system-ui;
+            background: #16213e;
+            color: #eee;
+            padding: 6px;
+            margin: 0;
+            font-size: 11px;
+        }
+
+        .status {
+            background: #0f3460;
+            padding: 4px;
+            border-radius: 3px;
+            margin-bottom: 4px;
+        }
+
+        .log {
+            font-family: monospace;
+            font-size: 9px;
+            max-height: 40px;
+            overflow-y: auto;
+        }
+
+        .success {
+            color: #4ade80;
+        }
+
+        .error {
+            color: #f87171;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="status"><strong id="widgetId">Loading...</strong> <span id="connectionStatus">🔴</span></div>
+    <div id="log" class="log"></div>
+
+    <!-- No external dependencies needed - using JSON serialization -->
+
+    <script type="module">
+        const params = new URLSearchParams(window.location.search);
+        const widgetId = params.get('id') || `widget-${Date.now()}`;
+        const shouldFail = params.get('fail') === 'true';
+        const responseDelay = parseInt(params.get('delay') || '0', 10);
+
+        document.getElementById('widgetId').textContent = widgetId;
+
+        const log = (msg, type = 'info') => {
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = msg;
+            document.getElementById('log').appendChild(div);
+        };
+
+        // Track received signals
+        window.receivedSignals = [];
+        window.receivedRequests = [];
+
+        // Handlers
+        const handlers = {
+            getStatus: () => ({
+                status: 'healthy',
+                widgetId,
+                timestamp: Date.now(),
+                signalsReceived: window.receivedSignals.length
+            }),
+
+            echo: payload => ({
+                echo: payload,
+                from: widgetId
+            }),
+
+            slowEcho: async payload => {
+                const delay = payload.delay || responseDelay || 100;
+                await new Promise(r => setTimeout(r, delay));
+                return { echo: payload, from: widgetId, delayed: delay };
+            },
+
+            failHandler: () => {
+                throw new Error(`Widget ${widgetId} intentional failure`);
+            },
+
+            compute: payload => ({
+                result: (payload.a || 0) + (payload.b || 0),
+                from: widgetId
+            }),
+
+            storeAndRetrieve: payload => {
+                if (payload.store) {
+                    window.storedData = payload.store;
+                    return { stored: true };
+                }
+                return { data: window.storedData };
+            }
+        };
+
+        // Message handling
+        window.addEventListener('message', async (event) => {
+            const { data, source } = event;
+
+            if (data?.__crossbus_registered) {
+                log('✅ Connected', 'success');
+                document.getElementById('connectionStatus').textContent = '🟢';
+                return;
+            }
+
+            if (!data) return;
+
+            // Support both legacy (t/p) and SOTA (type/payload)
+            // Normalize
+            const isSota = !!data.type;
+            const isLegacy = !!data.t;
+
+            if (!isSota && !isLegacy) return;
+
+            let innerMessage = data;
+            // If legacy envelope:
+            if (isLegacy && data.p) {
+                innerMessage = data.p;
+            }
+
+            const type = innerMessage.type || innerMessage.t;
+            // Use distinct name to avoid redeclaration error
+            const msgPayload = innerMessage.payload || innerMessage;
+            const id = innerMessage.id || data.id;
+
+            // Signal
+            if (type === 'signal' || type === 'sig') {
+                const name = innerMessage.name || (innerMessage.payload?.name);
+                const signalData = innerMessage.data ?? (innerMessage.payload?.data) ?? innerMessage.p;
+
+                if (name) {
+                    window.receivedSignals.push({ name, data: signalData, time: Date.now() });
+                    log(`Signal: ${name}`);
+                    return;
+                }
+            }
+
+            // Request
+            if ((type === 'request' || type === 'req') && (innerMessage.handler || innerMessage.payload?.name)) {
+                const handlerName = innerMessage.handler || innerMessage.payload?.name;
+                const reqData = innerMessage.payload?.data ?? innerMessage.p;
+
+                window.receivedRequests.push({ handler: handlerName, time: Date.now() });
+
+                const handler = handlers[handlerName];
+                let response;
+
+                if (shouldFail) {
+                    response = { type: 'res', id, success: false, error: { message: 'Widget configured to fail' } };
+                } else if (handler) {
+                    try {
+                        const result = await handler(reqData);
+                        // Send 'res' as per MessageType.RESPONSE
+                        response = { type: 'res', id, success: true, payload: { data: result } };
+                        log(`→ ${handlerName}() OK`, 'success');
+                    } catch (error) {
+                        response = { type: 'res', id, success: false, error: { message: error.message } };
+                        log(`→ ${handlerName}() ERR`, 'error');
+                    }
+                } else {
+                    response = { type: 'res', id, success: false, error: { message: 'Handler not found' } };
+                }
+
+                if (responseDelay > 0 && !handlerName.startsWith('slow')) {
+                    await new Promise(r => setTimeout(r, responseDelay));
+                }
+
+                window.parent?.postMessage(response, '*');
+            }
+        });
+
+        // Register
+        setTimeout(() => {
+            if (window.parent !== window) {
+                window.parent.postMessage({
+                    __crossbus_register: true,
+                    peerId: widgetId,
+                    meta: { type: 'widget-advanced', version: '2.0' }
+                }, '*');
+                log('Registering...');
+            }
+        }, 50);
+
+        log(`Widget ${widgetId} ready`);
+    </script>
+</body>
+
+</html>

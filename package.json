@@ -1,0 +1,126 @@
+{
+    "name": "crossbus",
+    "version": "0.1.0",
+    "description": "Modern cross-context messaging for browsers - iframes, workers, tabs, and native bridges",
+    "type": "module",
+    "main": "dist/crossbus.cjs",
+    "module": "dist/crossbus.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/crossbus.js",
+            "require": "./dist/crossbus.cjs"
+        },
+        "./core": {
+            "import": "./dist/crossbus.core.js"
+        },
+        "./nano": {
+            "import": "./dist/nano.js"
+        },
+        "./plugins/retry": {
+            "import": "./dist/plugins/retry.js"
+        },
+        "./plugins/circuit-breaker": {
+            "import": "./dist/plugins/circuit-breaker.js"
+        },
+        "./plugins/encryption": {
+            "import": "./dist/plugins/encryption.js"
+        },
+        "./plugins/rate-limiter": {
+            "import": "./dist/plugins/rate-limiter.js"
+        },
+        "./plugins/compression": {
+            "import": "./dist/plugins/compression.js"
+        },
+        "./plugins/batch": {
+            "import": "./dist/plugins/batch.js"
+        },
+        "./plugins/schema-validation": {
+            "import": "./dist/plugins/schema-validation.js"
+        },
+        "./enterprise": {
+            "types": "./dist/enterprise/index.d.ts",
+            "import": "./dist/enterprise.js"
+        },
+        "./testing": {
+            "types": "./dist/testing/index.d.ts",
+            "import": "./dist/testing.js"
+        }
+    },
+    "files": [
+        "dist",
+        "schemas",
+        "examples",
+        "README.md",
+        "AGENTS.md",
+        "CHANGELOG.md",
+        "CLAUDE.md",
+        "GEMINI.md",
+        "LICENSE"
+    ],
+    "scripts": {
+        "build": "bun run tsc && bun run rollup -c",
+        "build:watch": "bun run rollup -c -w",
+        "build:bun": "bun build src/index.js --outdir dist/bun --target=bun --minify --sourcemap=external",
+        "build:bun:bytecode": "bun build src/index.js --outdir dist/bun --target=bun --minify --bytecode",
+        "test": "bun test",
+        "test:coverage": "bun test --coverage",
+        "test:integration": "bun run tests/integration/run.js",
+        "bench": "bun run tests/benchmarks/suite.js",
+        "bench:compare": "bun run tests/benchmarks/comparison.js",
+        "bench:fast": "bun run tests/benchmarks/final-showdown.js",
+        "bench:signal": "bun run tests/perf/signal.bench.js",
+        "bench:router": "bun run tests/perf/message-router.bench.js",
+        "bench:emitter": "bun run tests/perf/event-emitter.bench.js",
+        "lint": "bun run eslint src/",
+        "typecheck": "bun run tsc --noEmit",
+        "prepublishOnly": "bun run build"
+    },
+    "keywords": [
+        "postmessage",
+        "iframe",
+        "worker",
+        "service-worker",
+        "messaging",
+        "cross-origin",
+        "pub-sub",
+        "event-emitter",
+        "browser"
+    ],
+    "author": "Giuseppe Scotto Lavina",
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/giuseppescottolavina/crossbus.git"
+    },
+    "bugs": {
+        "url": "https://github.com/giuseppescottolavina/crossbus/issues"
+    },
+    "homepage": "https://github.com/giuseppescottolavina/crossbus#readme",
+    "devDependencies": {
+        "@rollup/plugin-terser": "^0.4.4",
+        "@types/node": "^25.0.10",
+        "comlink": "^4.4.2",
+        "eslint": "^9.39.2",
+        "eslint-config-prettier": "^10.1.8",
+        "eventemitter3": "^5.0.4",
+        "linkedom": "^0.18.12",
+        "mitt": "^3.0.1",
+        "nanoevents": "^9.1.0",
+        "prettier": "^3.8.1",
+        "puppeteer-core": "^24.35.0",
+        "rollup": "^4.56.0",
+        "rollup-plugin-visualizer": "^6.0.5",
+        "typescript": "^5.9.3"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "sideEffects": false,
+    "publishConfig": {
+        "registry": "https://registry.npmjs.org/",
+        "access": "public"
+    },
+    "dependencies": {}
+}

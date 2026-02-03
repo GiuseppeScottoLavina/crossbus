@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E2E Hub - Advanced</title>
+    <style>
+        body {
+            font-family: system-ui;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 10px;
+            margin: 0;
+        }
+
+        .log {
+            font-family: monospace;
+            font-size: 11px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #16213e;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        .log div {
+            padding: 2px 0;
+            border-bottom: 1px solid #0f3460;
+        }
+
+        .success {
+            color: #4ade80;
+        }
+
+        .error {
+            color: #f87171;
+        }
+
+        .info {
+            color: #60a5fa;
+        }
+
+        iframe {
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            margin: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="status">Hub: <span id="statusText">Initializing...</span></div>
+    <div id="widgets"></div>
+    <div id="log" class="log"></div>
+
+    <!-- No external dependencies needed - using JSON serialization -->
+
+    <script type="module">
+        import { CrossBus } from '/src/index.js';
+
+        // Logger
+        window.log = (msg, type = 'info') => {
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = `[${Date.now() % 100000}] ${msg}`;
+            document.getElementById('log').appendChild(div);
+            console.log(`[${type}]`, msg);
+        };
+
+        // Parse config from URL
+        const params = new URLSearchParams(window.location.search);
+        const widgetCount = parseInt(params.get('widgets') || '2', 10);
+        const allowedOrigins = (params.get('origins') || '*').split(',');
+
+        // Create hub
+        const hub = new CrossBus({
+            isHub: true,
+            peerId: 'hub',
+            allowedOrigins
+        });
+
+        window.hub = hub;
+        window.testResults = { events: [], responses: [], errors: [] };
+
+        // Lifecycle events
+        hub.on('peer:connected', e => {
+            const peerId = e.peerId || e.data?.peerId || e.payload?.peerId;
+            log(`Peer connected: ${peerId}`, 'success');
+            window.testResults.events.push({ type: 'connected', peer: peerId, time: Date.now() });
+            document.getElementById('statusText').textContent = `${hub.peerCount} peers`;
+        });
+
+        hub.on('peer:disconnected', e => {
+            const peerId = e.peerId || e.data?.peerId || e.payload?.peerId;
+            log(`Peer disconnected: ${peerId}`, 'error');
+            window.testResults.events.push({ type: 'disconnected', peer: peerId, time: Date.now() });
+        });
+
+        // Handlers
+        hub.handle('hubStatus', () => ({
+            status: 'ok',
+            peerCount: hub.peerCount,
+            uptime: Date.now()
+        }));
+
+        hub.handle('echo', payload => ({
+            echo: payload,
+            from: 'hub'
+        }));
+
+        hub.handle('slowEcho', async payload => {
+            await new Promise(r => setTimeout(r, payload.delay || 100));
+            return { echo: payload, from: 'hub' };
+        });
+
+        hub.handle('failHandler', () => {
+            throw new Error('Intentional failure');
+        });
+
+        // Signal listeners for testing
+        hub.on('test:*', e => {
+            window.testResults.events.push({ type: 'signal', name: e.name, data: e.payload, time: Date.now() });
+        });
+
+        // Widget message handling
+        window.addEventListener('message', async (event) => {
+            const { data, source, origin } = event;
+            // log(`DEBUG: Received message from ${origin}: ${JSON.stringify(data)}`, 'info');
+
+            if (data?.__crossbus_register) {
+                const widgetId = data.peerId;
+                log(`Widget registering: ${widgetId}`);
+
+                hub.addPeer(widgetId, msg => {
+                    source.postMessage(msg, '*');
+                }, {
+                    meta: data.meta,
+                    origin
+                });
+
+                source.postMessage({ __crossbus_registered: true, peerId: widgetId }, '*');
+            } else if (data?.t || data?.type) {
+                const sourcePeerId = data.source || 'unknown';
+                await hub.handleMessage(data, origin, sourcePeerId, reply => {
+                    source.postMessage(reply, '*');
+                });
+            } else {
+                log(`Rx Unknown: ${JSON.stringify(data)}`, 'error');
+            }
+        });
+
+        // Create widget iframes
+        const widgetsDiv = document.getElementById('widgets');
+        for (let i = 1; i <= widgetCount; i++) {
+            const iframe = document.createElement('iframe');
+            iframe.id = `widget-${i}`;
+            iframe.src = `/tests/e2e/fixtures/widget-advanced.html?id=widget-${i}`;
+            iframe.width = 250;
+            iframe.height = 80;
+            widgetsDiv.appendChild(iframe);
+        }
+
+        // Expose test utilities
+        window.waitForPeers = (count, timeout = 5000) => new Promise((resolve, reject) => {
+            const start = Date.now();
+            const check = () => {
+                if (hub.peerCount >= count) resolve(hub.peerCount);
+                else if (Date.now() - start > timeout) reject(new Error('Timeout waiting for peers'));
+                else setTimeout(check, 50);
+            };
+            check();
+        });
+
+        window.disconnectPeer = (peerId) => hub.removePeer(peerId);
+        window.getPeers = () => hub.peers;
+        window.getPeerCount = () => hub.peerCount;
+
+        log(`Hub initialized (expecting ${widgetCount} widgets)`, 'info');
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,136 @@
+{
+  "timestamp": "2026-01-23T07:07:37.620Z",
+  "runtime": "Bun 1.3.6",
+  "libraries": {
+    "crossbus": "local",
+    "eventemitter3": "5.0.4",
+    "mitt": "3.0.1",
+    "nanoevents": "9.1.0"
+  },
+  "results": [
+    {
+      "test": "emit (1 listener)",
+      "crossBus": {
+        "name": "CrossBus emitSync",
+        "iterations": 1000000,
+        "totalMs": "5.91",
+        "opsPerSec": "169.26M",
+        "opsPerSecRaw": 169263220.89628938
+      },
+      "ee3": {
+        "name": "EventEmitter3",
+        "iterations": 1000000,
+        "totalMs": "7.78",
+        "opsPerSec": "128.54M",
+        "opsPerSecRaw": 128538834.79546258
+      },
+      "mitt": {
+        "name": "mitt",
+        "iterations": 1000000,
+        "totalMs": "80.80",
+        "opsPerSec": "12.38M",
+        "opsPerSecRaw": 12376601.416192615
+      },
+      "nano": {
+        "name": "nanoevents",
+        "iterations": 1000000,
+        "totalMs": "6.05",
+        "opsPerSec": "165.42M",
+        "opsPerSecRaw": 165422551.22929636
+      }
+    },
+    {
+      "test": "emit (10 listeners)",
+      "crossBus": {
+        "name": "CrossBus emitSync",
+        "iterations": 500000,
+        "totalMs": "8.63",
+        "opsPerSec": "57.94M",
+        "opsPerSecRaw": 57936031.2057369
+      },
+      "ee3": {
+        "name": "EventEmitter3",
+        "iterations": 500000,
+        "totalMs": "16.16",
+        "opsPerSec": "30.93M",
+        "opsPerSecRaw": 30931421.82095509
+      },
+      "mitt": {
+        "name": "mitt",
+        "iterations": 500000,
+        "totalMs": "21.97",
+        "opsPerSec": "22.75M",
+        "opsPerSecRaw": 22753301.46991331
+      },
+      "nano": {
+        "name": "nanoevents",
+        "iterations": 500000,
+        "totalMs": "6.35",
+        "opsPerSec": "78.77M",
+        "opsPerSecRaw": 78770648.54395603
+      }
+    },
+    {
+      "test": "on + off cycle",
+      "crossBus": {
+        "name": "CrossBus",
+        "iterations": 500000,
+        "totalMs": "164.24",
+        "opsPerSec": "3.04M",
+        "opsPerSecRaw": 3044363.988128271
+      },
+      "ee3": {
+        "name": "EventEmitter3",
+        "iterations": 500000,
+        "totalMs": "50.85",
+        "opsPerSec": "9.83M",
+        "opsPerSecRaw": 9832624.155316127
+      },
+      "mitt": {
+        "name": "mitt",
+        "iterations": 500000,
+        "totalMs": "15.27",
+        "opsPerSec": "32.75M",
+        "opsPerSecRaw": 32751271.19146434
+      },
+      "nano": {
+        "name": "nanoevents",
+        "iterations": 500000,
+        "totalMs": "10.46",
+        "opsPerSec": "47.79M",
+        "opsPerSecRaw": 47791817.31444016
+      }
+    },
+    {
+      "test": "emit (10KB payload)",
+      "crossBus": {
+        "name": "CrossBus emitSync",
+        "iterations": 100000,
+        "totalMs": "0.74",
+        "opsPerSec": "135.78M",
+        "opsPerSecRaw": 135777325.18669784
+      },
+      "ee3": {
+        "name": "EventEmitter3",
+        "iterations": 100000,
+        "totalMs": "2.56",
+        "opsPerSec": "39.06M",
+        "opsPerSecRaw": 39056138.12125176
+      },
+      "mitt": {
+        "name": "mitt",
+        "iterations": 100000,
+        "totalMs": "4.75",
+        "opsPerSec": "21.06M",
+        "opsPerSecRaw": 21056137.980029903
+      },
+      "nano": {
+        "name": "nanoevents",
+        "iterations": 100000,
+        "totalMs": "0.94",
+        "opsPerSec": "106.82M",
+        "opsPerSecRaw": 106823340.8999862
+      }
+    }
+  ]
+}

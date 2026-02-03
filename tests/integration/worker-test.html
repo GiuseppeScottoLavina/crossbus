@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrossBus Worker Test</title>
+    <style>
+        body {
+            font-family: system-ui;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+        }
+
+        .log {
+            background: #16213e;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log div {
+            padding: 4px 0;
+            border-bottom: 1px solid #0f3460;
+        }
+
+        .success {
+            color: #4ade80;
+        }
+
+        .error {
+            color: #f87171;
+        }
+
+        h1 {
+            color: #e94560;
+        }
+
+        button {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🔧 CrossBus Worker Test</h1>
+
+    <div id="status">Worker: <span id="workerStatus">Loading...</span></div>
+
+    <div style="margin: 20px 0;">
+        <button onclick="testSignal()">Send Signal</button>
+        <button onclick="testRequest()">Request Status</button>
+        <button onclick="testCompute()">Compute 10+32</button>
+    </div>
+
+    <h3>Log:</h3>
+    <div id="log" class="log"></div>
+
+    <script>
+        // State
+        window.workerReady = false;
+        let worker = null;
+        let pendingRequests = new Map();
+        let requestIdCounter = 0;
+
+        function log(msg, type = 'info') {
+            const logEl = document.getElementById('log');
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = `[${new Date().toISOString().substr(11, 12)}] ${msg}`;
+            logEl.appendChild(div);
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(`[${type}]`, msg);
+        }
+
+        // Create worker
+        worker = new Worker('/tests/integration/worker.js');
+
+        worker.onmessage = function (event) {
+            const data = event.data;
+
+            // Worker registration
+            if (data && data.__crossbus_register) {
+                log(`Worker registered: ${data.peerId}`, 'success');
+                document.getElementById('workerStatus').textContent = '✅ Connected';
+                window.workerReady = true;
+                return;
+            }
+
+            // Handle response
+            if (data && (data.type === 'response' || data.type === 'res')) {
+                const id = data.id || (data.payload && data.payload.requestId);
+                const pending = pendingRequests.get(id);
+
+                if (pending) {
+                    pendingRequests.delete(id);
+                    // Extract success/data from payload if SOTA
+                    let success = data.success;
+                    let error = data.error;
+                    let resultData = data.payload?.data;
+
+                    if (data.payload && data.payload.success !== undefined) {
+                        success = data.payload.success;
+                        error = data.payload.error;
+                    }
+
+                    if (success) {
+                        pending.resolve(resultData);
+                    } else {
+                        pending.reject(new Error(error?.message || 'Request failed'));
+                    }
+                }
+                return;
+            }
+        };
+
+        worker.onerror = function (error) {
+            log(`Worker error: ${error.message}`, 'error');
+        };
+
+        // API for tests
+        window.sendSignalToWorker = function (name, payload) {
+            const message = {
+                __crossbus__: true,
+                version: 1,
+                id: crypto.randomUUID(),
+                type: 'signal',
+                timestamp: Date.now(),
+                payload: {
+                    name: name,
+                    data: payload,
+                    source: 'test-page'
+                }
+            };
+            worker.postMessage(message);
+            log(`Signal sent: ${name}`);
+            return true;
+        };
+
+        window.requestFromWorker = function (handler, payload) {
+            return new Promise((resolve, reject) => {
+                const requestId = `req_${++requestIdCounter}`;
+
+                pendingRequests.set(requestId, { resolve, reject });
+
+                const message = {
+                    __crossbus__: true,
+                    version: 1,
+                    id: crypto.randomUUID(),
+                    type: 'request',
+                    timestamp: Date.now(),
+                    payload: {
+                        name: handler,
+                        data: payload,
+                        source: 'test-page'
+                    }
+                    // Meta not mandatory
+                };
+                // Store manual ID for correlation if needed?
+                // Actually Request message stores ID in top level.
+                message.id = requestId; // Use our tracking ID
+
+                worker.postMessage(message);
+                log(`Request: ${handler}()`);
+
+                // Timeout
+                setTimeout(() => {
+                    if (pendingRequests.has(requestId)) {
+                        pendingRequests.delete(requestId);
+                        reject(new Error('Request timeout'));
+                    }
+                }, 5000);
+            });
+        };
+
+        // UI handlers
+        async function testSignal() {
+            sendSignalToWorker('test:manual', { from: 'ui' });
+        }
+
+        async function testRequest() {
+            try {
+                const result = await requestFromWorker('getStatus', {});
+                log(`Status: ${JSON.stringify(result)}`, 'success');
+            } catch (e) {
+                log(`Error: ${e.message}`, 'error');
+            }
+        }
+
+        async function testCompute() {
+            try {
+                const result = await requestFromWorker('compute', { a: 10, b: 32 });
+                log(`Compute: 10 + 32 = ${result.result}`, 'success');
+            } catch (e) {
+                log(`Error: ${e.message}`, 'error');
+            }
+        }
+
+        log('Main thread ready, waiting for worker...');
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Agent Planner</title>
+</head>
+
+<body>
+    <script type="importmap">
+    {
+        "imports": {
+            "cbor-x": "https://esm.sh/cbor-x@1.6.0"
+        }
+    }
+    </script>
+    <script type="module">
+        import { CrossBus, PostMessageTransport } from '../../dist/crossbus.js';
+
+        // Initialize Bus
+        const agent = new CrossBus({
+            peerId: 'agent-planner',
+            isHub: false
+        });
+
+        // Setup Transport to Parent (Hub)
+        const transport = new PostMessageTransport(window.parent, {
+            allowedOrigins: ['*']
+        });
+
+        // Debug: log ALL incoming messages
+        window.addEventListener('message', (e) => {
+            console.log('[Planner RAW] Got message:', e.data?._cb, e.data?.type || e.data?.t, 'from:', e.origin);
+        });
+
+        // Incoming: Route messages from transport to bus
+        transport.onMessage((msg) => {
+            console.log('[Planner] Received:', msg.type || msg.t, msg.id);
+            // Pass replyFn so responses are sent back through transport
+            agent.handleMessage(msg, window.location.origin, 'demo-hub', (response) => {
+                console.log('[Planner] Sending response:', response.type || response.t, response.id);
+                transport.send(response);
+            });
+        });
+
+        // Outgoing: Route messages for 'demo-hub' to transport
+        // Note: The Hub is the parent, so we send everything destined for hub there
+        agent.addPeer('demo-hub', (msg) => transport.send(msg));
+
+        // Agent Logic
+        agent.handle('plan:create', async ({ goal }) => {
+            console.log('[Planner] Received goal:', goal);
+
+            // Simulate AI thinking time
+            await new Promise(r => setTimeout(r, 800));
+
+            return {
+                steps: [
+                    'Analyze Requirements',
+                    'Draft Content',
+                    'Review Draft',
+                    'Publish'
+                ],
+                confidence: 0.95,
+                goal
+            };
+        });
+
+        console.log('[Planner] Ready');
+
+        // Signal to parent that agent is ready
+        window.parent.postMessage({
+            __crossbus__: true,
+            type: 'agent:ready',
+            peerId: 'agent-planner'
+        }, '*');
+    </script>
+</body>
+
+</html>
