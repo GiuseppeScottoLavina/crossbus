@@ -51,10 +51,10 @@ First public release of CrossBus — unified messaging for browser applications.
 - Security audit (A+ rating)
 
 ### Performance
-- **181M ops/sec** EventEmitter (1 listener)
-- **26.5M ops/sec** (10 listeners)
-- **1.88x faster** than nanoevents on multi-listener workloads
+- **~170M ops/sec** emitSync (1 listener)
+- **57M ops/sec** emitSync (10 listeners)
+- Competitive with nanoevents on emit workloads
 
 ### Tests
-- **1072 tests** passing
+- **1074 tests** passing
 - **98.41%** line coverage on core

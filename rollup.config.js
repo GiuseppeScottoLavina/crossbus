@@ -11,7 +11,7 @@ const pkg = require('./package.json');
 
 const banner = `/** CrossBus v${pkg.version} | MIT */`;
 
-// Terser configuration - AGGRESSIVE compression for 2026 SOTA
+// Terser configuration - Aggressive compression
 // NOTE: Do NOT use toplevel:true - it mangles exports and breaks public API!
 const terserConfig = terser({
     ecma: 2024,  // Target latest ES features (smaller syntax)

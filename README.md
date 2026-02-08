@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <em>Zero dependencies. Blazing fast. Secure by default. AI-first.</em>
+  <em>Zero dependencies. Fast. Secure by default.</em>
 </p>
 
 <p align="center">
@@ -21,7 +21,7 @@
 <p align="center">
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue" alt="License"></a>
   <a href="./SECURITY.md"><img src="https://img.shields.io/badge/security-A%2B-brightgreen" alt="Security A+"></a>
-  <a href="./tests"><img src="https://img.shields.io/badge/tests-1072%20passing-brightgreen" alt="1072 tests"></a>
+  <a href="./tests"><img src="https://img.shields.io/badge/tests-1074%20passing-brightgreen" alt="1074 tests"></a>
   <a href="./package.json"><img src="https://img.shields.io/badge/dependencies-0-brightgreen" alt="Zero deps"></a>
 </p>
 
@@ -35,7 +35,7 @@
 
 ## Why CrossBus?
 
-**Stop wrestling with postMessage.** CrossBus gives you a dead-simple RPC layer for iframes, workers, tabs, and AI agents—with enterprise-grade security you can't forget to configure.
+**Stop wrestling with postMessage.** CrossBus gives you a simple RPC layer for iframes, workers, tabs, and AI agents—with security defaults you can't forget to configure.
 
 ```javascript
 // That's it. Two lines to connect an iframe.
@@ -57,9 +57,9 @@ const data = await agent.request('hub', 'getData', { filter: 'active' });
 
 </td><td>
 
-**⚡ Blazing Fast**
-- 181M ops/sec EventEmitter
-- 1.88x faster than nanoevents
+**⚡ Fast**
+- ~170M ops/sec emitSync
+- Competitive with nanoevents
 - Zero runtime dependencies
 - Tree-shakeable ESM
 
@@ -76,7 +76,7 @@ const data = await agent.request('hub', 'getData', { filter: 'active' });
 
 ---
 
-## 🏆 The Only Library With These Features
+## 🏆 Feature Comparison
 
 | Feature | CrossBus | Comlink | Penpal | Post-Robot |
 |---------|:---------:|:-------:|:------:|:----------:|
@@ -137,11 +137,11 @@ const user = await agent.request('hub', 'getData', { userId: 123 });
 
 | Benchmark | CrossBus | nanoevents | EventEmitter3 | mitt |
 |-----------|-----------|------------|---------------|------|
-| emit (1 listener) | **181M ops/s** 🏆 | 170M | 130M | 21M |
-| emit (10 listeners) | **26.5M ops/s** 🏆 | 14.1M | — | — |
-| Large payloads | **134M ops/s** 🏆 | 110M | 37M | 21M |
+| emit (1 listener) | **172M ops/s** 🏆 | 170M | 131M | 21M |
+| emit (10 listeners) | 57M | **73M** 🏆 | 31M | 22M |
+| Large payloads (10KB) | 111M | **116M** 🏆 | 40M | 19M |
 
-> **CrossBus is 1.88x faster** on real-world multi-listener workloads.
+> Benchmarked with `bun run bench:compare` on Apple Silicon. Results vary by run.
 
 ---
 
@@ -150,7 +150,7 @@ const user = await agent.request('hub', 'getData', { userId: 123 });
 | Use Case | Transport | Why CrossBus |
 |----------|-----------|--------------|
 | **Micro-frontends** | PostMessageTransport | Orchestrate cross-domain iframes with type-safe RPC |
-| **Hybrid apps** | NativeBridgeTransport | Bridge web ↔ native (iOS/Android) seamlessly |
+| **Hybrid apps** | NativeBridgeTransport | Bridge web ↔ native (iOS/Android) |
 | **Web workers** | MessageChannelTransport | Parallel processing with clean async APIs |
 | **Multi-tab sync** | BroadcastChannelTransport | Share state across browser tabs |
 | **Service workers** | ServiceWorkerTransport | Runtime network behavior modification |
@@ -287,7 +287,7 @@ versioning.registerMigration('user', 1, 2, (data) => ({ ...data, v2Field: true }
 ## 🧪 Test Coverage
 
 ```
-  1072 tests passing
+  1074 tests passing
   98.41% line coverage on core
   0 dependencies
 ```

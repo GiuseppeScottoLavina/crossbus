@@ -9,7 +9,7 @@
 
 ## Abstract
 
-Modern web applications increasingly rely on cross-context communication between iframes, Web Workers, Service Workers, and browser tabs. Existing solutions like Comlink, Penpal, and post-robot provide developer-friendly abstractions but trade performance for convenience and lack comprehensive security models. We present **CrossBus**, a zero-dependency communication library that achieves 169 million operations per second for local events while maintaining defense-in-depth security through origin validation, ReDoS-protected pattern matching, and a cryptographically-inspired three-way handshake protocol. Beyond basic messaging, CrossBus introduces novel infrastructure for distributed browser systems, including **Causal Ordering** via Vector Clocks for consistency across agents, **SharedWorker/ServiceWorker** transports for persistent state, and an **Encryption** layer using AES-256-GCM. We evaluation demonstrates that CrossBus outperforms existing solutions by 2-3 orders of magnitude in throughput while enabling complex multi-agent architectures previously impractical in the browser.
+Modern web applications increasingly rely on cross-context communication between iframes, Web Workers, Service Workers, and browser tabs. Existing solutions like Comlink, Penpal, and post-robot provide developer-friendly abstractions but trade performance for convenience and lack comprehensive security models. We present **CrossBus**, a zero-dependency communication library that achieves ~170 million operations per second for local events while maintaining defense-in-depth security through origin validation, ReDoS-protected pattern matching, and a three-way handshake protocol. Beyond basic messaging, CrossBus introduces infrastructure for distributed browser systems, including **Causal Ordering** via Vector Clocks for consistency across agents, **SharedWorker/ServiceWorker** transports for persistent state, and an **Encryption** layer using AES-256-GCM. Our evaluation demonstrates that CrossBus achieves competitive or better throughput than existing event emitter libraries while enabling complex multi-agent architectures in the browser.
 
 ---
 
@@ -38,7 +38,7 @@ This paper makes the following contributions:
 
 4. **Multi-Transport Layer**: Unification of `postMessage`, `BroadcastChannel`, `MessageChannel`, `SharedWorker`, and `ServiceWorker` under a single API.
 
-5. **Performance Engineering**: Techniques achieving 169M ops/sec for local events through zero-allocation hot paths and V8-optimized call sites.
+5. **Performance Engineering**: Techniques achieving ~170M ops/sec for local events through zero-allocation hot paths and V8-optimized call sites.
 
 ---
 
@@ -60,7 +60,7 @@ The **postMessage API** (HTML5) enables cross-origin communication between Windo
 
 | Feature | CrossBus | Comlink | Penpal | post-robot |
 |---------|-----------|---------|--------|------------|
-| **Throughput (ops/sec)** | **169M** | ~10M | ~5M | ~1M |
+| **Throughput (ops/sec)** | **~170M** | ~10M | ~5M | ~1M |
 | **Routing Topology** | Hub/Peer/Mesh | Peer-to-Peer | Peer-to-Peer | Peer-to-Peer |
 | **Causal Ordering** | **Yes** (VectorClock) | No | No | No |
 | **Encrypted Transport** | **Yes** (AES-GCM) | No | No | No |
@@ -136,11 +136,11 @@ Benchmarks executed on Apple Silicon (M2), Runtime: Bun 1.3.6. Methodology: 1M i
 
 | Library | 1 Listener | 10 Listeners | 10KB Payload |
 |---------|------------|--------------|--------------|
-| **CrossBus** | **169.23M** 🏆 | 62.4M | **135.5M** 🏆 |
-| nanoevents | 165.8M | 63.1M | 102.6M |
-| EventEmitter3 | 128.4M | 29.5M | 37.8M |
+| **CrossBus** | **172M** 🏆 | 57M | **111M** |
+| nanoevents | 170M | **73M** 🏆 | 116M |
+| EventEmitter3 | 131M | 31M | 40M |
 
-CrossBus achieves **169M ops/sec** using a highly optimized `emitSync` path that avoids Promise allocation for local events.
+CrossBus achieves **~170M ops/sec** using a highly optimized `emitSync` path that avoids Promise allocation for local events.
 
 ### 5.3 Transport Latency (Round Trip)
 
@@ -180,13 +180,13 @@ CrossBus provides the nervous system for browser-based AI:
 - **Language**: ES2024 JavaScript
 - **Bundler**: Rollup (Terser minification)
 - **Size**: 45KB (Full), 456B (Nano)
-- **Tests**: 848 unit/integration tests
+- **Tests**: 1074 unit/integration tests
 
 ---
 
 ## 8. Conclusion
 
-CrossBus addresses the need for secure, consistent, and high-performance communication in modern browser architectures. With the addition of **Causal Ordering**, **Encryption**, and **Cross-Tab Transports** in v1.1.0, it becomes the first library specifically engineered for the distributed requirements of local-first multi-agent systems.
+CrossBus addresses the need for secure, consistent, and high-performance communication in modern browser architectures. With **Causal Ordering**, **Encryption**, and **Cross-Tab Transports**, it provides infrastructure specifically designed for the distributed requirements of local-first multi-agent systems.
 
 **Availability**: https://github.com/giuseppescottolavina/crossbus  
 **License**: Apache 2.0

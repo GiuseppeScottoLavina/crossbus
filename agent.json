@@ -1,7 +1,7 @@
 {
     "name": "CrossBus",
     "version": "0.1.0",
-    "description": "Cross-context messaging library for browsers - iframes, workers, tabs, and AI agents. Zero dependencies, 181M ops/sec.",
+    "description": "Cross-context messaging library for browsers - iframes, workers, tabs, and AI agents. Zero dependencies, ~170M ops/sec.",
     "homepage": "https://github.com/giuseppescottolavina/crossbus",
     "documentation": "https://crossbus.dev/docs",
     "capabilities": [

@@ -12,9 +12,6 @@ npm install crossbus
 
 # From bun
 bun add crossbus
-
-# From yarn
-yarn add crossbus
 ```
 
 ---

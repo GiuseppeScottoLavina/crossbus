@@ -1,6 +1,6 @@
 # CrossBus - LLM Documentation
 
-> Cross-context messaging library for browsers. Zero dependencies, 181M ops/sec.
+> Cross-context messaging library for browsers. Zero dependencies, ~170M ops/sec.
 
 ## What is CrossBus?
 
