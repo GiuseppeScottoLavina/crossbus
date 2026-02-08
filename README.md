@@ -89,9 +89,6 @@ const data = await agent.request('hub', 'getData', { filter: 'active' });
 | **7 transport types** | ✅ | ❌ | ❌ | ❌ |
 | **WebSocket reconnection** | ✅ | ❌ | ❌ | ❌ |
 
-> *"We evaluated 12 postMessage libraries. CrossBus was the only one with security warnings in dev mode."*  
-> — Senior Security Engineer, Fortune 500 fintech
-
 ---
 
 ## ⚡ 30-Second Quick Start
@@ -324,10 +321,6 @@ const bus = CrossBus.createSecure({
 ```
 
 ---
-
-<p align="center">
-  <strong>Used by developers at companies building the next generation of web applications.</strong>
-</p>
 
 <p align="center">
   <a href="https://github.com/giuseppescottolavina/crossbus">⭐ Star us on GitHub</a> · 
