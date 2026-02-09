@@ -258,7 +258,7 @@ Unlike `emit()`, this method:
 - Skips messageId, timestamp generation
 - Exact match only (no wildcards)
 
-**Performance:** 210M ops/sec (9ns per call)
+**Performance:** ~170M ops/sec
 
 #### Parameters
 
@@ -274,7 +274,7 @@ Unlike `emit()`, this method:
 #### Example
 
 ```javascript
-// Ultra-fast for hot paths (210M ops/sec)
+// Ultra-fast for hot paths (~170M ops/sec)
 const count = bus.emitSync('tick', { x: 100, y: 200 });
 console.log(`Notified ${count} listeners`);
 ```

@@ -278,9 +278,9 @@ versioning.registerMigration('user', 1, 2, (data) => ({ ...data, v2Field: true }
 
 | Export | Size (gzip) |
 |--------|-------------|
-| Full bundle | ~12 KB |
-| Core only | ~8 KB |
-| Nano emitter | **248 bytes** |
+| Full bundle | ~15 KB |
+| Core only | ~10 KB |
+| Nano emitter | **295 bytes** |
 
 ---
 

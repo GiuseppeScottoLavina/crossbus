@@ -22,9 +22,9 @@
 │                         BUILD OUTPUT                            │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  crossbus.core.min.js (~4KB)     ← Core only                   │
-│  crossbus.min.js (~5KB)          ← Core + common plugins       │
-│  crossbus.full.min.js (~10KB)    ← Everything                  │
+│  crossbus.core.min.js (~10KB)    ← Core only                   │
+│  crossbus.min.js (~15KB)         ← Core + common plugins       │
+│  crossbus.full.min.js (~15KB)    ← Everything                  │
 │                                                                 │
 │  Plugins (standalone, import common):                           │
 │  ├── crossbus.retry.min.js (~1KB)                              │

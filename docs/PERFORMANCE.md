@@ -1,6 +1,6 @@
 # CrossBus Performance Optimization Patterns
 
-> Lessons learned from analyzing nanoevents and achieving 217M ops/sec
+> Lessons learned from analyzing nanoevents and optimizing to ~170M ops/sec
 
 ## Pattern 1: Object vs Map for String Key Lookup
 
@@ -189,9 +189,9 @@ onFast(name, handler) {
 
 ---
 
-## Final Benchmark Results
+## Benchmark Results (2026-01-23 Optimization Run)
 
-After applying all patterns:
+Results from the optimization session when these patterns were applied. Current performance may vary:
 
 | Test | CrossBus | nanoevents | Winner |
 |------|-----------|------------|--------|

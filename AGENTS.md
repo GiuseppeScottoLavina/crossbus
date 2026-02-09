@@ -67,8 +67,8 @@ async function enableRetry() {
 
 | What You Need | Import Statement | Bundle Impact |
 |---------------|------------------|---------------|
-| **Core messaging** | `import { CrossBus } from 'crossbus'` | ~32 KB |
-| **Ultra-minimal** | `import { createNanoEmitter } from 'crossbus/nano'` | **248 B** |
+| **Core messaging** | `import { CrossBus } from 'crossbus'` | ~15 KB gzip |
+| **Ultra-minimal** | `import { createNanoEmitter } from 'crossbus/nano'` | **295 B** |
 | **Retry plugin** | `await import('crossbus/plugins/retry')` | +2 KB (lazy) |
 | **Circuit breaker** | `await import('crossbus/plugins/circuit-breaker')` | +3 KB (lazy) |
 | **Causal ordering** | `import { VectorClock, CausalOrderer } from 'crossbus'` | Included |
@@ -905,9 +905,9 @@ function addChaos(bus, failureRate = 0.1) {
 
 | Operation | Benchmark | Notes |
 |-----------|-----------|-------|
-| emitSync (1 listener) | **185M ops/sec** | Beats nanoevents 1.08x |
-| emitSync (10KB) | **135M ops/sec** | Beats nanoevents 1.42x |
-| createFastEmitter emit | **62M ops/sec** | Beats nanoevents 1.21x |
+| emitSync (1 listener) | **~170M ops/sec** | Competitive with nanoevents |
+| emitSync (10KB) | **~111M ops/sec** | Near-parity with nanoevents |
+| createFastEmitter emit | **~57M ops/sec** | Nanoevents slightly faster at 10 listeners |
 | Peer lookup | 8.9M ops/sec | O(1) Map lookup |
 | Cross-context RPC | ~1-5ms | Depends on payload size |
 
@@ -917,7 +917,7 @@ function addChaos(bus, failureRate = 0.1) {
 
 Choose the right API based on your performance needs:
 
-### 1. crossbus/nano (248 bytes gzipped)
+### 1. crossbus/nano (295 bytes gzipped)
 
 Ultra-minimal for size-critical deployments:
 
@@ -1068,7 +1068,7 @@ const clock = orderer.tick();
 
 Choose the right API based on your performance needs:
 
-### 1. crossbus/nano (248 bytes gzipped)
+### 1. crossbus/nano (295 bytes gzipped)
 
 Ultra-minimal for size-critical deployments:
 
@@ -1239,10 +1239,10 @@ const agent = new CrossBus({
 
 ## 📦 Bundle Size Guide
 
-| Entry Point | Size | Use Case |
-|-------------|------|----------|
-| `crossbus/nano` | **248 B** | Minimal event emitter |
-| `crossbus` | **32 KB** | Full cross-context + causal ordering |
+| Entry Point | Size (gzip) | Use Case |
+|-------------|-------------|----------|
+| `crossbus/nano` | **295 B** | Minimal event emitter |
+| `crossbus` | **~15 KB** | Full cross-context + causal ordering |
 | `crossbus/plugins/*` | Lazy | Retry, Circuit Breaker, Schema Validation |
 
 ---

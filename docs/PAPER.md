@@ -179,7 +179,7 @@ CrossBus provides the nervous system for browser-based AI:
 
 - **Language**: ES2024 JavaScript
 - **Bundler**: Rollup (Terser minification)
-- **Size**: 45KB (Full), 456B (Nano)
+- **Size**: 51KB raw / ~15KB gzip (Full), 456B raw / 295B gzip (Nano)
 - **Tests**: 1074 unit/integration tests
 
 ---
