@@ -1,6 +1,6 @@
 {
     "name": "crossbus",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Modern cross-context messaging for browsers - iframes, workers, tabs, and native bridges",
     "type": "module",
     "main": "dist/crossbus.cjs",
