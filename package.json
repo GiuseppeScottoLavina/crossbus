@@ -102,7 +102,7 @@
         "@rollup/plugin-terser": "^0.4.4",
         "@types/node": "^25.0.10",
         "comlink": "^4.4.2",
-        "@eslint/js": "^9.27.0",
+        "@eslint/js": "^10.0.1",
         "eslint": "^10.0.0",
         "eslint-config-prettier": "^10.1.8",
         "globals": "^16.1.0",
