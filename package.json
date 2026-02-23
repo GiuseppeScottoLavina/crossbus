@@ -113,7 +113,7 @@
         "prettier": "^3.8.1",
         "puppeteer-core": "^24.35.0",
         "rollup": "^4.56.0",
-        "rollup-plugin-visualizer": "^6.0.5",
+        "rollup-plugin-visualizer": "^7.0.0",
         "typescript": "^5.9.3"
     },
     "engines": {
