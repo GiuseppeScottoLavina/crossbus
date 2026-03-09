@@ -99,7 +99,7 @@
     },
     "homepage": "https://github.com/giuseppescottolavina/crossbus#readme",
     "devDependencies": {
-        "@rollup/plugin-terser": "^0.4.4",
+        "@rollup/plugin-terser": "^1.0.0",
         "@types/node": "^25.0.10",
         "comlink": "^4.4.2",
         "@eslint/js": "^9.27.0",
