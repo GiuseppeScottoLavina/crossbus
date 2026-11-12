@@ -1,5 +1,5 @@
 // Generate claims only from complete, hash-matched, correctness-checked runs.
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { gzipSync, brotliCompressSync, constants } from 'node:zlib';
 const root=new URL('../../',import.meta.url), prefix='benchmarks/optimization-study/';
@@ -64,7 +64,14 @@ for(const variant of ['baseline','candidate'])for(const file of ['crossbus.min.j
  sizes.push({variant,file,rawBytes:data.length,gzipBytes:gzipSync(data,{level:9}).length,brotliBytes:brotliCompressSync(data,{params:{[constants.BROTLI_PARAM_QUALITY]:11}}).length,sha256:hash(data)});
 }
 const summary={generatedAt:new Date().toISOString(),methodology:'Three fresh baseline/candidate process pairs, alternating order; nine samples per process. Ratios pair process medians. Observed ranges are not confidence intervals.',manifests,environments,comparisons,competitors,memory,sizes};
-await writeFile(new URL(`${prefix}summary.json`,root),JSON.stringify(summary,null,2)+'\n');
+// Keep every value/sample, with compact machine-readable JSON so evidence does
+// not exceed GitHub's whole-PR diff limit and obscure the actual source review.
+await writeFile(new URL(`${prefix}summary.json`,root),JSON.stringify(summary)+'\n');
+for(const name of await readdir(new URL(prefix,root))) {
+ if(!/^(?:rpc|local|worker|memory)-(?:baseline|candidate)-.*\.json$/.test(name))continue;
+ const path=new URL(prefix+name,root);
+ await writeFile(path,JSON.stringify(JSON.parse(await readFile(path,'utf8')))+'\n');
+}
 const f=value=>Math.round(value).toLocaleString('en-US');
 const ratio=row=>`${row.ratio.median.toFixed(2)}× (${row.ratio.min.toFixed(2)}–${row.ratio.max.toFixed(2)})`;
 let output='\n## Measured results\n\n'+`${environments[0].metadata.cpu}; ${environments[0].metadata.platform} ${environments[0].metadata.arch}. `;
