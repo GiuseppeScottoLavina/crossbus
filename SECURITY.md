@@ -1,10 +1,13 @@
 # Security Policy
 
-## Supported Versions
+## Release qualification
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 0.1.x   | :white_check_mark: |
+| Version | Status |
+| ------- | ------ |
+| 0.1.2 | Published release; historical checks and limitations are recorded in the audit |
+| 0.1.3 | Unreleased candidate; current checks are recorded separately in the audit |
+
+See [the audit](docs/AUDIT.md) for measured coverage and outstanding browser/device qualification. A passing suite does not establish that a version has no vulnerabilities.
 
 ## Reporting a Vulnerability
 
@@ -16,18 +19,16 @@ Security vulnerabilities should be reported privately to avoid exploitation befo
 
 ### 2. Email the maintainers
 
-Send an email to **giuseppe.sc8.lavina@gmail.com** (or open a private security advisory on GitHub) with:
+Send an email to **giuseppe.sc8.lavina@gmail.com** with:
 
 - A description of the vulnerability
 - Steps to reproduce
 - Potential impact
 - Any suggested fixes (optional)
 
-### 3. Response Timeline
+### 3. Response and follow-up
 
-- **Initial response**: Within 48 hours
-- **Status update**: Within 7 days
-- **Fix release**: Typically within 30 days (depending on severity)
+Include a way for the maintainer to contact you for reproduction details. This project does not publish a verified response-time or fix-release service guarantee.
 
 ## Security Features
 
@@ -35,8 +36,9 @@ CrossBus provides configurable security controls; no independent security rating
 
 ### Origin Validation
 ```javascript
-const bus = new CrossBus({
-  allowedOrigins: ['https://trusted.com', '*.myapp.com']
+// For a MessageChannel binding; use exact application origins for windows.
+const bus = CrossBus.createSecure({
+  allowedOrigins: ['channel']
 });
 ```
 
@@ -47,12 +49,14 @@ The standalone handshake utility implements INIT → ACK → COMPLETE negotiatio
 Optional AES-256-GCM payload encryption (key distribution and endpoint authentication are application responsibilities):
 ```javascript
 import { withEncryption, Encryption } from 'crossbus/plugins/encryption';
-const key = await Encryption.deriveKey('password', 'salt');
+const key = await Encryption.generateKey();
 withEncryption(bus, key);
 ```
 
+Provision the same key to the other trusted endpoint through your application's key-distribution mechanism. Generating a key independently at each endpoint will not create a shared encrypted channel.
+
 ### Rate Limiting
-Prevent DoS attacks:
+Limit outbound operations from this bus; this helper is not an inbound or distributed DoS defense:
 ```javascript
 import { withRateLimiter } from 'crossbus/plugins/rate-limiter';
 withRateLimiter(bus, { maxRequests: 100, windowMs: 1000 });
@@ -61,7 +65,7 @@ withRateLimiter(bus, { maxRequests: 100, windowMs: 1000 });
 ## Security Best Practices
 
 1. **Always specify allowed origins** - Never use `'*'` with untrusted iframes
-2. **Use encryption for sensitive data** - Enable the encryption plugin
+2. **Protect sensitive data** - Use an authenticated transport and application key management if enabling payload encryption
 3. **Validate payloads** - Always validate incoming message payloads
 4. **Keep dependencies updated** - Run `npm audit` regularly
 5. **Use CSP headers** - Configure Content Security Policy

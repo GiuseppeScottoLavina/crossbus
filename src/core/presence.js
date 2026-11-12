@@ -135,6 +135,7 @@ export class PresenceManager extends EventEmitter {
      * Starts the presence system.
      */
     start() {
+        if (this.#destroyed) throw new Error('Presence manager destroyed');
         if (this.#heartbeatTimer) return;
 
         // Send initial presence
@@ -246,7 +247,7 @@ export class PresenceManager extends EventEmitter {
      * @param {string} fromPeerId - Source peer ID.
      */
     handleMessage(message, fromPeerId) {
-        if (message.t !== 'presence') return;
+        if (this.#destroyed || message.t !== 'presence') return;
         if (fromPeerId === this.#peerId) return; // Ignore own messages
 
         const { pt: presenceType, status, meta } = message;
@@ -373,9 +374,10 @@ export class PresenceManager extends EventEmitter {
     destroy() {
         if (this.#destroyed) return;
 
-        this.#destroyed = true;
         this.stop();
+        this.#destroyed = true;
         this.#peers.clear();
+        this.clear();
     }
 
     /**
@@ -403,7 +405,7 @@ export class PresenceManager extends EventEmitter {
 export function createPresence(bus, options = {}) {
     const sendFn = async (message) => {
         // Broadcast to all peers
-        await bus.signal('__presence__', message);
+        if (!bus.isDestroyed) await bus.signal('__presence__', message);
     };
 
     const presence = new PresenceManager(sendFn, {

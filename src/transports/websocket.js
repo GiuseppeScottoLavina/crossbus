@@ -15,7 +15,8 @@ import { PROTOCOL_MARKER, PROTOCOL_VERSION } from '../common/types.js';
  * @property {number} [reconnectDelayMs=1000] - Base delay for reconnection
  * @property {number} [maxReconnectDelayMs=30000] - Max delay with exponential backoff
  * @property {number} [heartbeatIntervalMs=30000] - Heartbeat interval (0 to disable)
- * @property {Object} [protocols] - WebSocket subprotocols
+ * @property {string|string[]} [protocols] - WebSocket subprotocols
+ * @property {number} [maxQueueSize=1000] - Maximum queued messages while disconnected; zero disables the cap.
  */
 
 /**
@@ -73,8 +74,17 @@ export class WebSocketTransport {
     /** @type {'connecting'|'connected'|'disconnected'|'error'} */
     #state = 'disconnected';
 
-    /** @type {Object[]} */
+    /** @type {string[]} Already serialized snapshots, not mutable caller objects. */
     #messageQueue = [];
+
+    #destroyed = false;
+    /** @type {Promise<void>|null} */
+    #connecting = null;
+    /** @type {((error?: any) => void)|null} */
+    #settleConnect = null;
+    /** @type {string|string[]|undefined} */
+    #protocols;
+    #maxQueueSize;
 
     /** @type {boolean} */
     #intentionalClose = false;
@@ -85,6 +95,9 @@ export class WebSocketTransport {
      */
     constructor(options) {
         this.#url = options.url;
+        this.#protocols = options.protocols;
+        this.#maxQueueSize = options.maxQueueSize ?? 1000;
+        if (!Number.isSafeInteger(this.#maxQueueSize) || this.#maxQueueSize < 0) throw new RangeError('maxQueueSize must be a nonnegative safe integer');
         this.#peerId = options.peerId ?? uuid();
         this.#autoReconnect = options.autoReconnect ?? true;
         this.#reconnectDelayMs = options.reconnectDelayMs ?? 1000;
@@ -112,50 +125,55 @@ export class WebSocketTransport {
      * Connects to the WebSocket server.
      * @returns {Promise<void>}
      */
-    async connect() {
-        if (this.#socket && this.#socket.readyState === WebSocket.OPEN) {
-            return;
-        }
-
+    connect() {
+        if (this.#destroyed) return Promise.reject(new Error('WebSocket transport destroyed'));
+        if (this.#connecting) return this.#connecting;
+        if (this.#socket && this.#socket.readyState === WebSocket.OPEN) return Promise.resolve();
         this.#intentionalClose = false;
-        this.#setState('connecting');
-
-        return new Promise((resolve, reject) => {
-            try {
-                this.#socket = new WebSocket(this.#url);
-
-                this.#socket.onopen = () => {
+        /** @type {(error?: any) => void} */
+        let settle = () => {};
+        /** @type {Promise<void>} */
+        const pending = new Promise((resolve, reject) => {
+            let settled = false;
+            settle = error => {
+                if (settled) return;
+                settled = true;
+                this.#connecting = null;
+                this.#settleConnect = null;
+                if (error) reject(error); else resolve();
+            };
+        });
+        this.#connecting = pending;
+        this.#settleConnect = settle;
+        try {
+            this.#setState('connecting');
+            const socket = this.#protocols === undefined ? new WebSocket(this.#url) : new WebSocket(this.#url, this.#protocols);
+            this.#socket = socket;
+            socket.onopen = () => {
+                if (socket !== this.#socket || this.#destroyed || this.#intentionalClose) return;
+                try {
                     this.#setState('connected');
                     this.#currentReconnectDelay = this.#reconnectDelayMs;
                     this.#flushQueue();
                     this.#startHeartbeat();
-                    resolve();
-                };
-
-                this.#socket.onmessage = (event) => {
-                    this.#handleMessage(event);
-                };
-
-                this.#socket.onclose = (event) => {
-                    this.#stopHeartbeat();
-                    this.#setState('disconnected');
-
-                    if (!this.#intentionalClose && this.#autoReconnect) {
-                        this.#scheduleReconnect();
-                    }
-                };
-
-                this.#socket.onerror = (error) => {
-                    this.#setState('error');
-                    if (this.#state === 'connecting') {
-                        reject(new Error('WebSocket connection failed'));
-                    }
-                };
-            } catch (e) {
+                    settle();
+                } catch (error) { this.#setState('error'); settle(error); socket.close(); }
+            };
+            socket.onmessage = event => { if (socket === this.#socket && !this.#destroyed) this.#handleMessage(event); };
+            socket.onclose = () => {
+                if (socket !== this.#socket) return;
+                this.#stopHeartbeat();
+                this.#setState('disconnected');
+                settle(new Error('WebSocket closed before connecting'));
+                if (!this.#intentionalClose && !this.#destroyed && this.#autoReconnect) this.#scheduleReconnect();
+            };
+            socket.onerror = () => {
+                if (socket !== this.#socket) return;
                 this.#setState('error');
-                reject(e);
-            }
-        });
+                settle(new Error('WebSocket connection failed'));
+            };
+        } catch (error) { this.#setState('error'); settle(error); }
+        return pending;
     }
 
     /**
@@ -163,6 +181,7 @@ export class WebSocketTransport {
      */
     disconnect() {
         this.#intentionalClose = true;
+        this.#settleConnect?.(new Error('WebSocket disconnected before connecting'));
         this.#stopHeartbeat();
 
         if (this.#reconnectTimer) {
@@ -171,8 +190,10 @@ export class WebSocketTransport {
         }
 
         if (this.#socket) {
-            this.#socket.close(1000, 'Client disconnect');
+            const socket = this.#socket;
             this.#socket = null;
+            socket.onopen = null; socket.onclose = null; socket.onerror = null; socket.onmessage = null;
+            socket.close(1000, 'Client disconnect');
         }
 
         this.#setState('disconnected');
@@ -184,6 +205,7 @@ export class WebSocketTransport {
      * @returns {boolean} Whether the message was sent immediately
      */
     send(message) {
+        if (this.#destroyed) throw new Error('WebSocket transport destroyed');
         const envelope = {
             _cb: PROTOCOL_VERSION,
             _m: PROTOCOL_MARKER,
@@ -193,12 +215,14 @@ export class WebSocketTransport {
             ...message
         };
 
+        const serialized = JSON.stringify(envelope);
         if (this.isConnected && this.#socket) {
-            this.#socket.send(JSON.stringify(envelope));
+            this.#socket.send(serialized);
             return true;
         } else {
             // Queue for later
-            this.#messageQueue.push(envelope);
+            if (this.#maxQueueSize && this.#messageQueue.length >= this.#maxQueueSize) throw new Error('WebSocket queue limit reached');
+            this.#messageQueue.push(serialized);
             return false;
         }
     }
@@ -210,6 +234,9 @@ export class WebSocketTransport {
     onMessage(handler) {
         this.#messageHandler = handler;
     }
+
+    /** Removes the current inbound observer. */
+    offMessage() { this.#messageHandler = null; }
 
     /**
      * Sets the state change handler.
@@ -244,10 +271,11 @@ export class WebSocketTransport {
      */
     #flushQueue() {
         while (this.#messageQueue.length > 0 && this.isConnected && this.#socket) {
-            const message = this.#messageQueue.shift();
+            const message = this.#messageQueue[0];
             if (message) {
-                this.#socket.send(JSON.stringify(message));
+                this.#socket.send(message);
             }
+            this.#messageQueue.shift();
         }
     }
 
@@ -258,7 +286,8 @@ export class WebSocketTransport {
         if (this.#state !== state) {
             this.#state = state;
             if (this.#stateHandler) {
-                this.#stateHandler(state);
+                try { this.#stateHandler(state); }
+                catch (error) { console.error('[WebSocketTransport] State observer error:', error); }
             }
         }
     }
@@ -267,6 +296,7 @@ export class WebSocketTransport {
      * Starts heartbeat timer.
      */
     #startHeartbeat() {
+        this.#stopHeartbeat();
         if (this.#heartbeatIntervalMs <= 0) return;
 
         this.#heartbeatTimer = setInterval(() => {
@@ -290,7 +320,7 @@ export class WebSocketTransport {
      * Schedules a reconnection attempt.
      */
     #scheduleReconnect() {
-        if (this.#reconnectTimer) return;
+        if (this.#reconnectTimer || this.#intentionalClose || this.#destroyed) return;
 
         this.#reconnectTimer = setTimeout(async () => {
             this.#reconnectTimer = null;
@@ -315,6 +345,8 @@ export class WebSocketTransport {
      * Destroys the transport.
      */
     destroy() {
+        if (this.#destroyed) return;
+        this.#destroyed = true;
         this.disconnect();
         this.#messageHandler = null;
         this.#stateHandler = null;

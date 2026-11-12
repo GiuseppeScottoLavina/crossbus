@@ -83,7 +83,7 @@ export class OriginValidator {
 
         // Empty/no allowed origins = same-origin only
         if (this.#exactOrigins.size === 0 && this.#patterns.length === 0) {
-            return origin === this.#selfOrigin;
+            return typeof this.#selfOrigin === 'string' && origin === this.#selfOrigin;
         }
 
         // Check exact match first (fast path)

@@ -8,7 +8,7 @@
     <link rel="icon" type="image/png" href="favicon.png">
 
     <!-- Marked.js for full GFM Markdown support (tables, etc.) -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="./vendor/marked.umd.js"></script>
 
     <!-- Highlight.js for code syntax -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github-dark.min.css">
@@ -363,7 +363,8 @@
         </main>
     </div>
 
-    <script>
+    <script type="module">
+        import { rewriteDocumentationLinks } from './doc-links.js';
         // Configure marked.js with GFM (tables, strikethrough, etc.)
         marked.setOptions({
             gfm: true,
@@ -438,25 +439,19 @@
                 <h2>Quick Install</h2>
                 <pre><code class="language-bash">npm install crossbus</code></pre>
                 
-                <h2>Basic Usage</h2>
-                <pre><code class="language-javascript">import { CrossBus } from 'crossbus';
-
-// Create hub (main page)
-const hub = new CrossBus({ peerId: 'hub', isHub: true });
-
-// Register handler
-hub.handle('getData', () => ({ hello: 'world' }));
-
-// Request from widget
-const data = await widget.request('hub', 'getData', {});
-</code></pre>
+                <h2>Runnable browser example</h2>
+                <p>With Node.js 18+ and Git, start both local origins and open http://127.0.0.1:8780/:</p>
+                <pre><code class="language-bash">git clone https://github.com/GiuseppeScottoLavina/crossbus.git
+cd crossbus
+node examples/quickstart/server.js</code></pre>
+                <p><a href="https://github.com/GiuseppeScottoLavina/crossbus/tree/master/examples/quickstart">Complete HTML, modules and instructions</a></p>
             `;
         }
 
         // Load page content
         async function loadPage(pageId) {
             const content = document.getElementById('page-content');
-            const config = pages[pageId] || pages['home'];
+            const config = Object.hasOwn(pages, pageId) ? pages[pageId] : pages.home;
 
             // Update active states
             document.querySelectorAll('[data-page]').forEach(el => {
@@ -469,10 +464,12 @@ const data = await widget.request('hub', 'getData', {});
                 content.innerHTML = '<div class="loading">Loading...</div>';
                 try {
                     const response = await fetch(config.file);
+                    if (!response.ok) throw new Error('Documentation not found');
                     const text = await response.text();
                     content.innerHTML = parseMarkdown(text);
+                    rewriteDocumentationLinks(content);
                 } catch (err) {
-                    content.innerHTML = `<p>Error loading ${config.file}: ${err.message}</p>`;
+                    content.textContent = `Error loading ${config.file}: ${err.message}`;
                 }
             }
 

@@ -2,20 +2,22 @@
 
 CrossBus provides signals and request/response messaging between browser contexts. Use only APIs present in `src/index.js` and the package export map. Examples of agent orchestration are application patterns, not bundled AI framework integrations.
 
-Always import only core at startup and dynamically load optional features:
+Import the APIs you need and load optional plugin subpaths dynamically. The root module exports transports as well as core; importing it does not create a separate core-only chunk:
 
 ```js
 import { CrossBus } from 'crossbus';
 const hub = CrossBus.createSecure({
-  peerId: 'hub', isHub: true, allowedOrigins: ['https://widget.example.com']
+  peerId: 'hub', isHub: true, allowedOrigins: ['channel']
 });
-const { PostMessageTransport } = await import('crossbus');
+const { MessageChannelTransport } = await import('crossbus');
 const { withSchemaValidation } = await import('crossbus/plugins/schema-validation');
 ```
 
+The snippet configures a MessageChannel hub; it does not connect a peer. Use the complete executable examples in the README to establish both endpoints.
+
 Use `hub.handle(name, handler)` for RPC, `hub.request(peerId, name, data)` for a call and `hub.signal(name, data)` for one-way broadcasts. Local listeners receive an event envelope; remote signal data is at `event.data.payload`, and its peer ID at `event.data.source`. Use hierarchical signal names such as `task:progress` and `task:complete`.
 
-`addTransport()` binds a transport to one known peer and returns a cleanup function. Window transports must use exact `targetOrigin` and `allowedOrigins`; the actual event origin is checked by the bus. Originless transports require an explicit application trust label in `addTransport(..., { peerId, origin })` and that label in the bus allowlist. `destroy()` closes attached transports and cancels requests. A manually supplied `handleMessage(message, origin, peerId)` must use an authenticated channel identity, never a peer ID taken from an untrusted payload.
+`addTransport()` binds a transport to one known peer and returns a cleanup function. Window transports must use exact `targetOrigin` and `allowedOrigins`; the actual event origin is checked by the bus. MessageChannel, BroadcastChannel, SharedWorker and ServiceWorker report the fixed labels `channel`, `broadcast`, `sharedworker` and `serviceworker`; include the matching label in the bus allowlist. The `origin` option is only a fallback when a transport supplies no origin (for example native/WebSocket adapters); choose an explicit application trust label there. `destroy()` closes attached transports and cancels requests. A manually supplied `handleMessage(message, origin, peerId)` must use an authenticated channel identity, never a peer ID taken from an untrusted payload.
 
 The native JavaScript transport requires a native host. See `native/README.md` for Swift WKWebView and Java AndroidX adapters. A native build check is separate from runtime verification on iOS/Android.
 

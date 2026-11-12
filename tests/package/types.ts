@@ -1,4 +1,4 @@
-import { CrossBus, NativeBridgeTransport, EventEmitter } from 'crossbus';
+import { CrossBus, NativeBridgeTransport, MessageChannelTransport, StreamManager, EventEmitter } from 'crossbus';
 import { CrossBus as Core } from 'crossbus/core';
 import { createNanoEmitter } from 'crossbus/nano';
 import { withSchemaValidation } from 'crossbus/plugins/schema-validation';
@@ -16,3 +16,8 @@ nano.on('event', (value: number) => value.toFixed());
 const native = new NativeBridgeTransport({ callbackName: '__custom__', maxQueueSize: 10 });
 const valid = withSchemaValidation({ type: 'string' }, (data: string) => data.toUpperCase());
 void [bus, native, valid, withRetry, CircuitBreaker, createConnectedMocks, Metrics];
+
+const compact = new MessageChannelTransport({ wireFormat: 'compact' });
+const selected: 'standard' | 'compact' = compact.wireFormat;
+new StreamManager(async () => {}).destroy();
+void selected;

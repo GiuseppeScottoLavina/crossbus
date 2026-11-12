@@ -6,7 +6,8 @@
  * @property {number} [reconnectDelayMs=1000] - Base delay for reconnection
  * @property {number} [maxReconnectDelayMs=30000] - Max delay with exponential backoff
  * @property {number} [heartbeatIntervalMs=30000] - Heartbeat interval (0 to disable)
- * @property {Object} [protocols] - WebSocket subprotocols
+ * @property {string|string[]} [protocols] - WebSocket subprotocols
+ * @property {number} [maxQueueSize=1000] - Maximum queued messages while disconnected; zero disables the cap.
  */
 /**
  * WebSocket transport for server communication.
@@ -55,6 +56,8 @@ export class WebSocketTransport {
      * @param {(message: Object) => void} handler
      */
     onMessage(handler: (message: any) => void): void;
+    /** Removes the current inbound observer. */
+    offMessage(): void;
     /**
      * Sets the state change handler.
      * @param {(state: string) => void} handler
@@ -94,5 +97,9 @@ export type WebSocketTransportOptions = {
     /**
      * - WebSocket subprotocols
      */
-    protocols?: any;
+    protocols?: string | string[] | undefined;
+    /**
+     * - Maximum queued messages while disconnected; zero disables the cap.
+     */
+    maxQueueSize?: number | undefined;
 };

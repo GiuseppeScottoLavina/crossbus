@@ -1,6 +1,6 @@
 {
     "name": "CrossBus",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "description": "Cross-context signals and RPC for browser applications. No runtime npm dependencies.",
     "homepage": "https://github.com/giuseppescottolavina/crossbus",
     "documentation": "https://giuseppescottolavina.github.io/crossbus/",
@@ -67,7 +67,7 @@
             "returns": {
                 "delivered": {
                     "type": "number",
-                    "description": "Count of peers that received"
+                    "description": "Count of transport sends accepted; not a delivery acknowledgement"
                 },
                 "failed": {
                     "type": "array",
@@ -136,7 +136,7 @@
                     "description": "Callback function"
                 }
             },
-            "example": "bus.on('user:update', (e) => console.log(e.data))"
+            "example": "bus.on('user:update', (e) => console.log(e.data.payload))"
         },
         {
             "name": "addTransport",
@@ -148,7 +148,7 @@
                 },
                 "options": {
                     "type": "object",
-                    "description": "Optional: { peerId: 'remote-peer-id' }",
+                    "description": "Known peer identity and fallback origin: { peerId, origin }; built-in transport origin labels take precedence",
                     "optional": true
                 }
             },
@@ -156,7 +156,7 @@
                 "type": "function",
                 "description": "Cleanup function to remove the transport"
             },
-            "example": "bus.addTransport(new PostMessageTransport(iframe.contentWindow, { targetOrigin: '*' }), { peerId: 'agent-1' })"
+            "example": "bus.addTransport(MessageChannelTransport.fromPort(remotePort), { peerId: 'agent-1', origin: 'channel' })"
         },
         {
             "name": "destroy",
@@ -198,9 +198,10 @@
         }
     ],
     "quickStart": {
-        "hub": "const hub = new CrossBus({ isHub: true, peerId: 'hub' });",
-        "agent": "const agent = new CrossBus({ peerId: 'agent-1' });",
-        "connect": "bus.addTransport(new PostMessageTransport(target));"
+        "hub": "const hub = CrossBus.createSecure({ peerId: 'hub', allowedOrigins: ['channel'] });",
+        "agent": "const agent = CrossBus.createSecure({ peerId: 'agent-1', allowedOrigins: ['channel'] });",
+        "connect": "hub.addTransport(channel, { peerId: 'agent-1', origin: 'channel' }); agent.addTransport(MessageChannelTransport.fromPort(channel.remotePort), { peerId: 'hub', origin: 'channel' });",
+        "prerequisite": "Create channel with new MessageChannelTransport(); see examples/quickstart/rpc.mjs for all imports and cleanup."
     },
     "aiGuide": "./docs/AI-GUIDE.md",
     "geminiMd": "./GEMINI.md",

@@ -6,10 +6,33 @@ import { uuid } from '../common/utils.js';
  */
 
 // Import MessageType from common/types to ensure consistent type codes
-import { MessageType, PROTOCOL_MARKER as PROTOCOL_PREFIX, PROTOCOL_VERSION } from '../common/types.js';
+import { MessageType, PROTOCOL_MARKER as PROTOCOL_PREFIX, PROTOCOL_VERSION, EMPTY_MESSAGE_META } from '../common/types.js';
 
 // Re-export for convenience
 export { MessageType };
+
+const EMPTY_META = EMPTY_MESSAGE_META;
+/**
+ * Builds an envelope from a payload owned by the caller. Public createMessage
+ * still copies caller-owned payload/meta objects before freezing them.
+ * @param {MessageType} type
+ * @param {Object} payload
+ * @param {Object} meta
+ * @param {string|null} id
+ * @returns {ProtocolMessage}
+ */
+function envelope(type, payload, meta, id) {
+  const message = Object.freeze({
+    [PROTOCOL_PREFIX]: PROTOCOL_VERSION,
+    version: PROTOCOL_VERSION,
+    id: id || uuid(),
+    type,
+    timestamp: Date.now(),
+    payload: Object.freeze(payload),
+    meta
+  });
+  return message;
+}
 
 /**
  * Delivery status constants.
@@ -77,22 +100,14 @@ export const PeerType = Object.freeze({
  * @typedef {Object} ProtocolMessage
  * @property {number} _cb - Protocol marker version (compact wire format).
  * @property {number} version - Protocol version.
- * @property {string} id - Unique message ID (UUID v4).
+ * @property {string} id - Opaque message identifier; not an authentication token.
  * @property {MessageType} type - Message type.
  * @property {number} timestamp - Unix timestamp (ms).
  * @property {Object} payload - Message payload.
  * @property {Object} meta - Additional metadata.
  */
 export function createMessage(type, payload, meta = {}, id = null) {
-  return Object.freeze({
-    [PROTOCOL_PREFIX]: PROTOCOL_VERSION,
-    version: PROTOCOL_VERSION,
-    id: id || uuid(),
-    type,
-    timestamp: Date.now(),
-    payload: Object.freeze({ ...payload }),
-    meta: Object.freeze({ ...meta })
-  });
+  return envelope(type, { ...payload }, Object.freeze({ ...meta }), id);
 }
 
 /**
@@ -105,12 +120,12 @@ export function createMessage(type, payload, meta = {}, id = null) {
  * @returns {ProtocolMessage} Signal message.
  */
 export function createSignalMessage(name, data, sourcePeerId, destPeerId = null) {
-  return createMessage(MessageType.SIGNAL, {
+  return envelope(MessageType.SIGNAL, {
     name,
     data,
     source: sourcePeerId,
     dest: destPeerId
-  });
+  }, EMPTY_META, null);
 }
 
 /**
@@ -190,12 +205,12 @@ export function createHandshakeComplete(peerId, success) {
  * @returns {ProtocolMessage} Request message.
  */
 export function createRequestMessage(name, data, sourcePeerId, destPeerId, id = null) {
-  return createMessage(MessageType.REQUEST, {
+  return envelope(MessageType.REQUEST, {
     name,
     data,
     source: sourcePeerId,
     dest: destPeerId
-  }, {}, id);
+  }, EMPTY_META, id);
 }
 
 /**
@@ -209,13 +224,13 @@ export function createRequestMessage(name, data, sourcePeerId, destPeerId, id = 
  * @returns {ProtocolMessage} Response message.
  */
 export function createResponseMessage(requestId, data, sourcePeerId, success = true, error = null) {
-  return createMessage(MessageType.RESPONSE, {
+  return envelope(MessageType.RESPONSE, {
     requestId,
     data,
     source: sourcePeerId,
     success,
     error
-  });
+  }, EMPTY_META, null);
 }
 
 /**

@@ -1,0 +1,9 @@
+{
+  "version": "0.1.2",
+  "gitHead": "bb3a925d8f702c77ce9f9476af6ce7a4fca082cf",
+  "description": "Exact published-runtime baseline before this optimization study; documentation differs from the npm archive.",
+  "sha256": {
+    "crossbus.min.js": "693e52335e13aad571daad81e42005c63d01a23c995a7e2e7935fea550e076ad",
+    "nano.min.js": "f1b5ac035ac12461f91b554434b0d6d4ac45a73ff7d450e150bb759899173e60"
+  }
+}

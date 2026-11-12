@@ -81,9 +81,10 @@ export class PendingRequests {
      *
      * @param {string} requestId - Request ID to resolve.
      * @param {ResponseData} response - Response data.
+     * @param {string} [targetPeer] - If supplied, require the response's bound peer.
      * @returns {boolean} True if request was found and resolved.
      */
-    resolve(requestId: string, response: ResponseData): boolean;
+    resolve(requestId: string, response: ResponseData, targetPeer?: string): boolean;
     /**
      * Rejects a pending request with an error.
      *

@@ -194,7 +194,7 @@ export class MessageRouter extends EventEmitter {
     route(message, options = {}) {
         const { target, payload } = message;
 
-        if (target) {
+        if (target !== undefined && target !== null) {
             // Unicast to specific peer
             return this.#routeUnicast(target, payload);
         } else {

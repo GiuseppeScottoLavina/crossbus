@@ -152,3 +152,5 @@ export const TransferableTypes: ({
     new (): MessagePort;
     prototype: MessagePort;
 } | ArrayBufferConstructor)[];
+/** Shared immutable empty metadata for internally constructed envelopes. */
+export const EMPTY_MESSAGE_META: Readonly<{}>;

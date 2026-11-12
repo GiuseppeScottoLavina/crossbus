@@ -1,4 +1,4 @@
-/*! CrossBus v0.1.2 | Apache-2.0 */
+/*! CrossBus v0.1.3 | Apache-2.0 */
 'use strict';
 
 /**
@@ -591,36 +591,62 @@ function assertPayloadSize(payload, limit) {
         if (size > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
         return;
     }
-    measurePayload(payload, limit, new Set(), 0);
+    measurePayload(payload, limit);
 }
 
 /**
- * Accumulates the same conservative budget without allocating a closure or
- * key array per message. The seen set still bounds traversal of cyclic graphs.
- * @param {*} value
+ * Iterative graph traversal. Flat objects need neither a work list nor a seen
+ * set; nested graphs allocate them lazily and cannot exhaust the JS call stack.
+ * Every reference is charged, while each object's contents are charged once.
+ * Binary views account for their complete backing storage, as structured clone
+ * copies that storage even when the view covers only a small slice.
+ * @param {object} root
  * @param {number} limit
- * @param {Set<object>} seen
- * @param {number} bytes
- * @returns {number}
  */
-function measurePayload(value, limit, seen, bytes) {
-    bytes += 8 + (typeof value === 'string' ? value.length * 2 : 0);
-    if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
-    if (value === null || typeof value !== 'object' || seen.has(value)) return bytes;
-    seen.add(value);
-    if (value instanceof ArrayBuffer || ArrayBuffer.isView(value)) bytes += value.byteLength;
-    else if (typeof Blob !== 'undefined' && value instanceof Blob) bytes += value.size;
-    else if (value instanceof Map) for (const [key, item] of value) {
-        bytes = measurePayload(key, limit, seen, bytes);
-        bytes = measurePayload(item, limit, seen, bytes);
+function measurePayload(root, limit) {
+    let bytes = 8;
+    let value = root;
+    /** @type {Set<object>|null} */
+    let seen = null;
+    /** @type {object[]|null} */
+    let pending = null;
+    while (true) {
+        if (value instanceof ArrayBuffer || (typeof SharedArrayBuffer !== 'undefined' && value instanceof SharedArrayBuffer)) bytes += value.byteLength;
+        else if (ArrayBuffer.isView(value)) bytes += value.buffer.byteLength;
+        else if (typeof Blob !== 'undefined' && value instanceof Blob) bytes += value.size;
+        else if (value instanceof Map) {
+            for (const entry of value) for (const item of entry) {
+                bytes += 8 + (typeof item === 'string' ? item.length * 2 : 0);
+                if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+                if (item !== null && typeof item === 'object') {
+                    if (!seen || !pending) { seen = new Set([root]); pending = []; }
+                    if (!seen.has(item)) { seen.add(item); pending.push(item); }
+                }
+            }
+        } else if (value instanceof Set) {
+            for (const item of value) {
+                bytes += 8 + (typeof item === 'string' ? item.length * 2 : 0);
+                if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+                if (item !== null && typeof item === 'object') {
+                    if (!seen || !pending) { seen = new Set([root]); pending = []; }
+                    if (!seen.has(item)) { seen.add(item); pending.push(item); }
+                }
+            }
+        } else for (const key in value) if (Object.hasOwn(value, key)) {
+            bytes += 8 + key.length * 2;
+            if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+            const item = value[key];
+            bytes += 8 + (typeof item === 'string' ? item.length * 2 : 0);
+            if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+            if (item !== null && typeof item === 'object') {
+                if (!seen || !pending) { seen = new Set([root]); pending = []; }
+                if (!seen.has(item)) { seen.add(item); pending.push(item); }
+            }
+        }
+        if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+        if (!pending?.length) return;
+        value = pending.pop();
     }
-    else if (value instanceof Set) for (const item of value) bytes = measurePayload(item, limit, seen, bytes);
-    else for (const key in value) if (Object.hasOwn(value, key)) {
-        bytes = measurePayload(key, limit, seen, bytes);
-        bytes = measurePayload(value[key], limit, seen, bytes);
-    }
-    if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
-    return bytes;
 }
 
 /**
@@ -1489,36 +1515,30 @@ function findTransferables(value, found = new Set(), seen = new Set()) {
     return Array.from(found);
 }
 
-// PROTOCOL_PREFIX and PROTOCOL_VERSION are imported from common/types.js
+/** Shared immutable empty metadata for internally constructed envelopes. */
+const EMPTY_MESSAGE_META = Object.freeze({});
 
+const EMPTY_META = EMPTY_MESSAGE_META;
 /**
- * Creates a protocol message envelope.
- *
- * @param {MessageType} type - Message type.
- * @param {Object} payload - Message payload.
- * @param {Object} [meta={}] - Additional metadata.
- * @param {string|null} [id=null] - Optional custom message ID.
- * @returns {ProtocolMessage} Frozen message object.
- *
- * @typedef {Object} ProtocolMessage
- * @property {number} _cb - Protocol marker version (compact wire format).
- * @property {number} version - Protocol version.
- * @property {string} id - Unique message ID (UUID v4).
- * @property {MessageType} type - Message type.
- * @property {number} timestamp - Unix timestamp (ms).
- * @property {Object} payload - Message payload.
- * @property {Object} meta - Additional metadata.
+ * Builds an envelope from a payload owned by the caller. Public createMessage
+ * still copies caller-owned payload/meta objects before freezing them.
+ * @param {MessageType} type
+ * @param {Object} payload
+ * @param {Object} meta
+ * @param {string|null} id
+ * @returns {ProtocolMessage}
  */
-function createMessage(type, payload, meta = {}, id = null) {
-  return Object.freeze({
+function envelope(type, payload, meta, id) {
+  const message = Object.freeze({
     [PROTOCOL_MARKER]: PROTOCOL_VERSION,
     version: PROTOCOL_VERSION,
     id: id || uuid(),
     type,
     timestamp: Date.now(),
-    payload: Object.freeze({ ...payload }),
-    meta: Object.freeze({ ...meta })
+    payload: Object.freeze(payload),
+    meta
   });
+  return message;
 }
 
 /**
@@ -1531,12 +1551,12 @@ function createMessage(type, payload, meta = {}, id = null) {
  * @returns {ProtocolMessage} Signal message.
  */
 function createSignalMessage(name, data, sourcePeerId, destPeerId = null) {
-  return createMessage(MessageType.SIGNAL, {
+  return envelope(MessageType.SIGNAL, {
     name,
     data,
     source: sourcePeerId,
     dest: destPeerId
-  });
+  }, EMPTY_META, null);
 }
 
 /**
@@ -1550,12 +1570,12 @@ function createSignalMessage(name, data, sourcePeerId, destPeerId = null) {
  * @returns {ProtocolMessage} Request message.
  */
 function createRequestMessage(name, data, sourcePeerId, destPeerId, id = null) {
-  return createMessage(MessageType.REQUEST, {
+  return envelope(MessageType.REQUEST, {
     name,
     data,
     source: sourcePeerId,
     dest: destPeerId
-  }, {}, id);
+  }, EMPTY_META, id);
 }
 
 /**
@@ -1569,13 +1589,13 @@ function createRequestMessage(name, data, sourcePeerId, destPeerId, id = null) {
  * @returns {ProtocolMessage} Response message.
  */
 function createResponseMessage(requestId, data, sourcePeerId, success = true, error = null) {
-  return createMessage(MessageType.RESPONSE, {
+  return envelope(MessageType.RESPONSE, {
     requestId,
     data,
     source: sourcePeerId,
     success,
     error
-  });
+  }, EMPTY_META, null);
 }
 
 /**
@@ -1771,7 +1791,7 @@ class MessageRouter extends EventEmitter {
     route(message, options = {}) {
         const { target, payload } = message;
 
-        if (target) {
+        if (target !== undefined && target !== null) {
             // Unicast to specific peer
             return this.#routeUnicast(target, payload);
         } else {
@@ -2069,11 +2089,12 @@ class PendingRequests {
      *
      * @param {string} requestId - Request ID to resolve.
      * @param {ResponseData} response - Response data.
+     * @param {string} [targetPeer] - If supplied, require the response's bound peer.
      * @returns {boolean} True if request was found and resolved.
      */
-    resolve(requestId, response) {
+    resolve(requestId, response, targetPeer) {
         const pending = this.#pending.get(requestId);
-        if (!pending) return false;
+        if (!pending || (targetPeer !== undefined && pending.targetPeer !== targetPeer)) return false;
 
         clearTimeout(pending.timer);
         // Remove the settled request
@@ -2666,7 +2687,7 @@ class OriginValidator {
 
         // Empty/no allowed origins = same-origin only
         if (this.#exactOrigins.size === 0 && this.#patterns.length === 0) {
-            return origin === this.#selfOrigin;
+            return typeof this.#selfOrigin === 'string' && origin === this.#selfOrigin;
         }
 
         // Check exact match first (fast path)
@@ -2825,6 +2846,9 @@ const OriginValidatorPresets = {
  */
 
 
+// A completed dispatch has no asynchronous work or per-message rejection chain.
+const MESSAGE_HANDLED = Promise.resolve();
+
 /**
  * @typedef {Object} CrossBusOptions
  * @property {string} [peerId] - Unique peer identifier (auto-generated if not specified).
@@ -2968,6 +2992,9 @@ class CrossBus extends EventEmitter {
 
     /** @type {Map<string, HandlerOptions>} */
     #handlerOptions = new Map();
+
+    /** @type {Map<string, Function>} Owns each handler registration cleanup. */
+    #handlerUnregister = new Map();
 
     /** @type {boolean} */
     #debug = false;
@@ -3124,7 +3151,7 @@ class CrossBus extends EventEmitter {
 
         const result = this.#router.broadcast(message, options);
 
-        this.#log('out', `SIGNAL "${signalName}" to ${result.delivered} peers`);
+        if (this.#debug) this.#log('out', `SIGNAL "${signalName}" to ${result.delivered} peers`);
 
         return result;
     }
@@ -3144,7 +3171,7 @@ class CrossBus extends EventEmitter {
     request(peerId, handlerName, payload, options = {}) {
         try {
             this.#assertNotDestroyed();
-            this.#log('out', `REQUEST "${handlerName}" to ${peerId}`);
+            if (this.#debug) this.#log('out', `REQUEST "${handlerName}" to ${peerId}`);
             if (!this.#router.getPeer(peerId)) {
                 throw CrossBusError.from(ErrorCode.PEER_NOT_FOUND, { peerId });
             }
@@ -3281,7 +3308,10 @@ class CrossBus extends EventEmitter {
 
         this.#handlers.set(handlerName, handler);
 
-        return () => this.unhandle(handlerName);
+        const unregister = () => this.#handlerUnregister.get(handlerName) === unregister
+            ? this.unhandle(handlerName) : false;
+        this.#handlerUnregister.set(handlerName, unregister);
+        return unregister;
     }
 
     /**
@@ -3291,6 +3321,7 @@ class CrossBus extends EventEmitter {
      * @returns {boolean} True if handler was removed.
      */
     unhandle(handlerName) {
+        this.#handlerUnregister.delete(handlerName);
         this.#handlerOptions.delete(handlerName);
         for (const key of this.#rateLimitCounters.keys()) {
             if (JSON.parse(key)[0] === handlerName) this.#rateLimitCounters.delete(key);
@@ -3447,8 +3478,8 @@ class CrossBus extends EventEmitter {
             throw new TypeError('Transport must have a send() method');
         }
 
-        const peerId = options.peerId || transport.peerId || `transport-${uuid()}`;
-        const origin = options.origin || '*';
+        const peerId = options.peerId ?? transport.peerId ?? `transport-${uuid()}`;
+        const origin = options.origin ?? '*';
 
         this.addPeer(peerId, (message) => transport.send(message), options);
         if (typeof transport.onMessage === 'function') {
@@ -3456,8 +3487,8 @@ class CrossBus extends EventEmitter {
                 // Window transports provide the actual event origin. Explicit
                 // origin is the trust label for originless channels/native hosts.
                 const actualOrigin = source?.origin || origin;
-                this.handleMessage(message, actualOrigin, peerId)
-                    .catch(error => console.error('[CrossBus] Incoming message rejected:', error));
+                const pending = this.handleMessage(message, actualOrigin, peerId);
+                if (pending !== MESSAGE_HANDLED) pending.catch(error => console.error('[CrossBus] Incoming message rejected:', error));
             });
         }
         const cleanup = () => {
@@ -3491,16 +3522,21 @@ class CrossBus extends EventEmitter {
      * @param {string} [peerId] - Source peer ID if known.
      * @param {Function} [replyFn] - Function to reply to the sender.
      */
-    async handleMessage(message, origin, peerId, replyFn) {
-        if (this.#destroyed) return;
+    handleMessage(message, origin, peerId, replyFn) {
+        try { return this.#receiveMessage(message, origin, peerId, replyFn); }
+        catch (error) { return Promise.reject(error); }
+    }
+
+    #receiveMessage(message, origin, peerId, replyFn) {
+        if (this.#destroyed) return MESSAGE_HANDLED;
 
         // Validate origin
         if (!this.#originValidator.isAllowed(origin)) {
             console.warn(`[CrossBus] Blocked message from unauthorized origin: ${origin}`);
-            return;
+            return MESSAGE_HANDLED;
         }
 
-        if (!message || typeof message !== 'object') return;
+        if (!message || typeof message !== 'object') return MESSAGE_HANDLED;
         // Apply inbound hooks to payload
         // Support both standard 'payload'/'data' and legacy 'p'
         const rawPayload = message.payload ?? message.data ?? message.p;
@@ -3533,52 +3569,53 @@ class CrossBus extends EventEmitter {
             dataContent = innerMsg.payload.data ?? innerMsg.data;
         }
 
-        {
-            const hookContext = {
-                type: msgType === MessageType.SIGNAL ? 'signal' :
+        if (this.#inboundHooks.length) {
+            return this.#runHooks(this.#inboundHooks, dataContent, {
+                type: msgType === MessageType.SIGNAL || msgType === MessageType.BROADCAST ? 'signal' :
                     msgType === MessageType.REQUEST ? 'request' : 'response',
-                peerId,
-                handlerName: handlerOrName,
-                direction: 'inbound'
-            };
-            // Run hooks
-            try {
-                dataContent = this.#inboundHooks.length
-                    ? await this.#runHooks(this.#inboundHooks, dataContent, hookContext)
-                    : this.#checkedPayload(dataContent);
-            } catch (/** @type {any} */ error) {
-                if (msgType !== MessageType.REQUEST) throw error;
-                const response = createResponseMessage(message.id, null, this.#peerId, false, {
-                    code: error.code ?? ErrorCode.INVALID_PAYLOAD,
-                    message: error.message ?? 'Inbound hook rejected request'
-                });
-                if (replyFn) replyFn(response);
-                else if (peerId) this.#router.route({ target: peerId, payload: response });
-                return;
-            }
+                peerId, handlerName: handlerOrName, direction: 'inbound'
+            }).then(
+                data => this.#dispatchMessage(message, msgType, handlerOrName, data, origin, peerId, replyFn),
+                error => this.#rejectInbound(message, msgType, error, peerId, replyFn)
+            );
         }
+        try { dataContent = this.#checkedPayload(dataContent); }
+        catch (error) { return this.#rejectInbound(message, msgType, error, peerId, replyFn); }
+        return this.#dispatchMessage(message, msgType, handlerOrName, dataContent, origin, peerId, replyFn);
+    }
 
+    #rejectInbound(message, msgType, error, peerId, replyFn) {
+        if (msgType !== MessageType.REQUEST) return Promise.reject(error);
+        const response = createResponseMessage(message.id, null, this.#peerId, false, {
+            code: error.code ?? ErrorCode.INVALID_PAYLOAD,
+            message: error.message ?? 'Inbound hook rejected request'
+        });
+        if (replyFn) replyFn(response);
+        else if (peerId !== undefined && peerId !== null) this.#router.route({ target: peerId, payload: response });
+        return MESSAGE_HANDLED;
+    }
+
+    #dispatchMessage(message, msgType, handlerOrName, dataContent, origin, peerId, replyFn) {
+        if (this.#destroyed) return MESSAGE_HANDLED;
         switch (msgType) {
             case MessageType.BROADCAST:  // Broadcast has same structure as signal
             case MessageType.SIGNAL:
                 if (typeof handlerOrName !== 'string') {
                     console.warn('[CrossBus] Invalid signal name type');
-                    return;
+                    return MESSAGE_HANDLED;
                 }
-                await this.#handleSignal(handlerOrName, dataContent, peerId, origin);
-                break;
+                return this.#handleSignal(handlerOrName, dataContent, peerId, origin);
 
             case MessageType.REQUEST:
                 if (typeof handlerOrName !== 'string') {
                     console.warn('[CrossBus] Invalid handler name type');
-                    return;
+                    return MESSAGE_HANDLED;
                 }
                 // Pass normalized ID
                 // const reqId = message.id ?? (message.payload ? message.payload.id : undefined);
                 // Wait, 'id' is top level in ProtocolMessage AND legacy.
 
-                await this.#handleRequest(message.id, handlerOrName, dataContent, peerId, replyFn);
-                break;
+                return this.#handleRequest(message.id, handlerOrName, dataContent, peerId, replyFn);
 
             case MessageType.RESPONSE: {
                 let success = message.success;
@@ -3604,6 +3641,7 @@ class CrossBus extends EventEmitter {
             default:
                 console.warn(`[CrossBus] Unknown message type: ${msgType}`);
         }
+        return MESSAGE_HANDLED;
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -3625,6 +3663,7 @@ class CrossBus extends EventEmitter {
         this.#inboundHooks = [];
         this.#outboundHooks = [];
         this.#handlerOptions.clear();
+        this.#handlerUnregister.clear();
         this.#rateLimitCounters.clear();
         // Cancel all pending requests
         this.#pendingRequests.cancelAll();
@@ -3635,10 +3674,9 @@ class CrossBus extends EventEmitter {
         // Clear peers
         this.#router.clearPeers();
 
-        // Clear event listeners
-        this.clear();
-
+        // Select destruction listeners before retiring their subscriptions.
         this.emit('destroyed', {});
+        this.clear();
     }
 
     /**
@@ -3687,7 +3725,7 @@ class CrossBus extends EventEmitter {
         } else {
             // Check handler security (allowedPeers, rateLimit, validatePayload)
             const securityCheck = this.#checkHandlerSecurity(handlerName, peerId, data);
-            if (!securityCheck.allowed) {
+            if (securityCheck && !securityCheck.allowed) {
                 response = createResponseMessage(
                     requestId,
                     null,
@@ -3735,7 +3773,7 @@ class CrossBus extends EventEmitter {
         // Send response
         if (replyFn) {
             replyFn(response);
-        } else if (peerId) {
+        } else if (peerId !== undefined && peerId !== null) {
             this.#router.route({ target: peerId, payload: response });
         }
     }
@@ -3745,14 +3783,13 @@ class CrossBus extends EventEmitter {
      *
      */
     #handleResponse(requestId, success, data, error, peerId) {
-        const pending = this.#pendingRequests.get(requestId);
-        if (!pending || pending.targetPeer !== peerId) return;
+        if (peerId === undefined) return;
         this.#pendingRequests.resolve(requestId, {
             requestId,
             success,
             data,
             error
-        });
+        }, peerId);
     }
 
     /**
@@ -3807,7 +3844,7 @@ class CrossBus extends EventEmitter {
         if (!options.allowedOrigins || options.allowedOrigins.length === 0) {
             console.warn(
                 '[CrossBus Security] ⚠️ No allowedOrigins specified.\n' +
-                'This bus will REJECT all incoming messages from transports.\n' +
+                'Browser messages default to the same origin; other transports need explicit origin labels.\n' +
                 'To receive messages, specify allowed origins:\n' +
                 '  allowedOrigins: ["https://trusted-domain.com"]\n' +
                 'For development only: allowedOrigins: ["*"]'
@@ -3840,12 +3877,12 @@ class CrossBus extends EventEmitter {
      * @param {string} handlerName
      * @param {string} peerId
      * @param {*} payload
-     * @returns {{ allowed: boolean, error?: CrossBusError }}
+     * @returns {{ allowed: boolean, error?: CrossBusError } | null}
      */
     #checkHandlerSecurity(handlerName, peerId, payload) {
         const options = this.#handlerOptions.get(handlerName);
         if (!options) {
-            return { allowed: true };
+            return null;
         }
 
         // Check peer allowlist
@@ -4190,8 +4227,7 @@ class CrossBus extends EventEmitter {
 
 /**
  * @typedef {Object} StreamOptions
- * @property {number} [chunkSize=64000] - Size of each chunk in bytes.
- * @property {number} [timeout=30000] - Timeout for stream operations in ms.
+ * @property {number} [chunkSize=64000] - Positive integer: raw bytes per binary chunk, UTF-16 code units per string chunk.
  */
 
 /**
@@ -4257,6 +4293,7 @@ class WritableSignalStream {
         this.#name = name;
         this.#sendFn = sendFn;
         this.#chunkSize = options.chunkSize ?? 64000;
+        if (!Number.isSafeInteger(this.#chunkSize) || this.#chunkSize <= 0) throw new RangeError('chunkSize must be a positive safe integer');
         this.#meta = options.meta ?? {};
     }
 
@@ -4309,51 +4346,20 @@ class WritableSignalStream {
             await this.open();
         }
 
-        // Convert data to sendable format
-        let payload;
-        let isBase64 = false;
-
-        if (data instanceof ArrayBuffer) {
-            payload = this.#arrayBufferToBase64(new Uint8Array(data));
-            isBase64 = true;
-        } else if (data instanceof Uint8Array) {
-            payload = this.#arrayBufferToBase64(data);
-            isBase64 = true;
+        // Encode each raw binary chunk independently. Splitting a single base64
+        // string at arbitrary character offsets corrupts its 4-character groups.
+        if (data instanceof ArrayBuffer || data instanceof Uint8Array) {
+            const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
+            for (let offset = 0; offset < bytes.length || offset === 0; offset += this.#chunkSize) {
+                await this.#send({ st: 'data', seq: this.#seq++,
+                    d: this.#arrayBufferToBase64(bytes.subarray(offset, offset + this.#chunkSize)), b64: true });
+            }
         } else if (typeof data === 'string') {
-            // String data - chunk if needed
-            const chunks = this.#chunkString(data, this.#chunkSize);
-            for (const chunk of chunks) {
-                await this.#send({
-                    st: 'data',
-                    seq: this.#seq++,
-                    d: chunk,
-                    b64: false
-                });
-            }
-            return;
-        } else {
-            // Object - serialize to JSON
-            payload = JSON.stringify(data);
-        }
-
-        // Send (chunk if binary)
-        if (isBase64) {
-            const chunks = this.#chunkString(payload, this.#chunkSize);
-            for (const chunk of chunks) {
-                await this.#send({
-                    st: 'data',
-                    seq: this.#seq++,
-                    d: chunk,
-                    b64: true
-                });
+            for (let offset = 0; offset < data.length; offset += this.#chunkSize) {
+                await this.#send({ st: 'data', seq: this.#seq++, d: data.slice(offset, offset + this.#chunkSize), b64: false });
             }
         } else {
-            await this.#send({
-                st: 'data',
-                seq: this.#seq++,
-                d: payload,
-                b64: false
-            });
+            await this.#send({ st: 'data', seq: this.#seq++, d: JSON.stringify(data), b64: false });
         }
     }
 
@@ -4409,21 +4415,6 @@ class WritableSignalStream {
     }
 
     /**
-     * Chunks a string into smaller pieces.
-     *
-     * @param {string} str - String to chunk.
-     * @param {number} size - Chunk size.
-     * @returns {string[]}
-     */
-    #chunkString(str, size) {
-        const chunks = [];
-        for (let i = 0; i < str.length; i += size) {
-            chunks.push(str.slice(i, i + size));
-        }
-        return chunks;
-    }
-
-    /**
      * Converts Uint8Array to base64.
      *
      * @param {Uint8Array} bytes 
@@ -4460,6 +4451,8 @@ class ReadableSignalStream {
 
     /** @type {Array<any>} */
     #buffer = [];
+
+    #readIndex = 0;
 
     /** @type {Function|null} */
     #resolveNext = null;
@@ -4586,9 +4579,18 @@ class ReadableSignalStream {
     async *[Symbol.asyncIterator]() {
         while (true) {
             // Return buffered data first
-            while (this.#buffer.length > 0) {
-                yield this.#buffer.shift();
+            while (this.#readIndex < this.#buffer.length) {
+                const chunk = this.#buffer[this.#readIndex];
+                this.#buffer[this.#readIndex++] = undefined;
+                // Compact only after substantial progress, not on every chunk.
+                if (this.#readIndex >= 1024 && this.#readIndex * 2 >= this.#buffer.length) {
+                    this.#buffer = this.#buffer.slice(this.#readIndex);
+                    this.#readIndex = 0;
+                }
+                yield chunk;
             }
+            this.#buffer.length = 0;
+            this.#readIndex = 0;
 
             // Check for end/error
             if (this.#ended) {
@@ -4673,11 +4675,13 @@ class ReadableSignalStream {
  * });
  */
 class StreamManager {
-    /** @type {Map<string, ReadableSignalStream>} */
+    /** @type {Map<string, { peerId: string, stream: ReadableSignalStream }>} */
     #activeStreams = new Map();
 
-    /** @type {Map<string, Function>} */
+    /** @type {Map<string, {handler: Function}>} */
     #streamHandlers = new Map();
+
+    #destroyed = false;
 
     /** @type {Function} */
     #sendFn;
@@ -4700,6 +4704,7 @@ class StreamManager {
      * @returns {WritableSignalStream}
      */
     createStream(name, peerId, options = {}) {
+        if (this.#destroyed) throw new Error('Stream manager destroyed');
         const sendFn = async (message) => {
             await this.#sendFn(peerId, message);
         };
@@ -4715,8 +4720,10 @@ class StreamManager {
      * @returns {Function} Unregister function.
      */
     onStream(name, handler) {
-        this.#streamHandlers.set(name, handler);
-        return () => this.#streamHandlers.delete(name);
+        if (this.#destroyed) throw new Error('Stream manager destroyed');
+        const registration = { handler };
+        this.#streamHandlers.set(name, registration);
+        return () => this.#streamHandlers.get(name) === registration && this.#streamHandlers.delete(name);
     }
 
     /**
@@ -4727,10 +4734,12 @@ class StreamManager {
      * @param {string} peerId - Source peer ID.
      */
     handleMessage(message, peerId) {
-        if (message.t !== 'stream') return;
+        if (this.#destroyed || !message || message.t !== 'stream' || typeof message.sid !== 'string' || typeof peerId !== 'string') return;
 
         const streamId = message.sid;
         const streamType = message.st;
+        const active = this.#activeStreams.get(streamId);
+        if (streamType === 'open' ? active : !active || active.peerId !== peerId) return;
 
         switch (streamType) {
             case 'open':
@@ -4752,36 +4761,46 @@ class StreamManager {
      * Handles stream open message.
      */
     #handleOpen(streamId, message, peerId) {
-        const handler = this.#streamHandlers.get(message.name);
+        const handler = this.#streamHandlers.get(message.name)?.handler;
         if (!handler) {
             console.warn(`[CrossBus] No handler for stream: ${message.name}`);
             return;
         }
 
         const stream = new ReadableSignalStream(streamId, message.name, message.meta);
-        this.#activeStreams.set(streamId, stream);
+        this.#activeStreams.set(streamId, { peerId, stream });
 
         // Call handler asynchronously
-        handler(stream).catch(err => {
-            console.error('[CrossBus] Stream handler error:', err);
-        });
+        try {
+            Promise.resolve(handler(stream)).catch(err => {
+                stream.error(err?.message ?? 'Stream handler failed');
+                if (this.#activeStreams.get(streamId)?.stream === stream) this.#activeStreams.delete(streamId);
+            });
+        } catch (error) {
+            stream.error(error instanceof Error ? error.message : String(error));
+            if (this.#activeStreams.get(streamId)?.stream === stream) this.#activeStreams.delete(streamId);
+        }
     }
 
     /**
      * Handles stream data message.
      */
     #handleData(streamId, message) {
-        const stream = this.#activeStreams.get(streamId);
+        const stream = this.#activeStreams.get(streamId)?.stream;
         if (!stream) return;
 
-        stream.push(message);
+        try { stream.push(message); }
+        catch (error) {
+            stream.error(error instanceof Error ? error.message : String(error));
+            if (this.#activeStreams.get(streamId)?.stream === stream) this.#activeStreams.delete(streamId);
+        }
     }
 
     /**
      * Handles stream end message.
      */
     #handleEnd(streamId, message) {
-        const stream = this.#activeStreams.get(streamId);
+        const stream = this.#activeStreams.get(streamId)?.stream;
         if (!stream) return;
 
         stream.end(message.meta);
@@ -4792,11 +4811,20 @@ class StreamManager {
      * Handles stream error message.
      */
     #handleError(streamId, message) {
-        const stream = this.#activeStreams.get(streamId);
+        const stream = this.#activeStreams.get(streamId)?.stream;
         if (!stream) return;
 
         stream.error(message.reason);
         this.#activeStreams.delete(streamId);
+    }
+
+    /** Cancels readers and releases handlers. Application owners must call this on teardown. */
+    destroy() {
+        if (this.#destroyed) return;
+        this.#destroyed = true;
+        for (const { stream } of this.#activeStreams.values()) stream.error('Stream manager destroyed');
+        this.#activeStreams.clear();
+        this.#streamHandlers.clear();
     }
 
     /**
@@ -4943,6 +4971,7 @@ class PresenceManager extends EventEmitter {
      * Starts the presence system.
      */
     start() {
+        if (this.#destroyed) throw new Error('Presence manager destroyed');
         if (this.#heartbeatTimer) return;
 
         // Send initial presence
@@ -5054,7 +5083,7 @@ class PresenceManager extends EventEmitter {
      * @param {string} fromPeerId - Source peer ID.
      */
     handleMessage(message, fromPeerId) {
-        if (message.t !== 'presence') return;
+        if (this.#destroyed || message.t !== 'presence') return;
         if (fromPeerId === this.#peerId) return; // Ignore own messages
 
         const { pt: presenceType, status, meta } = message;
@@ -5181,9 +5210,10 @@ class PresenceManager extends EventEmitter {
     destroy() {
         if (this.#destroyed) return;
 
-        this.#destroyed = true;
         this.stop();
+        this.#destroyed = true;
         this.#peers.clear();
+        this.clear();
     }
 
     /**
@@ -5211,7 +5241,7 @@ class PresenceManager extends EventEmitter {
 function createPresence(bus, options = {}) {
     const sendFn = async (message) => {
         // Broadcast to all peers
-        await bus.signal('__presence__', message);
+        if (!bus.isDestroyed) await bus.signal('__presence__', message);
     };
 
     const presence = new PresenceManager(sendFn, {
@@ -5921,6 +5951,64 @@ class BroadcastChannelTransport {
     }
 }
 
+/** Optional MessageChannel encoding; public bus messages retain protocol v1 objects. */
+const TAG = 'crossbus:compact:1';
+// This tag specifically carries protocol v1, independently of future defaults.
+const WIRE_PROTOCOL_VERSION = 1;
+const ENVELOPE = ['_cb','version','id','type','timestamp','payload','meta'];
+const CALL = ['name','data','source','dest'];
+const REPLY = ['requestId','data','source','success','error'];
+function exactFields(value, names) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+    const keys = Object.keys(value);
+    if (keys.length !== names.length) return false;
+    for (const key of keys) if (!names.includes(key)) return false;
+    return true;
+}
+/**
+ * Encode only the standard envelope shapes. Extension fields, custom metadata,
+ * other versions/types and nonstandard messages retain their original object.
+ * @param {any} message
+ * @returns {any}
+ */
+function encodeCompact(message) {
+    if (!exactFields(message, ENVELOPE)) return message;
+    const { _cb, version, id, type, timestamp, payload:p, meta } = message;
+    if (_cb !== WIRE_PROTOCOL_VERSION || version !== WIRE_PROTOCOL_VERSION || typeof id !== 'string' || typeof timestamp !== 'number') return message;
+    if (meta !== EMPTY_MESSAGE_META) {
+        if (!meta || typeof meta !== 'object' || Array.isArray(meta)) return message;
+        const prototype = Object.getPrototypeOf(meta);
+        if ((prototype !== null && prototype !== Object.prototype) || Object.keys(meta).length !== 0) return message;
+    }
+    if (type === MessageType.REQUEST || type === MessageType.SIGNAL) {
+        if (!exactFields(p,CALL)) return message;
+        const { name, data, source, dest } = p;
+        if (typeof name !== 'string' || typeof source !== 'string' || (dest !== null && typeof dest !== 'string')) return message;
+        return [TAG,type,id,timestamp,name,data,source,dest];
+    }
+    if (type === MessageType.RESPONSE) {
+        if (!exactFields(p,REPLY)) return message;
+        const { requestId, data, source, success, error } = p;
+        if (typeof requestId !== 'string' || typeof source !== 'string' || typeof success !== 'boolean') return message;
+        return [TAG,type,id,timestamp,requestId,data,source,success,error];
+    }
+    return message;
+}
+/** @param {any} packet @returns {any} Null means a malformed compact packet. */
+function decodeCompact(packet) {
+    if (!Array.isArray(packet) || packet[0] !== TAG) return packet;
+    const [,type,id,timestamp,key,data,source] = packet;
+    if (typeof id !== 'string' || typeof timestamp !== 'number' || typeof key !== 'string' || typeof source !== 'string') return null;
+    let payload;
+    if ((type === MessageType.REQUEST || type === MessageType.SIGNAL) && packet.length === 8) {
+        if (packet[7] !== null && typeof packet[7] !== 'string') return null;
+        payload = { name:key, data, source, dest:packet[7] };
+    } else if (type === MessageType.RESPONSE && packet.length === 9 && typeof packet[7] === 'boolean') {
+        payload = { requestId:key, data, source, success:packet[7], error:packet[8] };
+    } else return null;
+    return { _cb:WIRE_PROTOCOL_VERSION, version:WIRE_PROTOCOL_VERSION, id, type, timestamp, payload, meta:{} };
+}
+
 /**
  * @fileoverview MessageChannel transport for direct 1:1 peer communication.
  * Uses the MessageChannel API for efficient, low-latency communication.
@@ -5932,6 +6020,7 @@ class BroadcastChannelTransport {
  * @typedef {Object} MessageChannelTransportOptions
  * @property {boolean} [autoTransfer=false] - Auto-detect and transfer transferable objects.
  * @property {string} [contentType='application/json'] - Serialization format.
+ * @property {'standard'|'compact'} [wireFormat='standard'] - Compact encoding requires a receiver supporting it (CrossBus 0.1.3+).
  */
 
 /**
@@ -5989,6 +6078,9 @@ class MessageChannelTransport {
     /** @type {boolean} */
     #autoTransfer;
 
+    /** @type {'standard'|'compact'} */
+    #wireFormat;
+
     /** @type {import('../common/serialization.js').Serializer} */
     #serializer;
 
@@ -6044,11 +6136,16 @@ class MessageChannelTransport {
             });
         }
 
+        this.#contentType = options.contentType ?? 'application/json';
+        this.#wireFormat = options.wireFormat ?? 'standard';
+        if (!['standard','compact'].includes(this.#wireFormat) || (this.#wireFormat === 'compact' && this.#contentType !== 'application/json')) {
+            throw new TypeError('wireFormat must be standard, or compact with the default contentType');
+        }
+
         const channel = port ? null : new MessageChannel();
         this.#localPort = port ?? /** @type {MessageChannel} */(channel).port1;
         this.#remotePort = channel?.port2 ?? null;
         this.#autoTransfer = options.autoTransfer ?? false;
-        this.#contentType = options.contentType ?? 'application/json';
         this.#serializer = getSerializer(this.#contentType);
         this.#isInitiator = port === null;
 
@@ -6066,6 +6163,9 @@ class MessageChannelTransport {
     get remotePort() {
         return this.#remotePort;
     }
+
+    /** Gets the selected outgoing wire encoding. Receivers accept both formats. */
+    get wireFormat() { return this.#wireFormat; }
 
     /**
      * Marks the remote port as transferred (called automatically when used).
@@ -6104,7 +6204,7 @@ class MessageChannelTransport {
             ...message
         };
 
-        let dataToSend = envelope;
+        let dataToSend = this.#wireFormat === 'compact' ? encodeCompact(envelope) : envelope;
         if (this.#contentType !== 'application/json') {
             dataToSend = this.#serializer.serialize(envelope);
         }
@@ -6183,7 +6283,7 @@ class MessageChannelTransport {
         if (!this.#messageHandler) return;
 
         // Get message data
-        let data = event.data;
+        let data = decodeCompact(event.data);
 
         // Skip non-protocol messages
         if (!isProtocolMessage(data)) return;
@@ -6831,7 +6931,8 @@ class NativeBridgeTransport {
  * @property {number} [reconnectDelayMs=1000] - Base delay for reconnection
  * @property {number} [maxReconnectDelayMs=30000] - Max delay with exponential backoff
  * @property {number} [heartbeatIntervalMs=30000] - Heartbeat interval (0 to disable)
- * @property {Object} [protocols] - WebSocket subprotocols
+ * @property {string|string[]} [protocols] - WebSocket subprotocols
+ * @property {number} [maxQueueSize=1000] - Maximum queued messages while disconnected; zero disables the cap.
  */
 
 /**
@@ -6889,8 +6990,17 @@ class WebSocketTransport {
     /** @type {'connecting'|'connected'|'disconnected'|'error'} */
     #state = 'disconnected';
 
-    /** @type {Object[]} */
+    /** @type {string[]} Already serialized snapshots, not mutable caller objects. */
     #messageQueue = [];
+
+    #destroyed = false;
+    /** @type {Promise<void>|null} */
+    #connecting = null;
+    /** @type {((error?: any) => void)|null} */
+    #settleConnect = null;
+    /** @type {string|string[]|undefined} */
+    #protocols;
+    #maxQueueSize;
 
     /** @type {boolean} */
     #intentionalClose = false;
@@ -6901,6 +7011,9 @@ class WebSocketTransport {
      */
     constructor(options) {
         this.#url = options.url;
+        this.#protocols = options.protocols;
+        this.#maxQueueSize = options.maxQueueSize ?? 1000;
+        if (!Number.isSafeInteger(this.#maxQueueSize) || this.#maxQueueSize < 0) throw new RangeError('maxQueueSize must be a nonnegative safe integer');
         this.#peerId = options.peerId ?? uuid();
         this.#autoReconnect = options.autoReconnect ?? true;
         this.#reconnectDelayMs = options.reconnectDelayMs ?? 1000;
@@ -6928,50 +7041,55 @@ class WebSocketTransport {
      * Connects to the WebSocket server.
      * @returns {Promise<void>}
      */
-    async connect() {
-        if (this.#socket && this.#socket.readyState === WebSocket.OPEN) {
-            return;
-        }
-
+    connect() {
+        if (this.#destroyed) return Promise.reject(new Error('WebSocket transport destroyed'));
+        if (this.#connecting) return this.#connecting;
+        if (this.#socket && this.#socket.readyState === WebSocket.OPEN) return Promise.resolve();
         this.#intentionalClose = false;
-        this.#setState('connecting');
-
-        return new Promise((resolve, reject) => {
-            try {
-                this.#socket = new WebSocket(this.#url);
-
-                this.#socket.onopen = () => {
+        /** @type {(error?: any) => void} */
+        let settle = () => {};
+        /** @type {Promise<void>} */
+        const pending = new Promise((resolve, reject) => {
+            let settled = false;
+            settle = error => {
+                if (settled) return;
+                settled = true;
+                this.#connecting = null;
+                this.#settleConnect = null;
+                if (error) reject(error); else resolve();
+            };
+        });
+        this.#connecting = pending;
+        this.#settleConnect = settle;
+        try {
+            this.#setState('connecting');
+            const socket = this.#protocols === undefined ? new WebSocket(this.#url) : new WebSocket(this.#url, this.#protocols);
+            this.#socket = socket;
+            socket.onopen = () => {
+                if (socket !== this.#socket || this.#destroyed || this.#intentionalClose) return;
+                try {
                     this.#setState('connected');
                     this.#currentReconnectDelay = this.#reconnectDelayMs;
                     this.#flushQueue();
                     this.#startHeartbeat();
-                    resolve();
-                };
-
-                this.#socket.onmessage = (event) => {
-                    this.#handleMessage(event);
-                };
-
-                this.#socket.onclose = (event) => {
-                    this.#stopHeartbeat();
-                    this.#setState('disconnected');
-
-                    if (!this.#intentionalClose && this.#autoReconnect) {
-                        this.#scheduleReconnect();
-                    }
-                };
-
-                this.#socket.onerror = (error) => {
-                    this.#setState('error');
-                    if (this.#state === 'connecting') {
-                        reject(new Error('WebSocket connection failed'));
-                    }
-                };
-            } catch (e) {
+                    settle();
+                } catch (error) { this.#setState('error'); settle(error); socket.close(); }
+            };
+            socket.onmessage = event => { if (socket === this.#socket && !this.#destroyed) this.#handleMessage(event); };
+            socket.onclose = () => {
+                if (socket !== this.#socket) return;
+                this.#stopHeartbeat();
+                this.#setState('disconnected');
+                settle(new Error('WebSocket closed before connecting'));
+                if (!this.#intentionalClose && !this.#destroyed && this.#autoReconnect) this.#scheduleReconnect();
+            };
+            socket.onerror = () => {
+                if (socket !== this.#socket) return;
                 this.#setState('error');
-                reject(e);
-            }
-        });
+                settle(new Error('WebSocket connection failed'));
+            };
+        } catch (error) { this.#setState('error'); settle(error); }
+        return pending;
     }
 
     /**
@@ -6979,6 +7097,7 @@ class WebSocketTransport {
      */
     disconnect() {
         this.#intentionalClose = true;
+        this.#settleConnect?.(new Error('WebSocket disconnected before connecting'));
         this.#stopHeartbeat();
 
         if (this.#reconnectTimer) {
@@ -6987,8 +7106,10 @@ class WebSocketTransport {
         }
 
         if (this.#socket) {
-            this.#socket.close(1000, 'Client disconnect');
+            const socket = this.#socket;
             this.#socket = null;
+            socket.onopen = null; socket.onclose = null; socket.onerror = null; socket.onmessage = null;
+            socket.close(1000, 'Client disconnect');
         }
 
         this.#setState('disconnected');
@@ -7000,6 +7121,7 @@ class WebSocketTransport {
      * @returns {boolean} Whether the message was sent immediately
      */
     send(message) {
+        if (this.#destroyed) throw new Error('WebSocket transport destroyed');
         const envelope = {
             _cb: PROTOCOL_VERSION,
             _m: PROTOCOL_MARKER,
@@ -7009,12 +7131,14 @@ class WebSocketTransport {
             ...message
         };
 
+        const serialized = JSON.stringify(envelope);
         if (this.isConnected && this.#socket) {
-            this.#socket.send(JSON.stringify(envelope));
+            this.#socket.send(serialized);
             return true;
         } else {
             // Queue for later
-            this.#messageQueue.push(envelope);
+            if (this.#maxQueueSize && this.#messageQueue.length >= this.#maxQueueSize) throw new Error('WebSocket queue limit reached');
+            this.#messageQueue.push(serialized);
             return false;
         }
     }
@@ -7026,6 +7150,9 @@ class WebSocketTransport {
     onMessage(handler) {
         this.#messageHandler = handler;
     }
+
+    /** Removes the current inbound observer. */
+    offMessage() { this.#messageHandler = null; }
 
     /**
      * Sets the state change handler.
@@ -7060,10 +7187,11 @@ class WebSocketTransport {
      */
     #flushQueue() {
         while (this.#messageQueue.length > 0 && this.isConnected && this.#socket) {
-            const message = this.#messageQueue.shift();
+            const message = this.#messageQueue[0];
             if (message) {
-                this.#socket.send(JSON.stringify(message));
+                this.#socket.send(message);
             }
+            this.#messageQueue.shift();
         }
     }
 
@@ -7074,7 +7202,8 @@ class WebSocketTransport {
         if (this.#state !== state) {
             this.#state = state;
             if (this.#stateHandler) {
-                this.#stateHandler(state);
+                try { this.#stateHandler(state); }
+                catch (error) { console.error('[WebSocketTransport] State observer error:', error); }
             }
         }
     }
@@ -7083,6 +7212,7 @@ class WebSocketTransport {
      * Starts heartbeat timer.
      */
     #startHeartbeat() {
+        this.#stopHeartbeat();
         if (this.#heartbeatIntervalMs <= 0) return;
 
         this.#heartbeatTimer = setInterval(() => {
@@ -7106,7 +7236,7 @@ class WebSocketTransport {
      * Schedules a reconnection attempt.
      */
     #scheduleReconnect() {
-        if (this.#reconnectTimer) return;
+        if (this.#reconnectTimer || this.#intentionalClose || this.#destroyed) return;
 
         this.#reconnectTimer = setTimeout(async () => {
             this.#reconnectTimer = null;
@@ -7131,6 +7261,8 @@ class WebSocketTransport {
      * Destroys the transport.
      */
     destroy() {
+        if (this.#destroyed) return;
+        this.#destroyed = true;
         this.disconnect();
         this.#messageHandler = null;
         this.#stateHandler = null;

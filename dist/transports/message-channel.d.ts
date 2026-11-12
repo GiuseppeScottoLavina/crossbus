@@ -2,6 +2,7 @@
  * @typedef {Object} MessageChannelTransportOptions
  * @property {boolean} [autoTransfer=false] - Auto-detect and transfer transferable objects.
  * @property {string} [contentType='application/json'] - Serialization format.
+ * @property {'standard'|'compact'} [wireFormat='standard'] - Compact encoding requires a receiver supporting it (CrossBus 0.1.3+).
  */
 /**
  * @typedef {Object} ChannelPair
@@ -77,6 +78,8 @@ export class MessageChannelTransport {
      * @returns {MessagePort|null} The remote port, or null if already transferred.
      */
     get remotePort(): MessagePort | null;
+    /** Gets the selected outgoing wire encoding. Receivers accept both formats. */
+    get wireFormat(): "standard" | "compact";
     /**
      * Marks the remote port as transferred (called automatically when used).
      */
@@ -125,6 +128,10 @@ export type MessageChannelTransportOptions = {
      * - Serialization format.
      */
     contentType?: string | undefined;
+    /**
+     * - Compact encoding requires a receiver supporting it (CrossBus 0.1.3+).
+     */
+    wireFormat?: "standard" | "compact" | undefined;
 };
 export type ChannelPair = {
     /**

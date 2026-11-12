@@ -12,11 +12,13 @@ import {
 } from '../common/types.js';
 import { CrossBusError, ErrorCode } from '../common/errors.js';
 import { getSerializer } from '../common/serialization.js';
+import { encodeCompact, decodeCompact } from '../common/compact-wire.js';
 
 /**
  * @typedef {Object} MessageChannelTransportOptions
  * @property {boolean} [autoTransfer=false] - Auto-detect and transfer transferable objects.
  * @property {string} [contentType='application/json'] - Serialization format.
+ * @property {'standard'|'compact'} [wireFormat='standard'] - Compact encoding requires a receiver supporting it (CrossBus 0.1.3+).
  */
 
 /**
@@ -74,6 +76,9 @@ export class MessageChannelTransport {
     /** @type {boolean} */
     #autoTransfer;
 
+    /** @type {'standard'|'compact'} */
+    #wireFormat;
+
     /** @type {import('../common/serialization.js').Serializer} */
     #serializer;
 
@@ -129,11 +134,16 @@ export class MessageChannelTransport {
             });
         }
 
+        this.#contentType = options.contentType ?? 'application/json';
+        this.#wireFormat = options.wireFormat ?? 'standard';
+        if (!['standard','compact'].includes(this.#wireFormat) || (this.#wireFormat === 'compact' && this.#contentType !== 'application/json')) {
+            throw new TypeError('wireFormat must be standard, or compact with the default contentType');
+        }
+
         const channel = port ? null : new MessageChannel();
         this.#localPort = port ?? /** @type {MessageChannel} */(channel).port1;
         this.#remotePort = channel?.port2 ?? null;
         this.#autoTransfer = options.autoTransfer ?? false;
-        this.#contentType = options.contentType ?? 'application/json';
         this.#serializer = getSerializer(this.#contentType);
         this.#isInitiator = port === null;
 
@@ -151,6 +161,9 @@ export class MessageChannelTransport {
     get remotePort() {
         return this.#remotePort;
     }
+
+    /** Gets the selected outgoing wire encoding. Receivers accept both formats. */
+    get wireFormat() { return this.#wireFormat; }
 
     /**
      * Marks the remote port as transferred (called automatically when used).
@@ -189,7 +202,7 @@ export class MessageChannelTransport {
             ...message
         };
 
-        let dataToSend = envelope;
+        let dataToSend = this.#wireFormat === 'compact' ? encodeCompact(envelope) : envelope;
         if (this.#contentType !== 'application/json') {
             dataToSend = this.#serializer.serialize(envelope);
         }
@@ -268,7 +281,7 @@ export class MessageChannelTransport {
         if (!this.#messageHandler) return;
 
         // Get message data
-        let data = event.data;
+        let data = decodeCompact(event.data);
 
         // Skip non-protocol messages
         if (!isProtocolMessage(data)) return;

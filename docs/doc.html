@@ -13,7 +13,7 @@
         rel="stylesheet">
 
     <!-- Marked.js from CDN (Andrea Giammarchi style - minimal) -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="./vendor/marked.umd.js"></script>
 
     <style>
         :root {
@@ -405,6 +405,8 @@
             <a href="doc.html?file=API.md">API Reference</a>
             <a href="doc.html?file=ARCHITECTURE.md">Architecture</a>
             <a href="doc.html?file=PERFORMANCE.md">Performance</a>
+            <a href="doc.html?file=COMPETITOR_ANALYSIS.md">Competitor study</a>
+            <a href="doc.html?file=AUDIT.md">Verification and limits</a>
 
             <h3>For AI Agents</h3>
             <a href="doc.html?file=AGENTS.md">Agent Infrastructure</a>
@@ -425,10 +427,12 @@
         </main>
     </div>
 
-    <script>
+    <script type="module">
+        import { documentationFile, rewriteDocumentationLinks } from './doc-links.js';
         // Get file from URL params
         const params = new URLSearchParams(window.location.search);
-        const file = params.get('file') || 'GETTING_STARTED.md';
+        const requested = params.get('file') || 'GETTING_STARTED.md';
+        const file = documentationFile(requested);
 
         // Update page title
         document.title = `CrossBus — ${file.replace('.md', '')}`;
@@ -458,6 +462,7 @@
             .then(md => {
                 const content = document.getElementById('content');
                 content.innerHTML = marked.parse(md);
+                rewriteDocumentationLinks(content);
 
                 // Add IDs to headings and build TOC
                 const headings = content.querySelectorAll('h2, h3');
@@ -508,18 +513,19 @@
 
                 // Handle initial hash scroll
                 if (window.location.hash) {
-                    const target = document.querySelector(window.location.hash);
+                    const target = document.getElementById(decodeURIComponent(window.location.hash.slice(1)));
                     if (target) {
                         setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
                     }
                 }
             })
             .catch(err => {
-                document.getElementById('content').innerHTML = `
-                    <h1>Error</h1>
-                    <p>Could not load ${file}: ${err.message}</p>
-                    <p><a href="doc.html?file=GETTING_STARTED.md">Go to Getting Started →</a></p>
-                `;
+                const content = document.getElementById('content');
+                content.replaceChildren();
+                const title = document.createElement('h1'); title.textContent = 'Could not load documentation';
+                const detail = document.createElement('p'); detail.textContent = `${file}: ${err.message}`;
+                const link = document.createElement('a'); link.href = 'doc.html?file=GETTING_STARTED.md'; link.textContent = 'Go to Getting Started';
+                content.append(title, detail, link);
             });
     </script>
 </body>

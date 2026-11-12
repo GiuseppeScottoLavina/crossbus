@@ -1,5 +1,19 @@
 # Local audit — 12 November 2026
 
+## 0.1.3 candidate follow-up
+
+The current candidate passed **1,150 tests across 73 files, zero failures and zero skips**, including real Chrome module Workers, two-origin iframe examples, the documentation-only publish root and a live WebSocket server. Lint, source/consumer type checks, clean build and the release gate passed. Unit coverage was **4,441 / 4,631 executable source lines (95.90%)**; the 90% line gate remains enforced. Branch coverage is not reported by this Bun LCOV output.
+
+New regressions cover full typed-array backing storage, SharedArrayBuffer, 20,000-level payload graphs, recursive listener mutation, stale cleanup registration identity, empty peer routing, response peer binding, absent origins outside browser windows, stream source ownership/chunking/destruction and WebSocket connection/queue lifecycle. Compact packets are decoded before normal bus checks; extension metadata falls back to standard encoding. Default MessageChannel interoperability with the published 0.1.2 runtime is tested.
+
+The playground now invokes the library through real MessageChannels, module Workers and PostMessageTransport iframes. Its local fixture responses are identified as demo data. The Pages build includes its actual bundle and pinned Markdown parser with license; safe document routing and text-only error/log rendering have browser coverage. Package documentation links are checked against the actual npm file list. These checks establish the tested behavior, not independent certification or complete absence of bugs.
+
+Swift compilation passed against the iOS simulator SDK (arm64 iOS 15 target); Java compilation passed against Android API 35 and cached AndroidX WebKit. No physical-device runtime qualification was added. The [competitor study](COMPETITOR_ANALYSIS.md) records source inspection, exact measured bundles, isolated process repetitions and the limits of its claims. Publication, remote CI and live Pages deployment remain separate from local validation. The historical evidence below describes 0.1.2.
+
+The prepared 0.1.3 tarball was installed in a separate consumer and checked on Node 18.20.8 and 24.15.0: all 12 exports, declarations, ESM/CommonJS/minified standard and compact RPC, schema rejection and native source inclusion passed. The registry was checked separately: latest remained 0.1.2, with 0.1.3 absent. This candidate has not been published to npm.
+
+## 0.1.2 release record
+
 This audit records local validation for the 0.1.2 release candidate. Publication and CI results are recorded separately on the [GitHub release](https://github.com/giuseppescottolavina/crossbus/releases/tag/v0.1.2) and [Actions page](https://github.com/giuseppescottolavina/crossbus/actions). These checks are not independent certification or a guarantee that all bugs have been found.
 
 ## Corrected behavior
