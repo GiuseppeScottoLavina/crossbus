@@ -91,8 +91,8 @@ describe('MessageChannelTransport', () => {
             channel.port1.close();
             channel.port2.close();
 
-            // Should not throw
-            expect(true).toBe(true);
+            // Posting to a closed port is ignored without throwing.
+            expect(() => channel.port1.postMessage({ afterClose: true })).not.toThrow();
         });
 
         it('should not receive after close', (done) => {

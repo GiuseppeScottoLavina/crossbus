@@ -216,7 +216,7 @@ describe('CrossBus Hooks', () => {
             await bus.signal('test', { secret: 'data' });
 
             expect(messages.length).toBe(1);
-            const sentPayload = messages[0].p.payload.data;
+            const sentPayload = messages[0].payload.data;
             expect(sentPayload.secret).toBe('data');
             expect(sentPayload.encrypted).toBe(true);
             expect(sentPayload.signature).toBe('abc123');
@@ -364,7 +364,7 @@ describe('CrossBus Hooks', () => {
 
             await bus.signal('test', { data: 'secret' });
 
-            expect(messages[0].p.payload.data.asyncEncrypted).toBe(true);
+            expect(messages[0].payload.data.asyncEncrypted).toBe(true);
         });
 
         it('should chain async and sync hooks', async () => {
@@ -397,54 +397,23 @@ describe('CrossBus Hooks', () => {
             bus = new CrossBus({ isHub: true, allowedOrigins: ['*'] });
         });
 
-        it('should continue processing after hook error', async () => {
-            bus.addInboundHook(() => { throw new Error('Hook 1 failed'); });
-            bus.addInboundHook((p) => ({ ...p, secondHookRan: true }));
-
-            let received;
-            bus.on('test', (e) => { received = e.data.payload; }, { mode: 'sync' });
-
-            await bus.handleMessage({
-                t: MessageType.SIGNAL,
-                name: 'test',
-                p: { original: true }
-            }, '*', 'peer-1');
-
-            expect(received.secondHookRan).toBe(true);
-        });
-
-        it('should continue with unmodified payload on error', async () => {
-            bus.addInboundHook(() => { throw new Error('Failed'); });
-
-            let received;
-            bus.on('test', (e) => { received = e.data.payload; }, { mode: 'sync' });
-
-            await bus.handleMessage({
-                t: MessageType.SIGNAL,
-                name: 'test',
-                p: { keep: 'this' }
-            }, '*', 'peer-1');
-
-            expect(received.keep).toBe('this');
-        });
-
-        it('should handle async hook rejection', async () => {
-            bus.addInboundHook(async () => {
-                throw new Error('Async rejection');
+        for (const asyncHook of [false, true]) {
+            it(`rejects a message when a ${asyncHook ? 'async' : 'sync'} hook fails`, async () => {
+                const laterHook = mock(p => p);
+                bus.addInboundHook(asyncHook
+                    ? async () => { throw new Error('Denied'); }
+                    : () => { throw new Error('Denied'); });
+                bus.addInboundHook(laterHook);
+                const handler = mock();
+                bus.on('test', handler, { mode: 'sync' });
+                await expect(bus.handleMessage({
+                    t: MessageType.SIGNAL, name: 'test', p: { original: true }
+                }, '*', 'peer-1')).rejects.toThrow('Denied');
+                expect(handler).not.toHaveBeenCalled();
+                expect(laterHook).not.toHaveBeenCalled();
             });
-            bus.addInboundHook((p) => ({ ...p, recovered: true }));
+        }
 
-            let received;
-            bus.on('test', (e) => { received = e.data.payload; }, { mode: 'sync' });
-
-            await bus.handleMessage({
-                t: MessageType.SIGNAL,
-                name: 'test',
-                p: {}
-            }, '*', 'peer-1');
-
-            expect(received.recovered).toBe(true);
-        });
     });
 
     // ─────────────────────────────────────────────────────────────────
@@ -481,7 +450,7 @@ describe('CrossBus Hooks', () => {
             bus.addPeer('peer-1', (msg) => messages.push(msg));
             await bus.signal('test', { secret: 'password123' });
 
-            const sent = messages[0].p.payload.data;
+            const sent = messages[0].payload.data;
             expect(sent.encrypted).toBe(true);
             expect(sent.data).not.toContain('password123');
 
@@ -522,11 +491,11 @@ describe('CrossBus Hooks', () => {
 
             // Small payload - no compression
             await bus.signal('small', { x: 1 });
-            expect(messages[0].p.payload.data.compressed).toBeUndefined();
+            expect(messages[0].payload.data.compressed).toBeUndefined();
 
             // Large payload - compressed
             await bus.signal('large', { data: 'x'.repeat(200) });
-            expect(messages[1].p.payload.data.compressed).toBe(true);
+            expect(messages[1].payload.data.compressed).toBe(true);
         });
     });
 

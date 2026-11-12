@@ -20,16 +20,16 @@ import { PROTOCOL_MARKER, PROTOCOL_VERSION } from '../common/types.js';
 
 /**
  * WebSocket transport for server communication.
- * 
+ *
  * @example
  * const transport = new WebSocketTransport({
  *   url: 'wss://api.example.com/crossbus',
  *   peerId: 'client-1'
  * });
- * 
+ *
  * transport.onMessage((msg) => console.log('Received:', msg));
  * transport.onStateChange((state) => console.log('State:', state));
- * 
+ *
  * await transport.connect();
  * transport.send({ type: 'hello', payload: { name: 'client' } });
  */

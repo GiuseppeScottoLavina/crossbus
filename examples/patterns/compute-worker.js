@@ -5,7 +5,8 @@
  * thread via CrossBus PostMessageTransport.
  */
 
-import { CrossBus, PostMessageTransport } from 'crossbus';
+import { CrossBus } from 'crossbus';
+const { PostMessageTransport } = await import('crossbus');
 
 // Create bus in worker
 const bus = new CrossBus({

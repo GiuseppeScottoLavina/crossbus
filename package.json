@@ -1,6 +1,6 @@
 {
     "name": "crossbus",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "Modern cross-context messaging for browsers - iframes, workers, tabs, and native bridges",
     "type": "module",
     "main": "dist/crossbus.cjs",
@@ -13,30 +13,39 @@
             "require": "./dist/crossbus.cjs"
         },
         "./core": {
+            "types": "./dist/core/cross-bus.d.ts",
             "import": "./dist/crossbus.core.js"
         },
         "./nano": {
+            "types": "./dist/nano.d.ts",
             "import": "./dist/nano.js"
         },
         "./plugins/retry": {
+            "types": "./dist/plugins/retry.d.ts",
             "import": "./dist/plugins/retry.js"
         },
         "./plugins/circuit-breaker": {
+            "types": "./dist/plugins/circuit-breaker.d.ts",
             "import": "./dist/plugins/circuit-breaker.js"
         },
         "./plugins/encryption": {
+            "types": "./dist/plugins/encryption.d.ts",
             "import": "./dist/plugins/encryption.js"
         },
         "./plugins/rate-limiter": {
+            "types": "./dist/plugins/rate-limiter.d.ts",
             "import": "./dist/plugins/rate-limiter.js"
         },
         "./plugins/compression": {
+            "types": "./dist/plugins/compression.d.ts",
             "import": "./dist/plugins/compression.js"
         },
         "./plugins/batch": {
+            "types": "./dist/plugins/batch.d.ts",
             "import": "./dist/plugins/batch.js"
         },
         "./plugins/schema-validation": {
+            "types": "./dist/plugins/schema-validation.d.ts",
             "import": "./dist/plugins/schema-validation.js"
         },
         "./enterprise": {
@@ -57,25 +66,44 @@
         "CHANGELOG.md",
         "CLAUDE.md",
         "GEMINI.md",
-        "LICENSE"
+        "LICENSE",
+        "native",
+        "SECURITY.md",
+        "llms.txt",
+        "agent.json",
+        "docs/*.md"
     ],
     "scripts": {
         "build": "bun run tsc && bun run rollup -c",
         "build:watch": "bun run rollup -c -w",
         "build:bun": "bun build src/index.js --outdir dist/bun --target=bun --minify --sourcemap=external",
         "build:bun:bytecode": "bun build src/index.js --outdir dist/bun --target=bun --minify --bytecode",
-        "test": "bun test",
-        "test:coverage": "bun test --coverage",
-        "test:integration": "bun run tests/integration/run.js",
-        "bench": "bun run tests/benchmarks/suite.js",
-        "bench:compare": "bun run tests/benchmarks/comparison.js",
-        "bench:fast": "bun run tests/benchmarks/final-showdown.js",
-        "bench:signal": "bun run tests/perf/signal.bench.js",
-        "bench:router": "bun run tests/perf/message-router.bench.js",
-        "bench:emitter": "bun run tests/perf/event-emitter.bench.js",
+        "test": "bun test tests/unit/ tests/package/",
+        "test:coverage": "bun test tests/unit/ --coverage --coverage-reporter=text --coverage-reporter=lcov && node tests/coverage-check.js",
+        "test:integration": "bun test tests/integration/",
+        "bench": "node tests/benchmarks/verified.js",
+        "bench:compare": "node tests/benchmarks/verified.js",
+        "bench:fast": "node tests/benchmarks/verified.js",
+        "bench:signal": "node tests/benchmarks/verified.js",
+        "bench:router": "node tests/benchmarks/verified.js",
+        "bench:emitter": "node tests/benchmarks/verified.js",
         "lint": "bun run eslint src/",
         "typecheck": "bun run tsc --noEmit",
-        "prepublishOnly": "bun run build"
+        "prepublishOnly": "bun run release:check",
+        "test:unit": "bun test tests/unit/",
+        "test:e2e": "bun test tests/e2e/",
+        "test:all": "bun test tests/unit/ tests/package/ tests/e2e/ tests/integration/ tests/docs/",
+        "bench:bun": "bun tests/benchmarks/verified.js",
+        "bench:browser": "node tests/benchmarks/verified.js --browser",
+        "test:types": "tsc --noEmit --strict --skipLibCheck --target ES2022 --module NodeNext --moduleResolution NodeNext tests/package/types.ts",
+        "test:native": "python3 tests/native/check.py",
+        "bench:memory": "node --expose-gc tests/benchmarks/memory.js",
+        "test:docs": "bun test tests/docs/",
+        "bench:paired": "node tests/benchmarks/verified.js --paired",
+        "bench:rpc": "node tests/benchmarks/verified.js --rpc-compare",
+        "bench:report": "node tests/benchmarks/report.js",
+        "bench:isolated": "node tests/benchmarks/isolated.js",
+        "release:check": "bun run lint && bun run typecheck && bun run build && bun run test && bun run test:types && bun run test:coverage"
     },
     "keywords": [
         "postmessage",

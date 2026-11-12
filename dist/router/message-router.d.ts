@@ -23,7 +23,7 @@
  * - Tracks message delivery
  *
  * Performance optimizations:
- * - Object-based cache for fast peer lookup (faster than Map.get)
+ * - Object-based cache for fast peer lookup
  * - Direct sendFn cache to avoid property indirection
  * - Unrolled loops for common broadcast patterns
  *
@@ -45,7 +45,7 @@ export class MessageRouter extends EventEmitter {
      * Adds a peer to the routing table.
      *
      * @param {string} peerId - Unique peer identifier.
-     * @param {EventListener} sendFn - Function to send messages to peer.
+     * @param {(message: any) => void} sendFn - Function to send messages to peer.
      * @param {Object} [options={}] - Additional options.
      * @param {Object} [options.meta={}] - Peer metadata.
      * @param {string} [options.origin='unknown'] - Peer origin.
@@ -56,7 +56,7 @@ export class MessageRouter extends EventEmitter {
      *   iframe.contentWindow.postMessage(msg, '*');
      * }, { meta: { type: 'widget' } });
      */
-    addPeer(peerId: string, sendFn: EventListener, options?: {
+    addPeer(peerId: string, sendFn: (message: any) => void, options?: {
         meta?: any;
         origin?: string | undefined;
     }): void;

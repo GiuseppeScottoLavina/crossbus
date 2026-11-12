@@ -1,0 +1,70 @@
+{
+  "timestamp": "2026-11-12T09:59:01.564Z",
+  "runtime": "v24.15.0",
+  "gzipLevel": 9,
+  "sizes": [
+    {
+      "file": "dist/crossbus.js",
+      "rawBytes": 233134,
+      "gzipBytes": 47799,
+      "brotliBytes": 39244,
+      "sha256": "c23952e8faa5e7f953f36700c2c14472d74a85bebce3f29768dd7a3d1f88beec"
+    },
+    {
+      "file": "dist/crossbus.min.js",
+      "rawBytes": 55271,
+      "gzipBytes": 16748,
+      "brotliBytes": 14936,
+      "sha256": "693e52335e13aad571daad81e42005c63d01a23c995a7e2e7935fea550e076ad"
+    },
+    {
+      "file": "dist/crossbus.core.js",
+      "rawBytes": 128589,
+      "gzipBytes": 28061,
+      "brotliBytes": 23679,
+      "sha256": "33fcd97871c8780868799c2780b3a9a6eac07b4ccec06a6fa2e12e425562c7b2"
+    },
+    {
+      "file": "dist/crossbus.core.min.js",
+      "rawBytes": 31674,
+      "gzipBytes": 10461,
+      "brotliBytes": 9267,
+      "sha256": "f0e0783ec0ccf0412b7c38cefa3557fbbfd880919fb66b5d0811954200aa648f"
+    },
+    {
+      "file": "dist/nano.js",
+      "rawBytes": 963,
+      "gzipBytes": 467,
+      "brotliBytes": 413,
+      "sha256": "11ea855f8e50f4d2c431daa1098eaf56a55d3db3712f4672281016d78b8943b9"
+    },
+    {
+      "file": "dist/nano.min.js",
+      "rawBytes": 535,
+      "gzipBytes": 330,
+      "brotliBytes": 315,
+      "sha256": "f1b5ac035ac12461f91b554434b0d6d4ac45a73ff7d450e150bb759899173e60"
+    },
+    {
+      "file": "dist/plugins/retry.js",
+      "rawBytes": 19160,
+      "gzipBytes": 5389,
+      "brotliBytes": 4520,
+      "sha256": "160d18afc0435610aa7c92ee76676c918a62503709cf6598405dcde0fb5ccf30"
+    },
+    {
+      "file": "dist/plugins/circuit-breaker.js",
+      "rawBytes": 22363,
+      "gzipBytes": 5608,
+      "brotliBytes": 4751,
+      "sha256": "bf271e77615a88c5d1a756bb2673fafb8e33e61580a4c77875e6e22138292846"
+    },
+    {
+      "file": "dist/plugins/schema-validation.js",
+      "rawBytes": 22449,
+      "gzipBytes": 5677,
+      "brotliBytes": 4803,
+      "sha256": "103a15d0e4fa3fec7a4f72d871d8fb64839fda35ed53b705852d7afa60242e22"
+    }
+  ]
+}

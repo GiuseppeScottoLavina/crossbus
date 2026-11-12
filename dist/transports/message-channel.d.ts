@@ -66,9 +66,10 @@ export class MessageChannelTransport {
      * The remote port should be sent to the other context via postMessage.
      *
      * @param {MessageChannelTransportOptions} [options={}] - Configuration.
+     * @param {MessagePort|null} [port=null] - Internal existing-port construction. Prefer fromPort().
      * @throws {CrossBusError} If MessageChannel is not supported.
      */
-    constructor(options?: MessageChannelTransportOptions);
+    constructor(options?: MessageChannelTransportOptions, port?: MessagePort | null);
     /**
      * Gets the remote port to send to the other context.
      * This port can only be accessed once and becomes null after transfer.

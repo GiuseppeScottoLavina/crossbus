@@ -184,6 +184,7 @@ export class PeerRegistry {
     clear(): void;
     #private;
 }
+export type PeerType = import("./message-types.js").PeerType;
 export type PeerInfo = {
     /**
      * - Unique peer ID.
@@ -246,5 +247,4 @@ export type PeerRegistryConfig = {
      */
     staleTimeout?: number | undefined;
 };
-import { PeerType } from './message-types.js';
 import { PeerStatus } from './message-types.js';

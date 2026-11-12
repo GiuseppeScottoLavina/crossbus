@@ -384,22 +384,20 @@ describe('CrossBus', () => {
             expect(capturedContext.peerId).toBe('peer-1');
         });
 
-        it('should continue on hook error', async () => {
+        it('should reject on hook error', async () => {
             bus.addInboundHook(() => { throw new Error('Hook failed'); });
             bus.addInboundHook((payload) => ({ ...payload, fallback: true }));
 
             let receivedPayload;
             bus.on('test', (e) => { receivedPayload = e.data.payload; }, { mode: 'sync' });
 
-            await bus.handleMessage({
+            await expect(bus.handleMessage({
                 t: MessageType.SIGNAL,
                 name: 'test',
                 p: { original: true }
-            }, 'https://example.com', 'peer-1');
+            }, 'https://example.com', 'peer-1')).rejects.toThrow('Hook failed');
 
-            // Should still have processed with second hook
-            expect(receivedPayload).toBeDefined();
-            expect(receivedPayload.fallback).toBe(true);
+            expect(receivedPayload).toBeUndefined();
         });
     });
 });

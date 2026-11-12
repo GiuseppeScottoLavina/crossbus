@@ -186,16 +186,16 @@ class PeerQueue {
 /**
  * Backpressure controller for CrossBus.
  * Manages per-peer message queues with configurable strategies.
- * 
+ *
  * @example
  * const bp = new BackpressureController({
  *   maxQueueSize: 100,
  *   strategy: 'drop-oldest'
  * });
- * 
+ *
  * // Wrap peer send functions
  * const wrappedSend = bp.wrap('widget-1', originalSendFn);
- * 
+ *
  * // Check if peer is slow
  * if (bp.getStats('widget-1').size > 50) {
  *   console.warn('widget-1 is falling behind');

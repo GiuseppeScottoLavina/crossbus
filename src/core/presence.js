@@ -28,24 +28,24 @@ import { PROTOCOL_MARKER, PROTOCOL_VERSION } from '../common/types.js';
 
 /**
  * Presence manager for tracking online peers.
- * 
+ *
  * Emits events:
  * - 'join' - Peer came online
  * - 'leave' - Peer went offline
  * - 'update' - Peer presence updated
- * 
+ *
  * @example
  * const presence = new PresenceManager(sendFn, { peerId: 'my-peer' });
- * 
+ *
  * presence.on('join', (peerId, meta) => console.log(`${peerId} is online`));
  * presence.on('leave', (peerId) => console.log(`${peerId} went offline`));
- * 
+ *
  * // Get all online peers
  * const online = presence.getOnlinePeers();
- * 
+ *
  * // Update own status
  * presence.setStatus('away');
- * 
+ *
  * // Cleanup
  * presence.destroy();
  */
@@ -82,7 +82,7 @@ export class PresenceManager extends EventEmitter {
 
     /**
      * Creates a PresenceManager.
-     * 
+     *
      * @param {Function} sendFn - Function to broadcast messages: (message) => Promise.
      * @param {{ peerId: string } & PresenceOptions} options - Options.
      */
@@ -171,7 +171,7 @@ export class PresenceManager extends EventEmitter {
 
     /**
      * Sets own presence status.
-     * 
+     *
      * @param {'online' | 'away' | 'offline'} status - New status.
      * @param {Object} [meta] - Optional metadata update.
      */
@@ -185,7 +185,7 @@ export class PresenceManager extends EventEmitter {
 
     /**
      * Sets own metadata.
-     * 
+     *
      * @param {Object} meta - Metadata to merge.
      */
     setMeta(meta) {
@@ -195,7 +195,7 @@ export class PresenceManager extends EventEmitter {
 
     /**
      * Gets all online peer IDs.
-     * 
+     *
      * @returns {string[]}
      */
     getOnlinePeers() {
@@ -210,7 +210,7 @@ export class PresenceManager extends EventEmitter {
 
     /**
      * Gets all peer presences.
-     * 
+     *
      * @returns {PeerPresence[]}
      */
     getAllPeers() {
@@ -219,7 +219,7 @@ export class PresenceManager extends EventEmitter {
 
     /**
      * Gets a specific peer's presence.
-     * 
+     *
      * @param {string} peerId - Peer ID.
      * @returns {PeerPresence | undefined}
      */
@@ -229,7 +229,7 @@ export class PresenceManager extends EventEmitter {
 
     /**
      * Checks if a peer is online.
-     * 
+     *
      * @param {string} peerId - Peer ID to check.
      * @returns {boolean}
      */
@@ -241,7 +241,7 @@ export class PresenceManager extends EventEmitter {
     /**
      * Handles incoming presence message.
      * Call this from CrossBus message handler.
-     * 
+     *
      * @param {Object} message - Presence message.
      * @param {string} fromPeerId - Source peer ID.
      */
@@ -389,15 +389,15 @@ export class PresenceManager extends EventEmitter {
 
 /**
  * Creates a presence manager integrated with CrossBus.
- * 
+ *
  * @param {import('./cross-bus.js').CrossBus} bus - CrossBus instance.
  * @param {PresenceOptions} [options] - Options.
  * @returns {PresenceManager}
- * 
+ *
  * @example
  * const bus = new CrossBus({ peerId: 'my-peer' });
  * const presence = createPresence(bus);
- * 
+ *
  * presence.on('join', (peerId) => console.log(`${peerId} joined`));
  */
 export function createPresence(bus, options = {}) {
@@ -412,9 +412,15 @@ export function createPresence(bus, options = {}) {
     });
 
     // Register handler for presence messages
-    bus.on('__presence__', (message, ctx) => {
-        presence.handleMessage(message, ctx?.peerId ?? message.peerId);
-    });
-
+    const subscription = bus.on('__presence__', event => {
+        presence.handleMessage(event.data.payload, event.data.source);
+    }, { mode: 'sync' });
+    const originalDestroy = presence.destroy.bind(presence);
+    const unregister = bus.addCleanup(() => presence.destroy());
+    presence.destroy = () => {
+        subscription.unsubscribe();
+        unregister();
+        originalDestroy();
+    };
     return presence;
 }

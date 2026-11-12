@@ -245,9 +245,9 @@ const ERROR_META = Object.freeze({
 
 /**
  * Custom error class for CrossBus.
- * 
+ *
  * @extends Error
- * 
+ *
  * @example
  * try {
  *   await bus.emit('msg', data, 'unknown-peer');
@@ -293,7 +293,7 @@ export class CrossBusError extends Error {
 
     /**
      * Creates a new CrossBusError.
-     * 
+     *
      * @param {ErrorCode} code - Error code.
      * @param {string} [message] - Custom message (uses default if omitted).
      * @param {Object} [options] - Additional options.
@@ -320,7 +320,7 @@ export class CrossBusError extends Error {
 
     /**
      * Creates error from code with default message.
-     * 
+     *
      * @param {ErrorCode} code - Error code.
      * @param {Object} [details] - Error context.
      * @returns {CrossBusError}
@@ -331,7 +331,7 @@ export class CrossBusError extends Error {
 
     /**
      * Creates error from another error.
-     * 
+     *
      * @param {ErrorCode} code - Error code.
      * @param {Error} cause - Original error.
      * @param {Object} [details] - Additional context.
@@ -367,7 +367,7 @@ export class CrossBusError extends Error {
 
 /**
  * Checks if an error is a CrossBusError.
- * 
+ *
  * @param {*} err - Value to check.
  * @returns {boolean}
  */
@@ -377,7 +377,7 @@ export function isCrossBusError(err) {
 
 /**
  * Checks if an error is retryable.
- * 
+ *
  * @param {Error} err - Error to check.
  * @returns {boolean}
  */

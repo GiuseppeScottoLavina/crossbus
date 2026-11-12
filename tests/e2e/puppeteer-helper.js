@@ -17,6 +17,7 @@ import { join } from 'path';
  * @returns {string|null} Path to Chrome executable
  */
 export function findChrome() {
+    if (process.env.CHROME_PATH && existsSync(process.env.CHROME_PATH)) return process.env.CHROME_PATH;
     const cachePaths = [
         join(process.env.HOME, '.cache', 'puppeteer'),
         '/tmp/puppeteer'  // Fallback sandbox
@@ -31,8 +32,10 @@ export function findChrome() {
             if (dir.startsWith('chrome-headless-shell')) {
                 const versions = readdirSync(join(cachePath, dir)).sort().reverse();
                 for (const v of versions) {
-                    const path = join(cachePath, dir, v, 'chrome-headless-shell-mac-arm64', 'chrome-headless-shell');
-                    if (existsSync(path)) return path;
+                    for (const directory of ['chrome-headless-shell-mac-arm64', 'chrome-headless-shell-mac-x64', 'chrome-headless-shell-linux64']) {
+                        const path = join(cachePath, dir, v, directory, 'chrome-headless-shell');
+                        if (existsSync(path)) return path;
+                    }
                 }
             }
         }
@@ -49,6 +52,9 @@ export function findChrome() {
         }
     }
 
+    for (const candidate of ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser']) {
+        if (existsSync(candidate)) return candidate;
+    }
     throw new Error(
         'Chrome not found. Run from Terminal.app:\n' +
         'PUPPETEER_CACHE_DIR=~/.cache/puppeteer npx puppeteer browsers install chrome-headless-shell'

@@ -1,7 +1,7 @@
 /**
  * @fileoverview Compression plugin for CrossBus.
  * Compresses message payloads using CompressionStream API.
- * 
+ *
  * @module plugins/compression
  */
 
@@ -37,15 +37,15 @@
 /**
  * Compression utilities for CrossBus messages.
  * Uses native CompressionStream API for efficiency.
- * 
+ *
  * @example
  * import { Compression } from 'crossbus/plugins/compression';
- * 
+ *
  * // Use with CrossBus hooks
  * const { compressHook, decompressHook } = Compression.createCompressedHooks();
  * bus.addOutboundHook(compressHook);
  * bus.addInboundHook(decompressHook);
- * 
+ *
  * // Now large messages are automatically compressed!
  */
 class Compression {
@@ -53,7 +53,7 @@ class Compression {
 
     /**
      * Checks if CompressionStream API is supported.
-     * 
+     *
      * @returns {boolean}
      */
     static isSupported() {
@@ -63,7 +63,7 @@ class Compression {
 
     /**
      * Estimates the size of a payload in bytes.
-     * 
+     *
      * @param {any} payload - Payload to estimate
      * @returns {number} Estimated size in bytes
      */
@@ -74,7 +74,7 @@ class Compression {
 
     /**
      * Compresses a payload.
-     * 
+     *
      * @param {any} payload - Data to compress (will be JSON serialized)
      * @param {CompressionOptions} [options={}] - Compression options
      * @returns {Promise<CompressedPayload>} Compressed payload
@@ -122,7 +122,7 @@ class Compression {
 
     /**
      * Decompresses a compressed payload.
-     * 
+     *
      * @param {CompressedPayload} compressed - Compressed payload
      * @returns {Promise<any>} Decompressed payload
      */
@@ -164,10 +164,10 @@ class Compression {
 
     /**
      * Creates hook functions for automatic compression/decompression.
-     * 
+     *
      * @param {CompressionOptions} [options={}] - Compression options
      * @returns {{ compressHook: import('../core/cross-bus.js').MessageHook, decompressHook: import('../core/cross-bus.js').MessageHook }}
-     * 
+     *
      * @example
      * const { compressHook, decompressHook } = Compression.createCompressedHooks({
      *   algorithm: 'gzip',
@@ -225,11 +225,11 @@ class Compression {
 
 /**
  * Helper to add compression to a CrossBus instance.
- * 
+ *
  * @param {import("../core/cross-bus.js").CrossBus} bus - CrossBus instance
  * @param {CompressionOptions} [options={}] - Compression options
  * @returns {import("../core/cross-bus.js").CrossBus} Same bus with compression hooks installed
- * 
+ *
  * @example
  * withCompression(bus, { threshold: 1024 });
  * // Large messages now compressed automatically

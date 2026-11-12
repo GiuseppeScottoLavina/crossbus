@@ -3,10 +3,12 @@
  * @module common/utils
  */
 
+import { CrossBusError, ErrorCode } from './errors.js';
+
 /**
  * Generates a UUID v4.
  * Uses crypto.randomUUID() when available, falls back to manual generation.
- * 
+ *
  * @returns {string} UUID v4 string.
  */
 export function uuid() {
@@ -23,7 +25,7 @@ export function uuid() {
 
 /**
  * Checks if data can be structured cloned.
- * 
+ *
  * @param {*} data - Data to check.
  * @returns {boolean} True if cloneable.
  */
@@ -60,12 +62,12 @@ export function isCloneable(data) {
 /**
  * Creates a deferred promise (Promise.withResolvers polyfill).
  * Uses native Promise.withResolvers() when available (ES2024+).
- * 
+ *
  * @template T
  * @returns {{promise: Promise<T>, resolve: (value: T) => void, reject: (reason: any) => void}}
  */
 export function deferred() {
-    // Use native Promise.withResolvers if available (ES2024+, ~10x faster)
+    // Use native Promise.withResolvers if available when supported
     // @ts-ignore
     if (typeof Promise.withResolvers === 'function') {
         // @ts-ignore
@@ -83,7 +85,7 @@ export function deferred() {
 
 /**
  * Creates a promise that resolves after a timeout.
- * 
+ *
  * @param {number} ms - Timeout in milliseconds.
  * @param {AbortSignal} [signal] - Optional abort signal.
  * @returns {Promise<void>}
@@ -108,7 +110,7 @@ export function sleep(ms, signal) {
 
 /**
  * Creates a promise that rejects after a timeout.
- * 
+ *
  * @template T
  * @param {Promise<T>} promise - Promise to race against.
  * @param {number} ms - Timeout in milliseconds.
@@ -116,19 +118,17 @@ export function sleep(ms, signal) {
  * @returns {Promise<T>}
  */
 export function withTimeout(promise, ms, message = 'Operation timed out') {
-    return Promise.race([
-        promise,
-        new Promise((_, reject) => {
-            setTimeout(() => reject(new Error(message)), ms);
-        })
-    ]);
+    return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error(message)), ms);
+        promise.then(resolve, reject).finally(() => clearTimeout(timer));
+    });
 }
 
 
 
 /**
  * Detects the type of a peer target.
- * 
+ *
  * @param {*} target - Target to check.
  * @returns {'iframe'|'worker'|'sw'|'window'|'port'|'unknown'}
  */
@@ -171,7 +171,7 @@ export function detectPeerType(target) {
 
 /**
  * Creates a frozen timestamp object.
- * 
+ *
  * @returns {{timestamp: number, iso: string}}
  */
 export function timestamp() {
@@ -183,3 +183,50 @@ export function timestamp() {
 }
 
 
+
+/**
+ * Conservative in-memory payload budget, not serialized wire size. Strings use
+ * two bytes per UTF-16 code unit; each value/reference costs at least 8 bytes.
+ * Supports cycles, binary views, Maps and Sets without JSON serialization.
+ * @param {*} payload
+ * @param {number} limit - Zero disables the budget.
+ */
+export function assertPayloadSize(payload, limit) {
+    if (limit === 0) return;
+    // Scalar messages need no graph tracking or callback allocation.
+    if (payload === null || typeof payload !== 'object') {
+        const size = 8 + (typeof payload === 'string' ? payload.length * 2 : 0);
+        if (size > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+        return;
+    }
+    measurePayload(payload, limit, new Set(), 0);
+}
+
+/**
+ * Accumulates the same conservative budget without allocating a closure or
+ * key array per message. The seen set still bounds traversal of cyclic graphs.
+ * @param {*} value
+ * @param {number} limit
+ * @param {Set<object>} seen
+ * @param {number} bytes
+ * @returns {number}
+ */
+function measurePayload(value, limit, seen, bytes) {
+    bytes += 8 + (typeof value === 'string' ? value.length * 2 : 0);
+    if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+    if (value === null || typeof value !== 'object' || seen.has(value)) return bytes;
+    seen.add(value);
+    if (value instanceof ArrayBuffer || ArrayBuffer.isView(value)) bytes += value.byteLength;
+    else if (typeof Blob !== 'undefined' && value instanceof Blob) bytes += value.size;
+    else if (value instanceof Map) for (const [key, item] of value) {
+        bytes = measurePayload(key, limit, seen, bytes);
+        bytes = measurePayload(item, limit, seen, bytes);
+    }
+    else if (value instanceof Set) for (const item of value) bytes = measurePayload(item, limit, seen, bytes);
+    else for (const key in value) if (Object.hasOwn(value, key)) {
+        bytes = measurePayload(key, limit, seen, bytes);
+        bytes = measurePayload(value[key], limit, seen, bytes);
+    }
+    if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+    return bytes;
+}

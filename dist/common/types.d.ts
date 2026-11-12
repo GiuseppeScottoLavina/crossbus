@@ -19,7 +19,7 @@ export function isTransferable(value: any): boolean;
  * @param {Set<Transferable>} [found] - Set to collect transferables.
  * @returns {Transferable[]} Array of transferables found.
  */
-export function findTransferables(value: any, found?: Set<Transferable>): Transferable[];
+export function findTransferables(value: any, found?: Set<Transferable>, seen?: Set<any>): Transferable[];
 /**
  * @fileoverview Common types and constants shared across all modules.
  * This module is included in the common bundle to avoid duplication.
@@ -148,7 +148,7 @@ export const Defaults: any;
  * List of transferable types for auto-detection.
  * @constant {Function[]}
  */
-export const TransferableTypes: (ArrayBufferConstructor | {
+export const TransferableTypes: ({
     new (): MessagePort;
     prototype: MessagePort;
-})[];
+} | ArrayBufferConstructor)[];

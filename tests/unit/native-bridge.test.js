@@ -274,16 +274,16 @@ describe('NativeBridgeTransport', () => {
             transport.destroy();
         });
 
-        it('should resolve after timeout if no bridge', async () => {
+        it('should reject after timeout if no bridge', async () => {
             delete globalThis.CrossBus;
             delete globalThis.AndroidBridge;
             delete globalThis.webkit;
 
             const transport = new NativeBridgeTransport({ initTimeout: 100 });
 
-            await transport.ready;
+            await expect(transport.ready).rejects.toMatchObject({ code: 'ERR_NOT_CONNECTED' });
 
-            expect(transport.isReady).toBe(true);
+            expect(transport.isReady).toBe(false);
             expect(transport.bridgeType).toBe('none');
 
             transport.destroy();
@@ -309,7 +309,7 @@ describe('NativeBridgeTransport', () => {
             const calls = mockPostMessage.mock.calls;
             const heartbeats = calls.filter(call => {
                 const msg = JSON.parse(call[0]);
-                return msg.t === 'hb';
+                return msg.t === 'png';
             });
 
             expect(heartbeats.length).toBeGreaterThan(0);
@@ -335,7 +335,7 @@ describe('NativeBridgeTransport', () => {
             const heartbeats = mockPostMessage.mock.calls.filter(call => {
                 try {
                     const msg = JSON.parse(call[0]);
-                    return msg.t === 'hb';
+                    return msg.t === 'png';
                 } catch {
                     return false;
                 }

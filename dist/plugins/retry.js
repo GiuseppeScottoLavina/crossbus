@@ -245,9 +245,9 @@ const ERROR_META = Object.freeze({
 
 /**
  * Custom error class for CrossBus.
- * 
+ *
  * @extends Error
- * 
+ *
  * @example
  * try {
  *   await bus.emit('msg', data, 'unknown-peer');
@@ -293,7 +293,7 @@ class CrossBusError extends Error {
 
     /**
      * Creates a new CrossBusError.
-     * 
+     *
      * @param {ErrorCode} code - Error code.
      * @param {string} [message] - Custom message (uses default if omitted).
      * @param {Object} [options] - Additional options.
@@ -320,7 +320,7 @@ class CrossBusError extends Error {
 
     /**
      * Creates error from code with default message.
-     * 
+     *
      * @param {ErrorCode} code - Error code.
      * @param {Object} [details] - Error context.
      * @returns {CrossBusError}
@@ -331,7 +331,7 @@ class CrossBusError extends Error {
 
     /**
      * Creates error from another error.
-     * 
+     *
      * @param {ErrorCode} code - Error code.
      * @param {Error} cause - Original error.
      * @param {Object} [details] - Additional context.
@@ -367,7 +367,7 @@ class CrossBusError extends Error {
 
 /**
  * Checks if an error is retryable.
- * 
+ *
  * @param {Error} err - Error to check.
  * @returns {boolean}
  */
@@ -386,7 +386,7 @@ function isRetryable(err) {
 
 /**
  * Creates a promise that resolves after a timeout.
- * 
+ *
  * @param {number} ms - Timeout in milliseconds.
  * @param {AbortSignal} [signal] - Optional abort signal.
  * @returns {Promise<void>}
@@ -431,11 +431,11 @@ const DEFAULT_RETRY_OPTIONS = {
 
 /**
  * Calculates delay for a specific attempt using exponential backoff.
- * 
+ *
  * @param {number} attempt - Current attempt number (0-indexed).
  * @param {RetryOptions} options - Retry options.
  * @returns {number} Delay in ms.
- * 
+ *
  * @example
  * getDelay(0, { baseDelay: 100, factor: 2 }); // 100
  * getDelay(1, { baseDelay: 100, factor: 2 }); // 200
@@ -464,12 +464,12 @@ function getDelay(attempt, options) {
 
 /**
  * Wraps a function with retry logic.
- * 
+ *
  * @template T
  * @param {() => Promise<T>} fn - Function to retry.
  * @param {RetryOptions} [options={}] - Retry options.
  * @returns {Promise<T>}
- * 
+ *
  * @example
  * const result = await withRetry(
  *   () => bus.request('widget', 'getData'),
@@ -520,16 +520,16 @@ async function withRetry(fn, options = {}) {
 
 /**
  * Creates a retry wrapper for CrossBus requests.
- * 
+ *
  * @param {import("../core/cross-bus.js").CrossBus} bus - CrossBus instance.
  * @param {RetryOptions} [defaultOptions={}] - Default options for all retries.
  * @returns {Object} Retry-wrapped methods.
- * 
+ *
  * @example
  * const retry = createRetryWrapper(bus, { maxAttempts: 3 });
- * 
+ *
  * const result = await retry.request('widget', 'getData', { id: 5 });
- * 
+ *
  * const responses = await retry.broadcastRequest('getStatus');
  */
 function createRetryWrapper(bus, defaultOptions = {}) {
@@ -538,7 +538,7 @@ function createRetryWrapper(bus, defaultOptions = {}) {
     return {
         /**
          * Request with retry.
-         * 
+         *
          * @param {string} peerId - Target peer ID.
          * @param {string} handlerName - Handler name.
          * @param {*} [payload] - Request payload.
@@ -556,7 +556,7 @@ function createRetryWrapper(bus, defaultOptions = {}) {
         /**
          * Broadcast request with retry (per-peer).
          * Note: Each peer request is retried independently.
-         * 
+         *
          * @param {string} handlerName - Handler name.
          * @param {*} [payload] - Request payload.
          * @param {Object} [broadcastOptions] - Broadcast and retry options.

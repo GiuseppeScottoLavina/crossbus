@@ -88,8 +88,8 @@
     </div>
 
     <h3>Widget iframes:</h3>
-    <iframe id="widget1" src="widget.html?id=widget-1" width="300" height="150"></iframe>
-    <iframe id="widget2" src="widget.html?id=widget-2" width="300" height="150"></iframe>
+    <iframe id="widget-1" src="widget.html?id=widget-1" width="300" height="150"></iframe>
+    <iframe id="widget-2" src="widget.html?id=widget-2" width="300" height="150"></iframe>
 
     <h3>Log:</h3>
     <div id="log" class="log"></div>
@@ -154,11 +154,15 @@
         });
 
         // Listen for widget registration via postMessage
+        const peerByWindow = new Map();
         window.addEventListener('message', async (event) => {
             const { data, source, origin } = event;
 
             if (data && data.__crossbus_register) {
                 const widgetId = data.peerId;
+                const frame = document.getElementById(widgetId);
+                if (!frame || frame.contentWindow !== source || origin !== location.origin) return;
+                peerByWindow.set(source, widgetId);
                 log(`Widget registering: ${widgetId}`);
 
                 // Add peer with send function
@@ -173,7 +177,8 @@
                 }, '*');
             } else if (data && (data.t || data.type)) {
                 // Handle CrossBus messages
-                const sourcePeerId = data.source || 'unknown';
+                const sourcePeerId = peerByWindow.get(source);
+                if (!sourcePeerId) return;
                 await hub.handleMessage(data, origin, sourcePeerId, (reply) => {
                     source.postMessage(reply, '*');
                 });

@@ -1,0 +1,90 @@
+{
+  "metadata": {
+    "timestamp": "2026-11-12T09:31:07.246Z",
+    "runtime": "v24.15.0",
+    "cpu": "Apple M1 Max",
+    "bundleSha256": "4c0aede7d94d6304d2ab71bbe2410c2a7e045ad3e32b7dc20a5b6923b00aa80d",
+    "scriptSha256": "2061c412e396bf1f59d088d4ae58cfd64f951fc4a6500017542ebffe97e81baf"
+  },
+  "methodology": {
+    "rounds": 7,
+    "warmupRounds": 1,
+    "buses": 200,
+    "peersPerBus": 10,
+    "pendingRequestsPerBus": 1,
+    "gc": "two explicit GC calls after draining async work at each observation",
+    "caution": "Process heap deltas include allocator/JIT noise; negative deltas are retained. No universal per-object or leak-free claim."
+  },
+  "samples": [
+    {
+      "beforeHeapBytes": 4766528,
+      "liveHeapBytes": 7253672,
+      "afterHeapBytes": 4789840,
+      "liveDeltaBytes": 2487144,
+      "afterDeltaBytes": 23312,
+      "liveTimeouts": 200,
+      "afterTimeouts": 0,
+      "cancelledRequests": 200
+    },
+    {
+      "beforeHeapBytes": 4790936,
+      "liveHeapBytes": 7321440,
+      "afterHeapBytes": 4884592,
+      "liveDeltaBytes": 2530504,
+      "afterDeltaBytes": 93656,
+      "liveTimeouts": 200,
+      "afterTimeouts": 0,
+      "cancelledRequests": 200
+    },
+    {
+      "beforeHeapBytes": 4897440,
+      "liveHeapBytes": 7353520,
+      "afterHeapBytes": 4893352,
+      "liveDeltaBytes": 2456080,
+      "afterDeltaBytes": -4088,
+      "liveTimeouts": 200,
+      "afterTimeouts": 0,
+      "cancelledRequests": 200
+    },
+    {
+      "beforeHeapBytes": 4893472,
+      "liveHeapBytes": 7356920,
+      "afterHeapBytes": 4898664,
+      "liveDeltaBytes": 2463448,
+      "afterDeltaBytes": 5192,
+      "liveTimeouts": 200,
+      "afterTimeouts": 0,
+      "cancelledRequests": 200
+    },
+    {
+      "beforeHeapBytes": 4898784,
+      "liveHeapBytes": 7359776,
+      "afterHeapBytes": 4911680,
+      "liveDeltaBytes": 2460992,
+      "afterDeltaBytes": 12896,
+      "liveTimeouts": 200,
+      "afterTimeouts": 0,
+      "cancelledRequests": 200
+    },
+    {
+      "beforeHeapBytes": 4902048,
+      "liveHeapBytes": 7364632,
+      "afterHeapBytes": 4906424,
+      "liveDeltaBytes": 2462584,
+      "afterDeltaBytes": 4376,
+      "liveTimeouts": 200,
+      "afterTimeouts": 0,
+      "cancelledRequests": 200
+    },
+    {
+      "beforeHeapBytes": 4906544,
+      "liveHeapBytes": 7375976,
+      "afterHeapBytes": 4918168,
+      "liveDeltaBytes": 2469432,
+      "afterDeltaBytes": 11624,
+      "liveTimeouts": 200,
+      "afterTimeouts": 0,
+      "cancelledRequests": 200
+    }
+  ]
+}

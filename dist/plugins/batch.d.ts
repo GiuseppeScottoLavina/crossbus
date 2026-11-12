@@ -41,10 +41,8 @@ export function createBatcher(options?: BatchOptions): MessageBatcher;
  * 2. Sends all messages as a single batch
  * 3. Automatically unbatches on the receiving side
  *
- * **Performance Impact:**
- * - 2-5x throughput improvement for high-frequency signals
- * - Reduces postMessage call overhead
- * - Ideal for streaming data, telemetry, mouse/touch events
+ * Batching trades additional latency for fewer transport calls.
+ * Measure the actual application workload before enabling it.
  *
  * @example
  * import { CrossBus } from 'crossbus';
@@ -53,7 +51,7 @@ export function createBatcher(options?: BatchOptions): MessageBatcher;
  * const bus = new CrossBus({ peerId: 'sender' });
  * withBatching(bus, { windowMs: 16 });
  *
- * // These 100 signals are sent as ~6 batches instead of 100 calls
+ * // These signals are grouped by the configured time window and maximum size
  * for (let i = 0; i < 100; i++) {
  *   bus.signal('telemetry', { value: i });
  * }

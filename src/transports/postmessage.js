@@ -11,7 +11,7 @@ import {
     findTransferables
 } from '../common/types.js';
 import { CrossBusError, ErrorCode } from '../common/errors.js';
-import { getSerializer, detectPreferredContentType } from '../common/serialization.js';
+import { getSerializer } from '../common/serialization.js';
 
 /**
  * @typedef {Window|Worker|ServiceWorker|MessagePort} PostMessageTarget
@@ -41,12 +41,12 @@ import { getSerializer, detectPreferredContentType } from '../common/serializati
 
 /**
  * PostMessage-based transport for cross-context communication.
- * 
+ *
  * Supports:
  * - Window to Window (iframe, popup)
  * - Main thread to Worker
  * - Main thread to ServiceWorker
- * 
+ *
  * @example
  * // Connect to iframe
  * const iframe = document.getElementById('widget');
@@ -54,13 +54,13 @@ import { getSerializer, detectPreferredContentType } from '../common/serializati
  *   targetOrigin: 'https://widget.example.com',
  *   allowedOrigins: ['https://widget.example.com']
  * });
- * 
+ *
  * transport.onMessage((msg, source) => {
  *   console.log('Received:', msg, 'from:', source.origin);
  * });
- * 
+ *
  * transport.send({ type: 'greeting', payload: { hello: 'world' } });
- * 
+ *
  * // Cleanup
  * transport.destroy();
  */
@@ -94,7 +94,7 @@ export class PostMessageTransport {
 
     /**
      * Checks if PostMessage API is available.
-     * 
+     *
      * @returns {boolean} True if postMessage is supported.
      */
     static isSupported() {
@@ -104,7 +104,7 @@ export class PostMessageTransport {
 
     /**
      * Creates a new PostMessage transport.
-     * 
+     *
      * @param {PostMessageTarget} target - The window/worker to communicate with.
      * @param {PostMessageTransportOptions} [options={}] - Configuration options.
      * @throws {TypeError} If target is not a valid postMessage target.
@@ -142,15 +142,15 @@ export class PostMessageTransport {
 
     /**
      * Sends a message to the target.
-     * 
+     *
      * @param {Object} message - Protocol message to send.
      * @param {Transferable[]} [transfer] - Transferable objects to pass.
      * @throws {CrossBusError} If transport is destroyed or target is closed.
-     * 
+     *
      * @example
      * // Simple send
      * transport.send({ t: 'sig', id: '123', p: { data: 'value' } });
-     * 
+     *
      * // With transferable
      * const buffer = new ArrayBuffer(1024);
      * transport.send({ t: 'sig', id: '456', p: buffer }, [buffer]);
@@ -170,7 +170,9 @@ export class PostMessageTransport {
         }
 
         // Ensure message has protocol marker
-        const envelope = {
+        // Protocol builders already supply the marker. These transports clone
+        // synchronously, so an extra top-level object copy is unnecessary.
+        const envelope = message[PROTOCOL_MARKER] === PROTOCOL_VERSION ? message : {
             [PROTOCOL_MARKER]: PROTOCOL_VERSION,
             ...message
         };
@@ -199,16 +201,16 @@ export class PostMessageTransport {
             /** @type {Worker} */(this.#target).postMessage(dataToSend, /** @type {any} */(transferables));
         } else {
             // Windows need origin
-            /** @type {Window} */(this.#target).postMessage(envelope, this.#targetOrigin, transferables);
+            /** @type {Window} */(this.#target).postMessage(dataToSend, this.#targetOrigin, transferables);
         }
     }
 
     /**
      * Registers a message handler.
      * Only one handler can be registered; subsequent calls replace previous.
-     * 
+     *
      * @param {MessageHandler} handler - Function to handle incoming messages.
-     * 
+     *
      * @example
      * transport.onMessage((msg, source) => {
      *   if (msg.t === 'req') {
@@ -268,7 +270,7 @@ export class PostMessageTransport {
 
     /**
      * Handles incoming message events.
-     * 
+     *
      * @param {MessageEvent} event
      */
     #handleMessage(event) {
@@ -306,7 +308,7 @@ export class PostMessageTransport {
 
     /**
      * Checks if an origin is allowed.
-     * 
+     *
      * @param {string} origin
      * @returns {boolean}
      */
@@ -344,7 +346,7 @@ export class PostMessageTransport {
 
     /**
      * Checks if target is a valid postMessage target.
-     * 
+     *
      * @param {*} target
      * @returns {boolean}
      */
@@ -355,7 +357,7 @@ export class PostMessageTransport {
 
     /**
      * Checks if target is a Worker or ServiceWorker.
-     * 
+     *
      * @returns {boolean}
      */
     #isWorker() {
@@ -373,7 +375,7 @@ export class PostMessageTransport {
 
     /**
      * Checks if the target window is closed.
-     * 
+     *
      * @returns {boolean}
      */
     #isWindowClosed() {
@@ -385,7 +387,7 @@ export class PostMessageTransport {
      * Gets the object to attach message listener to.
      * For workers, we listen on the worker itself.
      * For windows, we listen on the current window.
-     * 
+     *
      * @returns {EventTarget}
      */
     #getListenerTarget() {

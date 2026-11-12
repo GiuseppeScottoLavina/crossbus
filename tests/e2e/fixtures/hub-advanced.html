@@ -124,12 +124,16 @@
         });
 
         // Widget message handling
+        const peerByWindow = new Map();
         window.addEventListener('message', async (event) => {
             const { data, source, origin } = event;
             // log(`DEBUG: Received message from ${origin}: ${JSON.stringify(data)}`, 'info');
 
             if (data?.__crossbus_register) {
                 const widgetId = data.peerId;
+                const frame = document.getElementById(widgetId);
+                if (!frame || frame.contentWindow !== source || origin !== location.origin) return;
+                peerByWindow.set(source, widgetId);
                 log(`Widget registering: ${widgetId}`);
 
                 hub.addPeer(widgetId, msg => {
@@ -141,7 +145,8 @@
 
                 source.postMessage({ __crossbus_registered: true, peerId: widgetId }, '*');
             } else if (data?.t || data?.type) {
-                const sourcePeerId = data.source || 'unknown';
+                const sourcePeerId = peerByWindow.get(source);
+                if (!sourcePeerId) return;
                 await hub.handleMessage(data, origin, sourcePeerId, reply => {
                     source.postMessage(reply, '*');
                 });

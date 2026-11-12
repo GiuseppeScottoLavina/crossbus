@@ -38,15 +38,15 @@ import { getSerializer } from '../common/serialization.js';
 
 /**
  * MessageChannel-based transport for direct peer-to-peer communication.
- * 
+ *
  * This transport creates a direct communication channel that bypasses
  * the hub routing, providing lower latency for high-frequency peer pairs.
- * 
+ *
  * Use cases:
  * - Direct iframe ↔ worker communication
  * - High-frequency data streams
  * - Bypassing hub for performance
- * 
+ *
  * @example
  * // On hub side: create channel and send to peer
  * const transport = new MessageChannelTransport();
@@ -55,7 +55,7 @@ import { getSerializer } from '../common/serialization.js';
  *   '*',
  *   [transport.remotePort]
  * );
- * 
+ *
  * // On peer side: wrap received port
  * window.addEventListener('message', (e) => {
  *   if (e.data.type === 'channel') {
@@ -91,7 +91,7 @@ export class MessageChannelTransport {
 
     /**
      * Checks if MessageChannel API is available.
-     * 
+     *
      * @returns {boolean} True if MessageChannel is supported.
      */
     static isSupported() {
@@ -101,7 +101,7 @@ export class MessageChannelTransport {
     /**
      * Creates a MessageChannelTransport from an existing port.
      * Use this when receiving a port from another context.
-     * 
+     *
      * @param {MessagePort} port - The received port.
      * @param {MessageChannelTransportOptions} [options={}] - Configuration.
      * @returns {MessageChannelTransport}
@@ -111,44 +111,31 @@ export class MessageChannelTransport {
             throw new TypeError('Port must be a MessagePort');
         }
 
-        const transport = Object.create(MessageChannelTransport.prototype);
-        transport.#localPort = port;
-        transport.#remotePort = null; // Not available when wrapping existing port
-        transport.#autoTransfer = options.autoTransfer ?? false;
-        transport.#contentType = options.contentType ?? 'application/json';
-        transport.#serializer = getSerializer(transport.#contentType);
-        transport.#destroyed = false;
-        transport.#isInitiator = false;
-        transport.#messageHandler = null;
-
-        // Set up message handler
-        transport.#localPort.onmessage = transport.#handleMessage.bind(transport);
-        transport.#localPort.onmessageerror = transport.#handleError.bind(transport);
-
-        return transport;
+        return new MessageChannelTransport(options, port);
     }
 
     /**
      * Creates a new MessageChannel transport (as initiator).
      * The remote port should be sent to the other context via postMessage.
-     * 
+     *
      * @param {MessageChannelTransportOptions} [options={}] - Configuration.
+     * @param {MessagePort|null} [port=null] - Internal existing-port construction. Prefer fromPort().
      * @throws {CrossBusError} If MessageChannel is not supported.
      */
-    constructor(options = {}) {
+    constructor(options = {}, port = null) {
         if (!MessageChannelTransport.isSupported()) {
             throw CrossBusError.from(ErrorCode.UNSUPPORTED, {
                 api: 'MessageChannel'
             });
         }
 
-        const channel = new MessageChannel();
-        this.#localPort = channel.port1;
-        this.#remotePort = channel.port2;
+        const channel = port ? null : new MessageChannel();
+        this.#localPort = port ?? /** @type {MessageChannel} */(channel).port1;
+        this.#remotePort = channel?.port2 ?? null;
         this.#autoTransfer = options.autoTransfer ?? false;
         this.#contentType = options.contentType ?? 'application/json';
         this.#serializer = getSerializer(this.#contentType);
-        this.#isInitiator = true;
+        this.#isInitiator = port === null;
 
         // Set up message handler
         this.#localPort.onmessage = this.#handleMessage.bind(this);
@@ -158,7 +145,7 @@ export class MessageChannelTransport {
     /**
      * Gets the remote port to send to the other context.
      * This port can only be accessed once and becomes null after transfer.
-     * 
+     *
      * @returns {MessagePort|null} The remote port, or null if already transferred.
      */
     get remotePort() {
@@ -182,7 +169,7 @@ export class MessageChannelTransport {
 
     /**
      * Sends a message to the connected peer.
-     * 
+     *
      * @param {Object} message - Protocol message to send.
      * @param {Transferable[]} [transfer] - Transferable objects to pass.
      * @throws {CrossBusError} If transport is destroyed.
@@ -195,7 +182,9 @@ export class MessageChannelTransport {
         }
 
         // Ensure message has protocol marker
-        const envelope = {
+        // Protocol builders already supply the marker. These transports clone
+        // synchronously, so an extra top-level object copy is unnecessary.
+        const envelope = message[PROTOCOL_MARKER] === PROTOCOL_VERSION ? message : {
             [PROTOCOL_MARKER]: PROTOCOL_VERSION,
             ...message
         };
@@ -220,7 +209,7 @@ export class MessageChannelTransport {
     /**
      * Registers a message handler.
      * Only one handler can be registered; subsequent calls replace previous.
-     * 
+     *
      * @param {MessageHandler} handler - Function to handle incoming messages.
      */
     onMessage(handler) {
@@ -271,7 +260,7 @@ export class MessageChannelTransport {
 
     /**
      * Handles incoming message events.
-     * 
+     *
      * @param {MessageEvent} event
      */
     #handleMessage(event) {
@@ -296,7 +285,7 @@ export class MessageChannelTransport {
 
     /**
      * Handles message errors.
-     * 
+     *
      * @param {MessageEvent} event
      */
     #handleError(event) {

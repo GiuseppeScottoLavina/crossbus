@@ -1,9 +1,9 @@
 /**
  * @fileoverview Causal Orderer for message delivery with causal consistency.
- * 
+ *
  * Buffers out-of-order messages and delivers them only when their
  * causal dependencies have been satisfied.
- * 
+ *
  * @module ordering/causal-orderer
  */
 
@@ -25,20 +25,20 @@ import { VectorClock } from './vector-clock.js';
 
 /**
  * Causal Orderer ensures messages are delivered in causal order.
- * 
+ *
  * When a message arrives out of order (missing dependencies), it's
  * buffered until its dependencies are satisfied. This guarantees
  * that if message B was sent after seeing message A, then B will
  * be delivered after A at all receivers.
- * 
+ *
  * @example
  * const orderer = new CausalOrderer('my-node', {
  *   onDeliver: (msg) => processMessage(msg)
  * });
- * 
+ *
  * // When receiving a message:
  * orderer.receive(senderId, message);
- * 
+ *
  * // When sending:
  * const clock = orderer.tick();
  * send({ ...data, clock: clock.toJSON() });
@@ -64,7 +64,7 @@ export class CausalOrderer {
 
     /**
      * Creates a new CausalOrderer.
-     * 
+     *
      * @param {string} ownId - This node's unique identifier
      * @param {CausalOrdererOptions} options - Configuration options
      */
@@ -96,7 +96,7 @@ export class CausalOrderer {
     /**
      * Receives a message and delivers it if deps are satisfied,
      * otherwise buffers it.
-     * 
+     *
      * @param {string} senderId - ID of the message sender
      * @param {Object} message - Message with clock property
      */
@@ -113,7 +113,7 @@ export class CausalOrderer {
 
     /**
      * Delivers a message and updates local clock.
-     * 
+     *
      * @param {string} senderId
      * @param {Object} message
      * @param {VectorClock} msgClock
@@ -128,7 +128,7 @@ export class CausalOrderer {
 
     /**
      * Buffers a message for later delivery.
-     * 
+     *
      * @param {string} senderId
      * @param {Object} message
      * @param {VectorClock} clock
@@ -175,7 +175,7 @@ export class CausalOrderer {
     /**
      * Increments local clock for sending a message.
      * Returns the clock to attach to outgoing message.
-     * 
+     *
      * @returns {VectorClock} Clock to include in message
      */
     tick() {
@@ -185,7 +185,7 @@ export class CausalOrderer {
 
     /**
      * Gets a copy of the current vector clock.
-     * 
+     *
      * @returns {VectorClock}
      */
     getVectorClock() {

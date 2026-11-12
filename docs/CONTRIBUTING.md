@@ -14,8 +14,9 @@ cd crossbus
 # Install dependencies
 npm install
 
-# Run tests
-npm test
+# Build and run source/package tests
+bun run build
+bun test
 
 # Build
 npm run build
@@ -31,7 +32,7 @@ src/
 └── index.js         # Entry point
 
 tests/
-├── unit/            # Unit tests (Vitest)
+├── unit/            # Unit tests (Bun)
 └── integration/     # Browser tests
 ```
 
@@ -40,7 +41,7 @@ tests/
 - **Pure JavaScript** - No TypeScript source, JSDoc for types
 - **ES2022+** - Use modern features (private fields, etc.)
 - **No dependencies** - Core must be dependency-free
-- **100% test coverage** - All public APIs must be tested
+- **Behavior coverage** - Public APIs require meaningful assertions; report measured coverage with its runner and scope.
 
 ## Commit Convention
 

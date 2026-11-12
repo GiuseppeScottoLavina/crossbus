@@ -124,8 +124,8 @@ describe('CrossBus Integration Tests', () => {
         });
 
         expect(response).toBeDefined();
-        // Either got status or an error message
-        expect(response.status !== undefined || response.error !== undefined).toBe(true);
+        expect(response.error).toBeUndefined();
+        expect(response.status).toBe('healthy');
     });
 });
 

@@ -36,7 +36,7 @@ import { uuid, deferred, withTimeout } from '../common/utils.js';
 
 /**
  * Handshake protocol for secure peer establishment.
- * 
+ *
  * Protocol flow:
  * ```
  * INITIATOR                          RESPONDER
@@ -74,7 +74,7 @@ export class Handshake {
 
     /**
      * Creates a new Handshake handler.
-     * 
+     *
      * @param {HandshakeConfig} [config={}]
      */
     constructor(config = {}) {
@@ -94,7 +94,7 @@ export class Handshake {
 
     /**
      * Creates a handshake initiation message.
-     * 
+     *
      * @returns {Object} Handshake init message.
      */
     createInitMessage() {
@@ -110,7 +110,7 @@ export class Handshake {
 
     /**
      * Creates a handshake acknowledgment message.
-     * 
+     *
      * @param {Object} initMessage - The received init message.
      * @param {boolean} accept - Whether to accept the connection.
      * @param {string} [reason] - Rejection reason if not accepted.
@@ -131,7 +131,7 @@ export class Handshake {
 
     /**
      * Creates a handshake completion message.
-     * 
+     *
      * @param {string} handshakeId - The handshake ID.
      * @returns {Object} Handshake complete message.
      */
@@ -146,7 +146,7 @@ export class Handshake {
 
     /**
      * Initiates a handshake with a peer.
-     * 
+     *
      * @param {EventListener} sendFn - Function to send messages to peer.
      * @returns {Promise<HandshakeResult>} Result of handshake attempt.
      */
@@ -191,7 +191,7 @@ export class Handshake {
 
     /**
      * Handles a received handshake message.
-     * 
+     *
      * @param {Object} message - Received handshake message.
      * @param {string} origin - Origin of the message.
      * @param {EventListener} sendFn - Function to send response.
@@ -216,7 +216,7 @@ export class Handshake {
 
     /**
      * Checks if a handshake is pending.
-     * 
+     *
      * @param {string} handshakeId
      * @returns {boolean}
      */
@@ -226,7 +226,7 @@ export class Handshake {
 
     /**
      * Cancels a pending handshake.
-     * 
+     *
      * @param {string} handshakeId
      */
     cancel(handshakeId) {
@@ -241,7 +241,7 @@ export class Handshake {
      * Cancels all pending handshakes.
      */
     cancelAll() {
-        for (const [id, pending] of this.#pendingHandshakes) {
+        for (const [_id, pending] of this.#pendingHandshakes) {
             pending.reject(new Error('All handshakes cancelled'));
         }
         this.#pendingHandshakes.clear();
@@ -253,7 +253,7 @@ export class Handshake {
 
     /**
      * Handles HANDSHAKE_INIT message (we are responder).
-     * 
+     *
      */
     #handleInit(message, origin, sendFn, validateFn) {
         // Validate if validator provided
@@ -283,7 +283,7 @@ export class Handshake {
 
     /**
      * Handles HANDSHAKE_ACK message (we are initiator).
-     * 
+     *
      */
     #handleAck(message, origin, sendFn) {
         const pending = this.#pendingHandshakes.get(message.handshakeId);
@@ -324,7 +324,7 @@ export class Handshake {
 
     /**
      * Handles HANDSHAKE_COMPLETE message (we are responder).
-     * 
+     *
      */
     #handleComplete(message, origin) {
         const pending = this.#pendingHandshakes.get(message.handshakeId);

@@ -1,0 +1,906 @@
+{
+  "timestamp": "2026-11-12T09:59:01.618Z",
+  "methodology": "three fresh baseline/candidate process pairs per runtime, nine samples per process; process order alternated; ranges are observed ratios, not confidence intervals",
+  "comparisons": [
+    {
+      "runtime": "node",
+      "runtimeVersion": "Node v24.15.0",
+      "workload": "emitSync:1",
+      "baselineMedianOps": 107059692.79114093,
+      "candidateMedianOps": 106417411.54864101,
+      "medianRatio": 1.001745625609694,
+      "minRatio": 0.9893703353083318,
+      "maxRatio": 1.0147831343513962,
+      "baselineRuns": [
+        107377990.01395434,
+        104867146.4338617,
+        107059692.79114093
+      ],
+      "candidateRuns": [
+        107565431.78324017,
+        106417411.54864101,
+        105921684.1547781
+      ],
+      "ratios": [
+        1.001745625609694,
+        1.0147831343513962,
+        0.9893703353083318
+      ]
+    },
+    {
+      "runtime": "node",
+      "runtimeVersion": "Node v24.15.0",
+      "workload": "emitSync:10",
+      "baselineMedianOps": 36479098.68026646,
+      "candidateMedianOps": 36415334.220483705,
+      "medianRatio": 0.9982520275420826,
+      "minRatio": 0.9947975711286823,
+      "maxRatio": 1.0009763896351782,
+      "baselineRuns": [
+        36522286.52011345,
+        36295993.82968107,
+        36479098.68026646
+      ],
+      "candidateRuns": [
+        36557946.502124704,
+        36107166.503468364,
+        36415334.220483705
+      ],
+      "ratios": [
+        1.0009763896351782,
+        0.9947975711286823,
+        0.9982520275420826
+      ]
+    },
+    {
+      "runtime": "node",
+      "runtimeVersion": "Node v24.15.0",
+      "workload": "fast:subscribe+unsubscribe",
+      "baselineMedianOps": 19816008.362355534,
+      "candidateMedianOps": 19750485.792823806,
+      "medianRatio": 0.996027424262127,
+      "minRatio": 0.9867685983567449,
+      "maxRatio": 1.0648186255613217,
+      "baselineRuns": [
+        19925462.431626514,
+        18548215.929649323,
+        19816008.362355534
+      ],
+      "candidateRuns": [
+        19846307.023004733,
+        19750485.792823806,
+        19553814.796747107
+      ],
+      "ratios": [
+        0.996027424262127,
+        1.0648186255613217,
+        0.9867685983567449
+      ]
+    },
+    {
+      "runtime": "node",
+      "runtimeVersion": "Node v24.15.0",
+      "workload": "nano:1",
+      "baselineMedianOps": 103458755.52049464,
+      "candidateMedianOps": 103435121.7679623,
+      "medianRatio": 0.9988266559140655,
+      "minRatio": 0.9958163616638394,
+      "maxRatio": 1.0006163181730563,
+      "baselineRuns": [
+        104378004.94490753,
+        103371412.0881179,
+        103458755.52049464
+      ],
+      "candidateRuns": [
+        103941325.12196805,
+        103435121.7679623,
+        103337362.80156653
+      ],
+      "ratios": [
+        0.9958163616638394,
+        1.0006163181730563,
+        0.9988266559140655
+      ]
+    },
+    {
+      "runtime": "node",
+      "runtimeVersion": "Node v24.15.0",
+      "workload": "nano:10",
+      "baselineMedianOps": 35778067.78684479,
+      "candidateMedianOps": 35851128.190190166,
+      "medianRatio": 1.0025092785631233,
+      "minRatio": 0.9968459774527665,
+      "maxRatio": 1.0026455264514074,
+      "baselineRuns": [
+        35778067.78684479,
+        35756533.33544063,
+        35819024.37932357
+      ],
+      "candidateRuns": [
+        35867844.925372295,
+        35851128.190190166,
+        35706050.36881128
+      ],
+      "ratios": [
+        1.0025092785631233,
+        1.0026455264514074,
+        0.9968459774527665
+      ]
+    },
+    {
+      "runtime": "node",
+      "runtimeVersion": "Node v24.15.0",
+      "workload": "emit:no-listeners",
+      "baselineMedianOps": 3342245.9893047283,
+      "candidateMedianOps": 12154360.376784554,
+      "medianRatio": 3.6503693346570882,
+      "minRatio": 3.6365846247340303,
+      "maxRatio": 3.703117277682086,
+      "baselineRuns": [
+        3342245.9893047283,
+        3170137.3065721192,
+        3365846.286512207
+      ],
+      "candidateRuns": [
+        12154360.376784554,
+        11739390.232591767,
+        12286582.069453595
+      ],
+      "ratios": [
+        3.6365846247340303,
+        3.703117277682086,
+        3.6503693346570882
+      ]
+    },
+    {
+      "runtime": "node",
+      "runtimeVersion": "Node v24.15.0",
+      "workload": "pending:create+resolve",
+      "baselineMedianOps": 850704.8323479883,
+      "candidateMedianOps": 1928067.0944212142,
+      "medianRatio": 2.266434868013682,
+      "minRatio": 2.1543921704115645,
+      "maxRatio": 2.3099765417258515,
+      "baselineRuns": [
+        850704.8323479883,
+        839203.3861856586,
+        864983.3255001913
+      ],
+      "candidateRuns": [
+        1928067.0944212142,
+        1938540.1358257718,
+        1863513.30399417
+      ],
+      "ratios": [
+        2.266434868013682,
+        2.3099765417258515,
+        2.1543921704115645
+      ]
+    },
+    {
+      "runtime": "node",
+      "runtimeVersion": "Node v24.15.0",
+      "workload": "signal:1-peer",
+      "baselineMedianOps": 1833740.7752524263,
+      "candidateMedianOps": 2285126.6817104165,
+      "medianRatio": 1.2417531148171126,
+      "minRatio": 1.226028345750927,
+      "maxRatio": 1.2461557885115218,
+      "baselineRuns": [
+        1833740.7752524263,
+        1847198.280480077,
+        1827666.4099404637
+      ],
+      "candidateRuns": [
+        2285126.6817104165,
+        2293764.21847095,
+        2240770.825163842
+      ],
+      "ratios": [
+        1.2461557885115218,
+        1.2417531148171126,
+        1.226028345750927
+      ]
+    },
+    {
+      "runtime": "node",
+      "runtimeVersion": "Node v24.15.0",
+      "workload": "signal:10-peers",
+      "baselineMedianOps": 1612226.090848308,
+      "candidateMedianOps": 1923254.084366616,
+      "medianRatio": 1.1898812409835164,
+      "minRatio": 1.1884564255278807,
+      "maxRatio": 1.2170385284979395,
+      "baselineRuns": [
+        1612226.090848308,
+        1616341.2096293895,
+        1599461.5572613846
+      ],
+      "candidateRuns": [
+        1916060.4570723684,
+        1923254.084366616,
+        1946606.340038418
+      ],
+      "ratios": [
+        1.1884564255278807,
+        1.1898812409835164,
+        1.2170385284979395
+      ]
+    },
+    {
+      "runtime": "node",
+      "runtimeVersion": "Node v24.15.0",
+      "workload": "rpc:direct",
+      "baselineMedianOps": 376117.770297127,
+      "candidateMedianOps": 627672.5118669338,
+      "medianRatio": 1.6688322964355746,
+      "minRatio": 1.6688190812443733,
+      "maxRatio": 1.6968694406378226,
+      "baselineRuns": [
+        367086.4152991079,
+        376117.770297127,
+        376739.47207196546
+      ],
+      "candidateRuns": [
+        622897.7201943407,
+        627672.5118669338,
+        628714.9983357842
+      ],
+      "ratios": [
+        1.6968694406378226,
+        1.6688190812443733,
+        1.6688322964355746
+      ]
+    },
+    {
+      "runtime": "node",
+      "runtimeVersion": "Node v24.15.0",
+      "workload": "rpc:MessageChannel",
+      "baselineMedianOps": 91363.1380192465,
+      "candidateMedianOps": 107516.284237216,
+      "medianRatio": 1.1625540361077829,
+      "minRatio": 1.1352641120942126,
+      "maxRatio": 1.2793303169042496,
+      "baselineRuns": [
+        84041.06649906191,
+        91363.1380192465,
+        92621.41386094321
+      ],
+      "candidateRuns": [
+        107516.284237216,
+        103721.29176156087,
+        107677.39851404887
+      ],
+      "ratios": [
+        1.2793303169042496,
+        1.1352641120942126,
+        1.1625540361077829
+      ]
+    },
+    {
+      "runtime": "node",
+      "runtimeVersion": "Node v24.15.0",
+      "workload": "rpc:MessageChannel+hooks",
+      "baselineMedianOps": 83647.59269198928,
+      "candidateMedianOps": 95445.14150505737,
+      "medianRatio": 1.14103871293116,
+      "minRatio": 1.0968131591960766,
+      "maxRatio": 1.145458811545497,
+      "baselineRuns": [
+        82975.68967180725,
+        83647.59269198928,
+        88696.38488318089
+      ],
+      "candidateRuns": [
+        95045.2348786363,
+        95445.14150505737,
+        97283.36211299275
+      ],
+      "ratios": [
+        1.145458811545497,
+        1.14103871293116,
+        1.0968131591960766
+      ]
+    },
+    {
+      "runtime": "bun",
+      "runtimeVersion": "Bun 1.3.14",
+      "workload": "emitSync:1",
+      "baselineMedianOps": 694123171.4626533,
+      "candidateMedianOps": 682002399.9664454,
+      "medianRatio": 0.9867199184957703,
+      "minRatio": 0.9797952903170974,
+      "maxRatio": 1.013426922249337,
+      "baselineRuns": [
+        694123171.4626533,
+        701436647.4695138,
+        672966530.6825646
+      ],
+      "candidateRuns": [
+        680098614.2990748,
+        692121511.621065,
+        682002399.9664454
+      ],
+      "ratios": [
+        0.9797952903170974,
+        0.9867199184957703,
+        1.013426922249337
+      ]
+    },
+    {
+      "runtime": "bun",
+      "runtimeVersion": "Bun 1.3.14",
+      "workload": "emitSync:10",
+      "baselineMedianOps": 62496582.218160026,
+      "candidateMedianOps": 62041155.24849869,
+      "medianRatio": 0.9987701295207358,
+      "minRatio": 0.9927127699868202,
+      "maxRatio": 1.0002710854200851,
+      "baselineRuns": [
+        61569246.16154234,
+        63158227.148563854,
+        62496582.218160026
+      ],
+      "candidateRuns": [
+        61493523.963257715,
+        63175348.42310225,
+        62041155.24849869
+      ],
+      "ratios": [
+        0.9987701295207358,
+        1.0002710854200851,
+        0.9927127699868202
+      ]
+    },
+    {
+      "runtime": "bun",
+      "runtimeVersion": "Bun 1.3.14",
+      "workload": "fast:subscribe+unsubscribe",
+      "baselineMedianOps": 40552939.32773362,
+      "candidateMedianOps": 40079156.333759174,
+      "medianRatio": 0.9883169259287099,
+      "minRatio": 0.9869806623156872,
+      "maxRatio": 1.029309510772883,
+      "baselineRuns": [
+        40552939.32773362,
+        40818269.1470133,
+        38206400.52724838
+      ],
+      "candidateRuns": [
+        40079156.333759174,
+        40286842.317299165,
+        39326211.43509485
+      ],
+      "ratios": [
+        0.9883169259287099,
+        0.9869806623156872,
+        1.029309510772883
+      ]
+    },
+    {
+      "runtime": "bun",
+      "runtimeVersion": "Bun 1.3.14",
+      "workload": "nano:1",
+      "baselineMedianOps": 149979385.33348513,
+      "candidateMedianOps": 150533932.56877702,
+      "medianRatio": 1.0044062266837155,
+      "minRatio": 0.9938051887201849,
+      "maxRatio": 1.0051558624574533,
+      "baselineRuns": [
+        149761781.42238006,
+        149979385.33348513,
+        150052987.46119738
+      ],
+      "candidateRuns": [
+        150533932.56877702,
+        150640228.50314876,
+        149123437.5219028
+      ],
+      "ratios": [
+        1.0051558624574533,
+        1.0044062266837155,
+        0.9938051887201849
+      ]
+    },
+    {
+      "runtime": "bun",
+      "runtimeVersion": "Bun 1.3.14",
+      "workload": "nano:10",
+      "baselineMedianOps": 53082782.59946399,
+      "candidateMedianOps": 53155677.13794547,
+      "medianRatio": 1.0013732237631834,
+      "minRatio": 0.9993335584486445,
+      "maxRatio": 1.0064059347762804,
+      "baselineRuns": [
+        53082782.59946399,
+        53355147.76334679,
+        52713540.17915675
+      ],
+      "candidateRuns": [
+        53155677.13794547,
+        53319589.67589858,
+        53051219.67937127
+      ],
+      "ratios": [
+        1.0013732237631834,
+        0.9993335584486445,
+        1.0064059347762804
+      ]
+    },
+    {
+      "runtime": "bun",
+      "runtimeVersion": "Bun 1.3.14",
+      "workload": "emit:no-listeners",
+      "baselineMedianOps": 6194188.426592501,
+      "candidateMedianOps": 16296040.388106046,
+      "medianRatio": 2.607751295916911,
+      "minRatio": 2.4888604214535155,
+      "maxRatio": 2.630859648722488,
+      "baselineRuns": [
+        6314460.778200264,
+        6194188.426592501,
+        6051819.918415373
+      ],
+      "candidateRuns": [
+        16466543.277368244,
+        16296040.388106046,
+        15062135.072708067
+      ],
+      "ratios": [
+        2.607751295916911,
+        2.630859648722488,
+        2.4888604214535155
+      ]
+    },
+    {
+      "runtime": "bun",
+      "runtimeVersion": "Bun 1.3.14",
+      "workload": "pending:create+resolve",
+      "baselineMedianOps": 1338998.0090438575,
+      "candidateMedianOps": 2392952.7541390504,
+      "medianRatio": 1.7957180650804256,
+      "minRatio": 1.7623648355592771,
+      "maxRatio": 1.852087143142695,
+      "baselineRuns": [
+        1357807.819275774,
+        1338998.0090438575,
+        1276266.4407845247
+      ],
+      "candidateRuns": [
+        2392952.7541390504,
+        2479940.9972437946,
+        2291814.703572668
+      ],
+      "ratios": [
+        1.7623648355592771,
+        1.852087143142695,
+        1.7957180650804256
+      ]
+    },
+    {
+      "runtime": "bun",
+      "runtimeVersion": "Bun 1.3.14",
+      "workload": "signal:1-peer",
+      "baselineMedianOps": 1609032.0762958066,
+      "candidateMedianOps": 2242068.765818489,
+      "medianRatio": 1.408266709325738,
+      "minRatio": 1.3725207062381914,
+      "maxRatio": 1.422895893312651,
+      "baselineRuns": [
+        1609032.0762958066,
+        1677383.188292795,
+        1592076.8068798315
+      ],
+      "candidateRuns": [
+        2208429.841717424,
+        2386741.6501334994,
+        2242068.765818489
+      ],
+      "ratios": [
+        1.3725207062381914,
+        1.422895893312651,
+        1.408266709325738
+      ]
+    },
+    {
+      "runtime": "bun",
+      "runtimeVersion": "Bun 1.3.14",
+      "workload": "signal:10-peers",
+      "baselineMedianOps": 1478961.7688382852,
+      "candidateMedianOps": 1957194.3970613137,
+      "medianRatio": 1.3233569915729986,
+      "minRatio": 1.260852601624137,
+      "maxRatio": 1.3437414703493136,
+      "baselineRuns": [
+        1467948.302971024,
+        1511354.1234199002,
+        1478961.7688382852
+      ],
+      "candidateRuns": [
+        1850866.4368507527,
+        2030869.2120227546,
+        1957194.3970613137
+      ],
+      "ratios": [
+        1.260852601624137,
+        1.3437414703493136,
+        1.3233569915729986
+      ]
+    },
+    {
+      "runtime": "bun",
+      "runtimeVersion": "Bun 1.3.14",
+      "workload": "rpc:direct",
+      "baselineMedianOps": 377379.85168971616,
+      "candidateMedianOps": 609098.4198281534,
+      "medianRatio": 1.5699545657660712,
+      "minRatio": 1.569661855357649,
+      "maxRatio": 1.6515413274245192,
+      "baselineRuns": [
+        377379.85168971616,
+        388044.35346960113,
+        366647.3247981238
+      ],
+      "candidateRuns": [
+        623258.421202902,
+        609098.4198281534,
+        575619.6415927301
+      ],
+      "ratios": [
+        1.6515413274245192,
+        1.569661855357649,
+        1.5699545657660712
+      ]
+    },
+    {
+      "runtime": "bun",
+      "runtimeVersion": "Bun 1.3.14",
+      "workload": "rpc:MessageChannel",
+      "baselineMedianOps": 80271.85401225474,
+      "candidateMedianOps": 91776.09691555791,
+      "medianRatio": 1.1858172691705477,
+      "minRatio": 1.1433160233417166,
+      "maxRatio": 1.2318013889247734,
+      "baselineRuns": [
+        80271.85401225474,
+        80986.4145289624,
+        74228.18277828976
+      ],
+      "candidateRuns": [
+        91776.09691555791,
+        96035.08891664816,
+        91434.37864365928
+      ],
+      "ratios": [
+        1.1433160233417166,
+        1.1858172691705477,
+        1.2318013889247734
+      ]
+    },
+    {
+      "runtime": "bun",
+      "runtimeVersion": "Bun 1.3.14",
+      "workload": "rpc:MessageChannel+hooks",
+      "baselineMedianOps": 71269.34552932343,
+      "candidateMedianOps": 83601.94638707586,
+      "medianRatio": 1.204722370381606,
+      "minRatio": 1.173042151098164,
+      "maxRatio": 1.2263805290508432,
+      "baselineRuns": [
+        71269.34552932343,
+        73147.24252207254,
+        68099.9156514447
+      ],
+      "candidateRuns": [
+        83601.94638707586,
+        88122.11939806944,
+        83516.41058493654
+      ],
+      "ratios": [
+        1.173042151098164,
+        1.204722370381606,
+        1.2263805290508432
+      ]
+    },
+    {
+      "runtime": "chrome",
+      "runtimeVersion": "HeadlessChrome/155.0.8059.79",
+      "workload": "emitSync:1",
+      "baselineMedianOps": 198019803.84996438,
+      "candidateMedianOps": 200000000,
+      "medianRatio": 1.0099999904632568,
+      "minRatio": 0.9900990192498219,
+      "maxRatio": 1.0100000143051147,
+      "baselineRuns": [
+        198019799.17554858,
+        198019803.84996438,
+        200000000
+      ],
+      "candidateRuns": [
+        200000000,
+        200000000,
+        198019803.84996438
+      ],
+      "ratios": [
+        1.0100000143051147,
+        1.0099999904632568,
+        0.9900990192498219
+      ]
+    },
+    {
+      "runtime": "chrome",
+      "runtimeVersion": "HeadlessChrome/155.0.8059.79",
+      "workload": "emitSync:10",
+      "baselineMedianOps": 32679738.663940612,
+      "candidateMedianOps": 33003300.381970957,
+      "medianRatio": 1.0099009885408714,
+      "minRatio": 1.0033003268907572,
+      "maxRatio": 1.0132013233002284,
+      "baselineRuns": [
+        32894736.99689572,
+        32573289.85168679,
+        32679738.663940612
+      ],
+      "candidateRuns": [
+        33003300.381970957,
+        33003300.381970957,
+        33003300.381970957
+      ],
+      "ratios": [
+        1.0033003268907572,
+        1.0132013233002284,
+        1.0099009885408714
+      ]
+    },
+    {
+      "runtime": "chrome",
+      "runtimeVersion": "HeadlessChrome/155.0.8059.79",
+      "workload": "fast:subscribe+unsubscribe",
+      "baselineMedianOps": 22026431.67179286,
+      "candidateMedianOps": 22222222.222222224,
+      "medianRatio": 1.008888891008165,
+      "minRatio": 1.002217298076776,
+      "maxRatio": 1.011111111111111,
+      "baselineRuns": [
+        21978021.97802198,
+        22026431.67179286,
+        22123893.781970147
+      ],
+      "candidateRuns": [
+        22222222.222222224,
+        22222222.222222224,
+        22172949.049103707
+      ],
+      "ratios": [
+        1.011111111111111,
+        1.008888891008165,
+        1.002217298076776
+      ]
+    },
+    {
+      "runtime": "chrome",
+      "runtimeVersion": "HeadlessChrome/155.0.8059.79",
+      "workload": "nano:1",
+      "baselineMedianOps": 202020200.0741265,
+      "candidateMedianOps": 204081633.64605823,
+      "medianRatio": 1.0103092684681427,
+      "minRatio": 1.0102040962793588,
+      "maxRatio": 1.040816311139159,
+      "baselineRuns": [
+        204081633.64605823,
+        202020200.0741265,
+        196078430.45590705
+      ],
+      "candidateRuns": [
+        206185565.9967326,
+        204081633.64605823,
+        204081628.6810733
+      ],
+      "ratios": [
+        1.0103092684681427,
+        1.0102040962793588,
+        1.040816311139159
+      ]
+    },
+    {
+      "runtime": "chrome",
+      "runtimeVersion": "HeadlessChrome/155.0.8059.79",
+      "workload": "nano:10",
+      "baselineMedianOps": 32786885.24590164,
+      "candidateMedianOps": 32786885.24590164,
+      "medianRatio": 0.9967213146022109,
+      "minRatio": 0.9807073909874174,
+      "maxRatio": 1.0099009885408714,
+      "baselineRuns": [
+        32786885.24590164,
+        32679738.663940612,
+        32894736.738911625
+      ],
+      "candidateRuns": [
+        32154340.688112047,
+        33003300.381970957,
+        32786885.24590164
+      ],
+      "ratios": [
+        0.9807073909874174,
+        1.0099009885408714,
+        0.9967213146022109
+      ]
+    },
+    {
+      "runtime": "chrome",
+      "runtimeVersion": "HeadlessChrome/155.0.8059.79",
+      "workload": "emit:no-listeners",
+      "baselineMedianOps": 1058201.0662104166,
+      "candidateMedianOps": 16666669.31576241,
+      "medianRatio": 15.74999925494197,
+      "minRatio": 15.333335651292106,
+      "maxRatio": 15.833335849974292,
+      "baselineRuns": [
+        1058201.0662104166,
+        1052631.5789473683,
+        1086956.5301896946
+      ],
+      "candidateRuns": [
+        16666666.00439286,
+        16666669.31576241,
+        16666669.31576241
+      ],
+      "ratios": [
+        15.74999925494197,
+        15.833335849974292,
+        15.333335651292106
+      ]
+    },
+    {
+      "runtime": "chrome",
+      "runtimeVersion": "HeadlessChrome/155.0.8059.79",
+      "workload": "pending:create+resolve",
+      "baselineMedianOps": 909090.9090909092,
+      "candidateMedianOps": 1219512.1880303815,
+      "medianRatio": 1.26708072519823,
+      "minRatio": 1.242937849758876,
+      "maxRatio": 1.353658531621267,
+      "baselineRuns": [
+        909090.9090909092,
+        900900.8989658422,
+        980392.16373756
+      ],
+      "candidateRuns": [
+        1129943.4997807965,
+        1219512.1880303815,
+        1242236.0138072493
+      ],
+      "ratios": [
+        1.242937849758876,
+        1.353658531621267,
+        1.26708072519823
+      ]
+    },
+    {
+      "runtime": "chrome",
+      "runtimeVersion": "HeadlessChrome/155.0.8059.79",
+      "workload": "signal:1-peer",
+      "baselineMedianOps": 803212.8483293033,
+      "candidateMedianOps": 943396.2349027619,
+      "medianRatio": 1.1800947965834143,
+      "minRatio": 1.1495327007011489,
+      "maxRatio": 1.2688679404426786,
+      "baselineRuns": [
+        743494.4211559423,
+        803212.8483293033,
+        813008.1332331097
+      ],
+      "candidateRuns": [
+        943396.2349027619,
+        947867.302862354,
+        934579.4350874561
+      ],
+      "ratios": [
+        1.2688679404426786,
+        1.1800947965834143,
+        1.1495327007011489
+      ]
+    },
+    {
+      "runtime": "chrome",
+      "runtimeVersion": "HeadlessChrome/155.0.8059.79",
+      "workload": "signal:10-peers",
+      "baselineMedianOps": 719424.4616656414,
+      "candidateMedianOps": 800000,
+      "medianRatio": 1.126923075089088,
+      "minRatio": 1.0599999999999998,
+      "maxRatio": 1.1631799096814561,
+      "baselineRuns": [
+        719424.4616656414,
+        682593.8577661642,
+        754716.9811320755
+      ],
+      "candidateRuns": [
+        836820.080342871,
+        769230.7692307692,
+        800000
+      ],
+      "ratios": [
+        1.1631799096814561,
+        1.126923075089088,
+        1.0599999999999998
+      ]
+    },
+    {
+      "runtime": "chrome",
+      "runtimeVersion": "HeadlessChrome/155.0.8059.79",
+      "workload": "rpc:direct",
+      "baselineMedianOps": 312500,
+      "candidateMedianOps": 363636.36363636365,
+      "medianRatio": 1.1709090926430443,
+      "minRatio": 1.0749999965940205,
+      "maxRatio": 1.235521230971873,
+      "baselineRuns": [
+        312500,
+        310559.00575128547,
+        332225.9146738715
+      ],
+      "candidateRuns": [
+        386100.3846787103,
+        363636.36363636365,
+        357142.85714285716
+      ],
+      "ratios": [
+        1.235521230971873,
+        1.1709090926430443,
+        1.0749999965940205
+      ]
+    },
+    {
+      "runtime": "chrome",
+      "runtimeVersion": "HeadlessChrome/155.0.8059.79",
+      "workload": "rpc:MessageChannel",
+      "baselineMedianOps": 69767.44186046511,
+      "candidateMedianOps": 75000,
+      "medianRatio": 1.0913705557339797,
+      "minRatio": 1.075,
+      "maxRatio": 1.1352657109437077,
+      "baselineRuns": [
+        69767.44186046511,
+        63829.78723404255,
+        69767.44186046511
+      ],
+      "candidateRuns": [
+        76142.13179539393,
+        72463.76878364092,
+        75000
+      ],
+      "ratios": [
+        1.0913705557339797,
+        1.1352657109437077,
+        1.075
+      ]
+    },
+    {
+      "runtime": "chrome",
+      "runtimeVersion": "HeadlessChrome/155.0.8059.79",
+      "workload": "rpc:MessageChannel+hooks",
+      "baselineMedianOps": 69444.4447510527,
+      "candidateMedianOps": 74257.42556728366,
+      "medianRatio": 1.0742574255672837,
+      "minRatio": 1.043478253858727,
+      "maxRatio": 1.080808075213114,
+      "baselineRuns": [
+        69124.42381123919,
+        69444.4447510527,
+        70093.4576315592
+      ],
+      "candidateRuns": [
+        74257.42556728366,
+        72463.7679490173,
+        75757.57502779744
+      ],
+      "ratios": [
+        1.0742574255672837,
+        1.043478253858727,
+        1.080808075213114
+      ]
+    }
+  ]
+}

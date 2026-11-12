@@ -1,8 +1,4 @@
 /**
- * @fileoverview Utility functions shared across modules.
- * @module common/utils
- */
-/**
  * Generates a UUID v4.
  * Uses crypto.randomUUID() when available, falls back to manual generation.
  *
@@ -62,3 +58,11 @@ export function timestamp(): {
     timestamp: number;
     iso: string;
 };
+/**
+ * Conservative in-memory payload budget, not serialized wire size. Strings use
+ * two bytes per UTF-16 code unit; each value/reference costs at least 8 bytes.
+ * Supports cycles, binary views, Maps and Sets without JSON serialization.
+ * @param {*} payload
+ * @param {number} limit - Zero disables the budget.
+ */
+export function assertPayloadSize(payload: any, limit: number): void;

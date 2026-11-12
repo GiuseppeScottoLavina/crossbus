@@ -1,4 +1,6 @@
 {
+  "status": "historical-unverified",
+  "notice": "Retained historical output. Do not use for current performance claims; see benchmarks/verified-*.json.",
   "timestamp": "2026-01-23T07:07:37.620Z",
   "runtime": "Bun 1.3.6",
   "libraries": {

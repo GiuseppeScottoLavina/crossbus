@@ -5,6 +5,7 @@
  * @property {string} handlerName - Name of the handler.
  * @property {number} createdAt - When request was created.
  * @property {number} timeout - Timeout in ms.
+ * @property {ReturnType<typeof setTimeout>} timer - Owned timeout resource.
  * @property {Function} resolve - Promise resolve function.
  * @property {Function} reject - Promise reject function.
  * @property {*} [defaultValue] - Value to return on timeout.
@@ -166,6 +167,10 @@ export type PendingRequest = {
      * - Timeout in ms.
      */
     timeout: number;
+    /**
+     * - Owned timeout resource.
+     */
+    timer: ReturnType<typeof setTimeout>;
     /**
      * - Promise resolve function.
      */

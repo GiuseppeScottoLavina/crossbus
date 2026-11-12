@@ -12,12 +12,9 @@
  * @param {MessageContext} context - Context information.
  */
 /**
- * ServiceWorker-based transport for offline-capable communication.
- *
- * ServiceWorkers run in the background and can:
- * - Handle messages even when page is not focused
- * - Queue messages for offline delivery
- * - Sync state across all tabs
+ * Message transport to the application's service worker.
+ * Registration and message routing belong to the application. This transport
+ * does not itself persist messages or implement offline/background delivery.
  *
  * @example
  * const transport = new ServiceWorkerTransport();

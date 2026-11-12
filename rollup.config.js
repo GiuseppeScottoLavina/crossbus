@@ -9,7 +9,7 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const pkg = require('./package.json');
 
-const banner = `/** CrossBus v${pkg.version} | MIT */`;
+const banner = `/*! CrossBus v${pkg.version} | Apache-2.0 */`;
 
 // Terser configuration - Aggressive compression
 // NOTE: Do NOT use toplevel:true - it mangles exports and breaks public API!
@@ -46,9 +46,8 @@ const terserConfig = terser({
     },
     mangle: {
         // toplevel: false (default) - preserve exported names!
-        properties: {
-            regex: /^[_#]/   // Only mangle private # and _ prefixed
-        }
+        // Property names belong to the public API and wire protocol (_cb).
+        properties: false
     },
     format: {
         comments: /^!|@license|@preserve/,  // Keep license/banner comments
@@ -290,6 +289,10 @@ export default [
     rateLimiterConfig,
     compressionConfig,
     batchConfig,
+    {
+        input: 'src/plugins/schema-validation.js',
+        output: { file: 'dist/plugins/schema-validation.js', format: 'es', sourcemap: true }
+    },
     nanoConfig,
     enterpriseConfig,
     testingConfig

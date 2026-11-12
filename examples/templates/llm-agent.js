@@ -213,7 +213,7 @@ export class LLMAgent {
 // ============================================
 
 /*
-import { PostMessageTransport } from 'crossbus';
+const { PostMessageTransport } = await import('crossbus');
 
 // Create agent
 const agent = new LLMAgent({

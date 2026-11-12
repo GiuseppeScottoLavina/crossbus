@@ -1,220 +1,59 @@
-/**
- * @fileoverview Integration tests for multi-agent orchestration patterns.
- * Tests the coordination between multiple CrossBus instances acting as agents.
- */
-
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
-import { CrossBus } from '../../src/core/cross-bus.js';
+import { CrossBus, MessageChannelTransport } from '../../src/index.js';
 
-describe('Multi-Agent Orchestration', () => {
-    let orchestrator;
-    let planner;
-    let executor;
-    let memory;
-
+describe('Multi-agent orchestration over MessageChannels', () => {
+    let hub, planner, executor, memory;
+    let stored;
     beforeEach(() => {
-        // Create orchestrator (hub)
-        orchestrator = new CrossBus({
-            isHub: true,
-            peerId: 'orchestrator',
-            allowedOrigins: ['*']
-        });
-
-        // Create agent instances (peers)
-        planner = new CrossBus({ peerId: 'planner', allowedOrigins: ['*'] });
-        executor = new CrossBus({ peerId: 'executor', allowedOrigins: ['*'] });
-        memory = new CrossBus({ peerId: 'memory', allowedOrigins: ['*'] });
-
-        // Register agent handlers
-        planner.handle('plan:create', async ({ goal }) => {
-            return {
-                steps: ['Research', 'Outline', 'Write', 'Review'],
-                goal
-            };
-        });
-
-        executor.handle('task:run', async ({ steps }) => {
-            return {
-                success: true,
-                completed: steps.length,
-                duration: '2.3s'
-            };
-        });
-
-        memory.handle('memory:store', async ({ key, value }) => {
-            return {
-                stored: true,
-                id: `mem_${Date.now()}`
-            };
-        });
+        hub = new CrossBus({ isHub: true, peerId: 'hub', allowedOrigins: ['channel'] });
+        [planner, executor, memory] = ['planner', 'executor', 'memory'].map(peerId => new CrossBus({ peerId, allowedOrigins: ['channel'] }));
+        for (const peer of [planner, executor, memory]) {
+            const channel = new MessageChannelTransport();
+            hub.addTransport(channel, { peerId: peer.peerId, origin: 'channel' });
+            peer.addTransport(MessageChannelTransport.fromPort(channel.remotePort), { peerId: 'hub', origin: 'channel' });
+        }
+        stored = new Map();
+        planner.handle('plan:create', ({ goal }) => ({ steps: ['Research', 'Write'], goal }));
+        executor.handle('task:run', ({ steps }) => ({ success: true, completed: steps.length }));
+        memory.handle('memory:store', ({ key, value }) => { stored.set(key, value); return { stored: true, key }; });
     });
-
-    afterEach(() => {
-        orchestrator?.destroy();
-        planner?.destroy();
-        executor?.destroy();
-        memory?.destroy();
+    afterEach(() => { for (const peer of [hub, planner, executor, memory]) peer.destroy(); });
+    it('returns the planner response to the hub', async () => {
+        expect(await hub.request('planner', 'plan:create', { goal: 'Write' })).toEqual({ steps: ['Research', 'Write'], goal: 'Write' });
     });
-
-    describe('Hub-Spoke Pattern', () => {
-        it('should handle orchestrator → planner request', async () => {
-            await planner.handleMessage({
-                _cb: 1,
-                t: 'req',
-                id: 'test-1',
-                handler: 'plan:create',
-                p: { goal: 'Write a blog post' }
-            }, 'orchestrator', 'orchestrator');
-
-            expect(true).toBe(true);
-        });
-
-        it('should handle orchestrator → executor request', async () => {
-            await executor.handleMessage({
-                _cb: 1,
-                t: 'req',
-                id: 'test-2',
-                handler: 'task:run',
-                p: { steps: ['Step 1', 'Step 2'] }
-            }, 'orchestrator', 'orchestrator');
-
-            expect(true).toBe(true);
-        });
-
-        it('should handle orchestrator → memory request', async () => {
-            await memory.handleMessage({
-                _cb: 1,
-                t: 'req',
-                id: 'test-3',
-                handler: 'memory:store',
-                p: { key: 'result', value: { data: 'test' } }
-            }, 'orchestrator', 'orchestrator');
-
-            expect(true).toBe(true);
-        });
+    it('executes tasks on the executor', async () => {
+        expect(await hub.request('executor', 'task:run', { steps: ['a', 'b'] })).toEqual({ success: true, completed: 2 });
     });
-
-    describe('Full Pipeline', () => {
-        it('should execute plan → execute → store pipeline', async () => {
-            // Create fresh agents for this test
-            const freshPlanner = new CrossBus({ peerId: 'fresh-planner', allowedOrigins: ['*'] });
-            const freshExecutor = new CrossBus({ peerId: 'fresh-executor', allowedOrigins: ['*'] });
-            const freshMemory = new CrossBus({ peerId: 'fresh-memory', allowedOrigins: ['*'] });
-
-            let planResult, execResult, memResult;
-
-            freshPlanner.handle('plan:create', async ({ goal }) => {
-                planResult = { steps: ['Research', 'Outline', 'Write', 'Review'], goal };
-                return planResult;
-            });
-
-            freshExecutor.handle('task:run', async ({ steps }) => {
-                execResult = { success: true, completed: steps.length };
-                return execResult;
-            });
-
-            freshMemory.handle('memory:store', async ({ key, value }) => {
-                memResult = { stored: true, id: 'mem_xyz789' };
-                return memResult;
-            });
-
-            await freshPlanner.handleMessage({
-                _cb: 1, t: 'req', id: '1', handler: 'plan:create',
-                p: { goal: 'Test goal' }
-            }, 'hub', 'orchestrator');
-
-            await freshExecutor.handleMessage({
-                _cb: 1, t: 'req', id: '2', handler: 'task:run',
-                p: { steps: planResult.steps }
-            }, 'hub', 'orchestrator');
-
-            await freshMemory.handleMessage({
-                _cb: 1, t: 'req', id: '3', handler: 'memory:store',
-                p: { key: 'lastTask', value: execResult }
-            }, 'hub', 'orchestrator');
-
-            expect(planResult.steps).toHaveLength(4);
-            expect(execResult.success).toBe(true);
-            expect(memResult.stored).toBe(true);
-
-            freshPlanner.destroy();
-            freshExecutor.destroy();
-            freshMemory.destroy();
-        });
+    it('stores the requested value', async () => {
+        expect(await hub.request('memory', 'memory:store', { key: 'a', value: 42 })).toEqual({ stored: true, key: 'a' });
+        expect(stored.get('a')).toBe(42);
     });
-
-    describe('Agent Registration', () => {
-        it('should register and unregister handlers', () => {
-            const off = orchestrator.handle('test:handler', () => 'test');
-            expect(orchestrator.hasHandler('test:handler')).toBe(true);
-
-            off();
-            expect(orchestrator.hasHandler('test:handler')).toBe(false);
-        });
-
-        it('should handle multiple handlers per agent', () => {
-            const testAgent = new CrossBus({ peerId: 'multi-handler-agent', allowedOrigins: ['*'] });
-
-            testAgent.handle('plan:create', () => ({}));
-            testAgent.handle('plan:validate', () => true);
-            testAgent.handle('plan:optimize', () => []);
-
-            expect(testAgent.hasHandler('plan:create')).toBe(true);
-            expect(testAgent.hasHandler('plan:validate')).toBe(true);
-            expect(testAgent.hasHandler('plan:optimize')).toBe(true);
-
-            testAgent.destroy();
-        });
+    it('runs the plan, execute, store pipeline with actual responses', async () => {
+        const plan = await hub.request('planner', 'plan:create', { goal: 'Publish' });
+        const execution = await hub.request('executor', 'task:run', { steps: plan.steps });
+        await hub.request('memory', 'memory:store', { key: 'last', value: execution });
+        expect(stored.get('last')).toEqual({ success: true, completed: 2 });
+        expect(hub.healthCheck().pendingRequests).toBe(0);
     });
-
-    describe('Error Handling', () => {
-        it('should handle agent handler errors gracefully', async () => {
-            const errorAgent = new CrossBus({ peerId: 'error-agent', allowedOrigins: ['*'] });
-            errorAgent.handle('fail:always', async () => {
-                throw new Error('Agent failure');
-            });
-
-            // Should not crash the bus
-            try {
-                await errorAgent.handleMessage({
-                    _cb: 1, t: 'req', id: 'err-1',
-                    handler: 'fail:always', p: {}
-                }, 'hub', 'orchestrator');
-            } catch (e) {
-                // Expected
-            }
-
-            errorAgent.destroy();
-            expect(true).toBe(true);
-        });
-
-        it('should reject requests to unregistered handlers', async () => {
-            await executor.handleMessage({
-                _cb: 1, t: 'req', id: 'missing-1',
-                handler: 'nonexistent:handler', p: {}
-            }, 'hub', 'orchestrator');
-
-            expect(true).toBe(true);
-        });
+    it('supports authorized forwarding through an explicit hub handler', async () => {
+        hub.handle('execute', payload => hub.request('executor', 'task:run', payload), { allowedPeers: ['planner'] });
+        expect(await planner.request('hub', 'execute', { steps: ['one'] })).toEqual({ success: true, completed: 1 });
+        await expect(memory.request('hub', 'execute', { steps: [] })).rejects.toMatchObject({ code: 'ERR_UNAUTHORIZED' });
     });
-
-    describe('Lifecycle', () => {
-        it('should destroy agents cleanly', () => {
-            const agent = new CrossBus({ peerId: 'temp-agent' });
-            agent.handle('temp:action', () => 'ok');
-
-            agent.destroy();
-
-            expect(agent.isDestroyed).toBe(true);
-        });
-
-        it('should mark agents as destroyed after destroy()', () => {
-            const agent = new CrossBus({ peerId: 'temp-agent-2' });
-            expect(agent.isDestroyed).toBe(false);
-
-            agent.destroy();
-
-            expect(agent.isDestroyed).toBe(true);
-        });
+    it('unregisters handlers and returns NO_HANDLER to the caller', async () => {
+        planner.unhandle('plan:create');
+        expect(planner.hasHandler('plan:create')).toBe(false);
+        await expect(hub.request('planner', 'plan:create', {})).rejects.toMatchObject({ code: 'ERR_NO_HANDLER' });
+    });
+    it('propagates handler exceptions without breaking subsequent requests', async () => {
+        executor.handle('fail', () => { throw new Error('Agent failure'); });
+        await expect(hub.request('executor', 'fail')).rejects.toMatchObject({ code: 'ERR_HANDLER_ERROR', message: 'Agent failure' });
+        expect(await hub.request('executor', 'task:run', { steps: [] })).toEqual({ success: true, completed: 0 });
+    });
+    it('destroys all attached agents cleanly', () => {
+        hub.destroy();
+        expect(hub.isDestroyed).toBe(true);
+        expect(hub.peers).toEqual([]);
+        expect(hub.healthCheck().pendingRequests).toBe(0);
     });
 });

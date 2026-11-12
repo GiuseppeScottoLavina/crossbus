@@ -1,4 +1,4 @@
-/** CrossBus v0.1.0 | MIT */
+/*! CrossBus v0.1.2 | Apache-2.0 */
 /**
  * @fileoverview Mock transport for testing CrossBus without browser APIs.
  * @module testing/mock-transport
@@ -13,16 +13,16 @@
 /**
  * Mock transport for unit testing CrossBus.
  * Simulates a peer without requiring browser APIs.
- * 
+ *
  * @example
  * const mock = new MockTransport('widget-1');
- * 
+ *
  * // Connect to CrossBus
  * bus.addPeer('widget-1', mock.send);
- * 
+ *
  * // Simulate incoming message
  * mock.simulateMessage({ type: 'ready', payload: {} });
- * 
+ *
  * // Check what was sent
  * expect(mock.getLastSent()).toEqual({ ... });
  */
@@ -250,11 +250,11 @@ class MockTransport {
 /**
  * Creates a pair of connected mock transports for testing.
  * Messages sent to one are received by the other.
- * 
+ *
  * @param {string} peerId1 - First peer ID
  * @param {string} peerId2 - Second peer ID
  * @returns {{ transport1: MockTransport, transport2: MockTransport }}
- * 
+ *
  * @example
  * const { transport1, transport2 } = createConnectedMocks('hub', 'widget');
  * // Messages sent via transport1 are received by transport2

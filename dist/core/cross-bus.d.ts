@@ -31,7 +31,6 @@
 /**
  * @typedef {Object} RequestOptions
  * @property {number} [timeout] - Request timeout in ms.
- * @property {*} [defaultValue] - Value to return on timeout instead of throwing.
  */
 /**
  * @typedef {Object} BroadcastRequestOptions
@@ -64,38 +63,20 @@
  * @returns {Promise<*>|*} - Response data.
  */
 /**
- * CrossBus - Zero-leak, high-performance cross-context messaging.
- *
- * Features:
- * - Hub/Mesh routing
- * - Request/Response pattern
- * - Broadcast to all peers
- * - ACK-based reliability
- * - Origin validation
- * - Resource lifecycle management
+ * CrossBus coordinates channel-bound peers, signals and request/response.
+ * Configure transport origin/source validation and an explicit bus allowlist.
+ * addTransport() wires an existing endpoint; it does not negotiate a connection
+ * or automatically forward requests to other peers. signal() sends remotely;
+ * inherited emit() dispatches locally.
  *
  * @example
- * // Hub (main page)
- * const hub = new CrossBus({ isHub: true });
- *
- * // Connect iframe
- * hub.connect(iframe.contentWindow, {
- *   targetOrigin: 'https://widget.example.com'
+ * const bus = CrossBus.createSecure({
+ *   peerId: 'app', allowedOrigins: ['https://widget.example.com']
  * });
- *
- * // Register handler
- * hub.handle('getData', async (payload, ctx) => {
- *   return { items: await fetchItems() };
- * });
- *
- * // Emit signal
- * hub.emit('user:login', { userId: 123 });
- *
- * // Request/Response
- * const result = await hub.request('widget-1', 'getStatus');
- *
- * // Cleanup
- * hub.destroy();
+ * bus.handle('getData', ({ id }) => ({ id, status: 'ready' }));
+ * // Attach an initialized transport with bus.addTransport(...).
+ * const result = await bus.request('widget', 'getStatus');
+ * bus.destroy();
  */
 export class CrossBus extends EventEmitter {
     /**
@@ -283,10 +264,10 @@ export class CrossBus extends EventEmitter {
      * Used for hub mode when managing connections manually.
      *
      * @param {string} peerId - Peer identifier.
-     * @param {EventListener} sendFn - Function to send messages.
+     * @param {(message: any) => void} sendFn - Function to send messages.
      * @param {Object} [options={}] - Additional options.
      */
-    addPeer(peerId: string, sendFn: EventListener, options?: any): void;
+    addPeer(peerId: string, sendFn: (message: any) => void, options?: any): void;
     /**
      * Removes a peer.
      *
@@ -318,6 +299,12 @@ export class CrossBus extends EventEmitter {
         peerId?: string | undefined;
         origin?: string | undefined;
     }): Function;
+    /**
+     * Registers synchronous resource cleanup for bus destruction.
+     * @param {Function} cleanup
+     * @returns {() => boolean} Removes the registration without running it.
+     */
+    addCleanup(cleanup: Function): () => boolean;
     /**
      * Handles an incoming message.
      * Call this when receiving a message from any transport.
@@ -391,6 +378,7 @@ export class CrossBus extends EventEmitter {
     diagnose(): any;
     #private;
 }
+export type PeerStatus = import("../common/types.js").PeerStatus;
 export type CrossBusOptions = {
     /**
      * - Unique peer identifier (auto-generated if not specified).
@@ -486,10 +474,6 @@ export type RequestOptions = {
      * - Request timeout in ms.
      */
     timeout?: number | undefined;
-    /**
-     * - Value to return on timeout instead of throwing.
-     */
-    defaultValue?: any;
 };
 export type BroadcastRequestOptions = {
     /**
@@ -536,4 +520,3 @@ export type HookEntry = {
 };
 export type RequestHandler = (payload: any, context: any) => Promise<any> | any;
 import { EventEmitter } from './event-emitter.js';
-import { PeerStatus } from '../common/types.js';

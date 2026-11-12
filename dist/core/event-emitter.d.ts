@@ -39,6 +39,8 @@
  * @property {'sync'|'async'} mode - Execution mode.
  * @property {boolean} once - Auto-remove after first invocation.
  * @property {AbortSignal|null} signal - Abort signal.
+ * @property {Function} syncHandler - Raw payload callback for emitSync.
+ * @property {Function|null} dispose - Subscription cleanup.
  */
 /**
  * @typedef {Object} RemoveResult
@@ -130,22 +132,21 @@ export class EventEmitter {
      * Use when you need maximum subscribe performance.
      *
      * @param {string} name - Signal name.
-     * @param {EventListener} handler - Callback function.
+     * @param {(data: any) => void} handler - Callback function.
      * @returns {Function} Unbind function (call to remove listener).
      *
      * @example
-     * // 50M+ ops/sec subscribe/unsubscribe
      * const off = emitter.onFast('tick', (data) => console.log(data));
      * off(); // Remove listener
      */
-    onFast(name: string, handler: EventListener): Function;
+    onFast(name: string, handler: (data: any) => void): Function;
     /**
      * Ultra-fast listener removal for performance-critical paths.
      *
      * @param {string} name - Signal name.
-     * @param {EventListener} handler - Handler to remove.
+     * @param {(data: any) => void} handler - Handler to remove.
      */
-    offFast(name: string, handler: EventListener): void;
+    offFast(name: string, handler: (data: any) => void): void;
     /**
      * Removes signal listener(s).
      *
@@ -182,7 +183,6 @@ export class EventEmitter {
      * @returns {number} Number of listeners invoked.
      *
      * @example
-     * // 150M+ ops/sec - use for hot paths
      * emitter.emitSync('tick', { x: 100, y: 200 });
      */
     emitSync(name: string, data: any): number;
@@ -224,6 +224,7 @@ export class EventEmitter {
      * Removes all listeners.
      */
     clear(): void;
+    [FAST_ONLY]: any;
     #private;
 }
 export function createFastEmitter(): any;
@@ -325,6 +326,14 @@ export type ListenerEntry = {
      * - Abort signal.
      */
     signal: AbortSignal | null;
+    /**
+     * - Raw payload callback for emitSync.
+     */
+    syncHandler: Function;
+    /**
+     * - Subscription cleanup.
+     */
+    dispose: Function | null;
 };
 export type RemoveResult = {
     /**
@@ -340,3 +349,5 @@ export type RemoveResult = {
      */
     remainingCount: number;
 };
+declare const FAST_ONLY: unique symbol;
+export {};

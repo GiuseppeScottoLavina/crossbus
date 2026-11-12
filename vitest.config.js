@@ -1,3 +1,5 @@
+// Historical Vitest configuration. Current scripts use Bun and tests/coverage-check.js.
+// Vitest is not installed; these thresholds are not an active release gate.
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({

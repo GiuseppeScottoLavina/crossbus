@@ -13,7 +13,8 @@
 // MAIN THREAD CODE
 // ============================================
 
-import { CrossBus, PostMessageTransport } from 'crossbus';
+import { CrossBus } from 'crossbus';
+const { PostMessageTransport } = await import('crossbus');
 
 // Create bus on main thread
 const bus = new CrossBus({
@@ -68,7 +69,7 @@ export async function processWithProgress(data, onProgress) {
 
     // Listen for progress updates
     const unsubscribe = bus.on('worker:progress', (event) => {
-        onProgress?.(event.data);
+        onProgress?.(event.data.payload);
     });
 
     try {

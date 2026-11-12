@@ -1,4 +1,6 @@
 {
+  "status": "historical-unverified",
+  "notice": "Retained historical output. Do not use for current performance claims; see benchmarks/verified-*.json.",
   "version": "1.0.3",
   "timestamp": "2026-01-23T22:22:26.427Z",
   "benchmarks": {

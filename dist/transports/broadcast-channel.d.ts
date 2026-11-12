@@ -52,10 +52,10 @@ export class BroadcastChannelTransport {
     /**
      * Creates a new BroadcastChannel transport.
      *
-     * @param {BroadcastChannelTransportOptions} [options={}] - Configuration.
+     * @param {BroadcastChannelTransportOptions|string} [options={}] - Configuration.
      * @throws {CrossBusError} If BroadcastChannel is not supported.
      */
-    constructor(options?: BroadcastChannelTransportOptions);
+    constructor(options?: BroadcastChannelTransportOptions | string);
     /**
      * Sends a message to all other tabs/windows.
      *

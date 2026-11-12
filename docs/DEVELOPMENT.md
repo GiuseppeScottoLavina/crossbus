@@ -134,11 +134,6 @@ function getDelay(a, b) {
 
 ---
 
-## Modern Standards (2026)
+## Platform qualification
 
-- **Browser**: Chrome 80+, Firefox 78+, Safari 14+, Edge 80+
-- **iOS**: 17.0+ only
-- **Android**: API 34+ only
-- **Node**: 18+ (for tooling)
-
-❌ **NO** legacy support, **NO** polyfills for old browsers.
+Target modern browser engines and keep runtime dependencies optional. The package declares Node >=18, but the locally tested versions and remaining compatibility work are recorded in [AUDIT.md](AUDIT.md). Browser/native API availability varies by transport. Do not list a browser or mobile OS version as qualified from a build check alone. Native compiler targets, installed WebView capabilities and physical runtime qualification are separate facts.

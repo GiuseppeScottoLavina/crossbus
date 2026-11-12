@@ -18,8 +18,13 @@ jobs:
       with:
         bun-version: latest
 
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 24
+
     - name: Install dependencies
-      run: npm install --legacy-peer-deps || (sleep 30 && npm install --legacy-peer-deps) || (sleep 60 && npm install --legacy-peer-deps)
+      run: npm ci --legacy-peer-deps
 
     - name: Lint
       run: bun run lint
@@ -30,8 +35,20 @@ jobs:
     - name: Build
       run: bun run build
 
+    - name: Test packaged exports
+      run: bun test tests/package/
+
+    - name: Test consumer declarations
+      run: bun run test:types
+
     - name: Test with Coverage
-      run: bun test tests/unit/ --coverage --coverage-reporter=lcov
+      run: bun run test:coverage
+
+    - name: Install Chrome for browser tests
+      run: node_modules/.bin/browsers install chrome-headless-shell@stable --path "$HOME/.cache/puppeteer"
+
+    - name: Test browser integrations
+      run: bun run test:e2e && bun run test:integration && bun run test:docs
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
@@ -41,3 +58,39 @@ jobs:
         verbose: true
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+    - name: Pack npm release candidate
+      run: |
+        mkdir -p artifacts
+        npm pack --ignore-scripts --pack-destination artifacts
+
+    - name: Upload npm release candidate
+      uses: actions/upload-artifact@v4
+      with:
+        name: npm-package
+        path: artifacts/*.tgz
+
+  package-consumer:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [18, 20, 22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: npm-package
+          path: artifacts
+      - name: Install packed package in an isolated consumer
+        run: |
+          mkdir -p "$RUNNER_TEMP/crossbus-consumer"
+          cp tests/package/consumer-smoke.mjs "$RUNNER_TEMP/crossbus-consumer/check.mjs"
+          PACKAGE_ARCHIVE="$(find "$GITHUB_WORKSPACE/artifacts" -name '*.tgz' -print -quit)"
+          cd "$RUNNER_TEMP/crossbus-consumer"
+          npm init -y
+          npm install --ignore-scripts --no-audit --no-fund "$PACKAGE_ARCHIVE"
+          node check.mjs 0.1.2

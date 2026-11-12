@@ -44,8 +44,8 @@ describe('SharedWorkerTransport', () => {
 
         it('should return false when SharedWorker is not available', async () => {
             delete globalThis.SharedWorker;
-            // Need to re-import to get fresh module
-            const mod = await import('../../src/transports/shared-worker.js?v=1');
+            // Support is checked dynamically against the current global
+            const mod = await import('../../src/transports/shared-worker.js');
             expect(mod.SharedWorkerTransport.isSupported()).toBe(false);
         });
     });

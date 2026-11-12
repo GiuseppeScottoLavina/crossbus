@@ -16,7 +16,8 @@
  *     └─────────────┘ └─────────────┘ └─────────────┘
  */
 
-import { CrossBus, PostMessageTransport } from 'crossbus';
+import { CrossBus } from 'crossbus';
+const { PostMessageTransport } = await import('crossbus');
 
 // ============================================
 // HUB SETUP (main page / orchestrator)
@@ -53,11 +54,11 @@ hub.handle('processTask', async (payload) => {
 
 // Listen for agent lifecycle events
 hub.on('agent:ready', (event) => {
-    console.log(`[Hub] Agent ready: ${event.data.agentId}`);
+    console.log(`[Hub] Agent ready: ${event.data.payload.agentId}`);
 });
 
 hub.on('agent:error', (event) => {
-    console.error(`[Hub] Agent error: ${event.data.agentId}`, event.data.error);
+    console.error(`[Hub] Agent error: ${event.data.payload.agentId}`, event.data.payload.error);
 });
 
 // ============================================
@@ -120,7 +121,7 @@ function connectAgentIframe(iframeElement, agentId) {
 
             // Wait for agent:ready signal
             const unsubscribe = hub.on('agent:ready', (event) => {
-                if (event.data.agentId === agentId) {
+                if (event.data.payload.agentId === agentId) {
                     clearTimeout(timeout);
                     unsubscribe();
                     resolve(agentId);

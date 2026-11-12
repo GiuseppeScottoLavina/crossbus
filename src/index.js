@@ -64,7 +64,7 @@ export { CausalOrderer } from './ordering/causal-orderer.js';
 //   import { CircuitBreaker } from 'crossbus/plugins/circuit-breaker';
 //   import { createNanoEmitter } from 'crossbus/nano';
 //
-// Enterprise features (opt-in, reduces bundle by ~40%):
+// Enterprise features (separate opt-in entry):
 //   import { Tracer, Metrics, BackpressureController } from 'crossbus/enterprise';
 //
 // Testing utilities:

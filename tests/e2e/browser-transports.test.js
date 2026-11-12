@@ -73,44 +73,27 @@ describe('Browser Transport Tests', () => {
             await page1.goto(`http://localhost:${PORT}/`);
             await page2.goto(`http://localhost:${PORT}/`);
 
-            // Initialize BroadcastChannel on both pages
-            const result = await page1.evaluate(async () => {
-                const { BroadcastChannelTransport } = await import('/src/transports/broadcast-channel.js');
-
-                const transport = new BroadcastChannelTransport({
-                    channelName: 'test-channel',
-                    peerId: 'page1'
+            try {
+                await page1.evaluate(async () => {
+                    const { BroadcastChannelTransport } = await import('/src/transports/broadcast-channel.js');
+                    window.transport = new BroadcastChannelTransport('test-channel');
+                    window.received = [];
+                    window.transport.onMessage(message => window.received.push(message));
                 });
-
-                return new Promise((resolve) => {
-                    transport.onMessage((msg) => {
-                        resolve({ received: true, data: msg });
-                    });
-
-                    // Wait for transport ready
-                    setTimeout(() => resolve({ received: false }), 2000);
+                await page2.evaluate(async () => {
+                    const { BroadcastChannelTransport } = await import('/src/transports/broadcast-channel.js');
+                    window.transport = new BroadcastChannelTransport('test-channel');
+                    window.transport.send({ id: 'between-tabs', type: 'sig', payload: { name: 'test', data: 'hello' } });
                 });
-            });
+                await page1.waitForFunction(() => window.received.length === 1);
+                const messages = await page1.evaluate(() => window.received);
+                expect(messages[0].id).toBe('between-tabs');
+                expect(messages[0].payload.data).toBe('hello');
+            } finally {
+                await page1.close();
+                await page2.close();
+            }
 
-            // Send from page2
-            await page2.evaluate(async () => {
-                const { BroadcastChannelTransport } = await import('/src/transports/broadcast-channel.js');
-
-                const transport = new BroadcastChannelTransport({
-                    channelName: 'test-channel',
-                    peerId: 'page2'
-                });
-
-                // Small delay before sending
-                await new Promise(r => setTimeout(r, 100));
-                transport.send({ test: 'hello' });
-            });
-
-            await page1.close();
-            await page2.close();
-
-            // Test passes if no errors
-            expect(true).toBe(true);
         });
     });
 

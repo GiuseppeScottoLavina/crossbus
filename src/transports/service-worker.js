@@ -1,6 +1,6 @@
 /**
- * @fileoverview ServiceWorker transport for offline-capable communication.
- * Uses ServiceWorker API for background sync and offline messaging.
+ * @fileoverview ServiceWorker transport for messaging an application-provided worker.
+ * Storage, offline queues and background sync are application responsibilities.
  * @module transports/service-worker
  */
 
@@ -28,27 +28,24 @@ import { CrossBusError, ErrorCode } from '../common/errors.js';
  */
 
 /**
- * ServiceWorker-based transport for offline-capable communication.
- * 
- * ServiceWorkers run in the background and can:
- * - Handle messages even when page is not focused
- * - Queue messages for offline delivery
- * - Sync state across all tabs
- * 
+ * Message transport to the application's service worker.
+ * Registration and message routing belong to the application. This transport
+ * does not itself persist messages or implement offline/background delivery.
+ *
  * @example
  * const transport = new ServiceWorkerTransport();
- * 
+ *
  * // Wait for ServiceWorker to be ready
  * await transport.ready;
- * 
+ *
  * // Listen for messages
  * transport.onMessage((msg, ctx) => {
  *   console.log('Received from SW:', msg);
  * });
- * 
+ *
  * // Send message to ServiceWorker
  * transport.send({ t: 'sig', id: 'abc', p: { event: 'sync' } });
- * 
+ *
  * // Cleanup
  * transport.destroy();
  */
@@ -70,7 +67,7 @@ export class ServiceWorkerTransport {
 
     /**
      * Checks if ServiceWorker API is available.
-     * 
+     *
      * @returns {boolean} True if ServiceWorker is supported.
      */
     static isSupported() {
@@ -80,7 +77,7 @@ export class ServiceWorkerTransport {
 
     /**
      * Creates a new ServiceWorker transport.
-     * 
+     *
      * @param {ServiceWorkerTransportOptions} [options={}] - Configuration.
      * @throws {CrossBusError} If ServiceWorker is not supported.
      */
@@ -105,7 +102,7 @@ export class ServiceWorkerTransport {
 
     /**
      * Initializes the ServiceWorker connection.
-     * 
+     *
      */
     async #initialize() {
         // Wait for ServiceWorker to be ready
@@ -120,7 +117,7 @@ export class ServiceWorkerTransport {
 
     /**
      * Sends a message to the ServiceWorker.
-     * 
+     *
      * @param {Object} message - Protocol message to send.
      * @param {Transferable[]} [transfer] - Transferable objects.
      * @throws {CrossBusError} If transport is destroyed or no controller.
@@ -154,7 +151,7 @@ export class ServiceWorkerTransport {
 
     /**
      * Registers a message handler.
-     * 
+     *
      * @param {MessageHandler} handler - Function to handle incoming messages.
      */
     onMessage(handler) {
@@ -202,7 +199,7 @@ export class ServiceWorkerTransport {
 
     /**
      * Handles incoming messages from the ServiceWorker.
-     * 
+     *
      * @param {MessageEvent} event
      */
     #handleMessage(event) {

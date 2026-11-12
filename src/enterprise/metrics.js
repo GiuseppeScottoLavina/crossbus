@@ -107,15 +107,15 @@ class Histogram {
 
 /**
  * Metrics collector for CrossBus.
- * 
+ *
  * @example
  * const metrics = new Metrics();
- * 
+ *
  * // Subscribe to metric events
  * metrics.on('metric', (event) => {
  *   console.log(event.name, event.value);
  * });
- * 
+ *
  * // Use as CrossBus plugin
  * bus.addOutboundHook(metrics.outboundHook);
  * bus.addInboundHook(metrics.inboundHook);

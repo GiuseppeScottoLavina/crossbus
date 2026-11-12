@@ -197,14 +197,14 @@ export class Span {
 
 /**
  * Distributed tracer for CrossBus.
- * 
+ *
  * @example
  * const tracer = new Tracer('my-service');
- * 
+ *
  * const span = tracer.startSpan('user:save');
  * span.setAttribute('user.id', 123);
  * span.addEvent('validated');
- * 
+ *
  * try {
  *   await saveUser();
  *   span.setStatus('ok');
@@ -439,10 +439,10 @@ export class Tracer {
 
 /**
  * Creates a CrossBus plugin that automatically traces messages.
- * 
+ *
  * @param {Tracer} tracer - Tracer instance
  * @returns {Object} Plugin with inbound/outbound hooks
- * 
+ *
  * @example
  * const tracer = new Tracer('my-app');
  * const unhook = bus.addOutboundHook(tracingPlugin(tracer).outbound);

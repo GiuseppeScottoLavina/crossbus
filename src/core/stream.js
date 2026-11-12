@@ -28,12 +28,12 @@ import { uuid } from '../common/utils.js';
 
 /**
  * Writable stream for sending large payloads in chunks.
- * 
+ *
  * @example
  * const stream = new WritableSignalStream(sendFn, 'upload', {
  *   meta: { filename: 'data.json' }
  * });
- * 
+ *
  * for await (const chunk of readFile(file)) {
  *   await stream.write(chunk);
  * }
@@ -66,7 +66,7 @@ export class WritableSignalStream {
 
     /**
      * Creates a new writable stream.
-     * 
+     *
      * @param {Function} sendFn - Function to send messages.
      * @param {string} name - Stream name/type identifier.
      * @param {StreamOptions & { meta?: Object }} [options={}] - Options.
@@ -97,7 +97,7 @@ export class WritableSignalStream {
 
     /**
      * Opens the stream (called automatically on first write).
-     * 
+     *
      * @param {Object} [meta] - Additional metadata.
      * @returns {Promise<void>}
      */
@@ -115,7 +115,7 @@ export class WritableSignalStream {
 
     /**
      * Writes data to the stream.
-     * 
+     *
      * @param {string | ArrayBuffer | Uint8Array | Object} data - Data to write.
      * @returns {Promise<void>}
      */
@@ -178,7 +178,7 @@ export class WritableSignalStream {
 
     /**
      * Ends the stream.
-     * 
+     *
      * @param {Object} [finalMeta] - Final metadata.
      * @returns {Promise<void>}
      */
@@ -196,7 +196,7 @@ export class WritableSignalStream {
 
     /**
      * Aborts the stream with an error.
-     * 
+     *
      * @param {string} [reason] - Error reason.
      * @returns {Promise<void>}
      */
@@ -213,7 +213,7 @@ export class WritableSignalStream {
 
     /**
      * Sends a stream message.
-     * 
+     *
      * @param {Object} payload - Stream payload.
      */
     async #send(payload) {
@@ -229,7 +229,7 @@ export class WritableSignalStream {
 
     /**
      * Chunks a string into smaller pieces.
-     * 
+     *
      * @param {string} str - String to chunk.
      * @param {number} size - Chunk size.
      * @returns {string[]}
@@ -244,7 +244,7 @@ export class WritableSignalStream {
 
     /**
      * Converts Uint8Array to base64.
-     * 
+     *
      * @param {Uint8Array} bytes 
      * @returns {string}
      */
@@ -259,7 +259,7 @@ export class WritableSignalStream {
 
 /**
  * Readable stream for receiving large payloads.
- * 
+ *
  * @example
  * streamManager.onStream('upload', async (stream) => {
  *   for await (const chunk of stream) {
@@ -294,7 +294,7 @@ export class ReadableSignalStream {
 
     /**
      * Creates a readable stream from open message.
-     * 
+     *
      * @param {string} streamId - Stream ID.
      * @param {string} name - Stream name.
      * @param {Object} [meta] - Stream metadata.
@@ -339,7 +339,7 @@ export class ReadableSignalStream {
 
     /**
      * Pushes data chunk from message.
-     * 
+     *
      * @param {Object} message - Stream data message.
      */
     push(message) {
@@ -364,7 +364,7 @@ export class ReadableSignalStream {
 
     /**
      * Marks stream as ended.
-     * 
+     *
      * @param {Object} [meta] - Final metadata.
      */
     end(meta) {
@@ -383,7 +383,7 @@ export class ReadableSignalStream {
 
     /**
      * Marks stream as errored.
-     * 
+     *
      * @param {string} reason - Error reason.
      */
     error(reason) {
@@ -399,7 +399,7 @@ export class ReadableSignalStream {
 
     /**
      * Async iterator for consuming stream.
-     * 
+     *
      * @returns {AsyncIterableIterator<any>}
      */
     async *[Symbol.asyncIterator]() {
@@ -426,7 +426,7 @@ export class ReadableSignalStream {
 
     /**
      * Collects all data into single result.
-     * 
+     *
      * @returns {Promise<Uint8Array | string>}
      */
     async collect() {
@@ -458,7 +458,7 @@ export class ReadableSignalStream {
 
     /**
      * Decodes base64 to Uint8Array.
-     * 
+     *
      * @param {string} base64 
      * @returns {Uint8Array}
      */
@@ -475,17 +475,17 @@ export class ReadableSignalStream {
 /**
  * Stream manager for CrossBus.
  * Handles creating, sending, and receiving streams.
- * 
+ *
  * @example
  * const streams = new StreamManager(bus);
- * 
+ *
  * // Create and send stream
  * const stream = await streams.createStream('upload', 'peer-1', {
  *   meta: { filename: 'data.json' }
  * });
  * await stream.write(data);
  * await stream.end();
- * 
+ *
  * // Receive streams
  * streams.onStream('upload', async (stream) => {
  *   const data = await stream.collect();
@@ -503,7 +503,7 @@ export class StreamManager {
 
     /**
      * Creates a StreamManager.
-     * 
+     *
      * @param {Function} sendFn - Function to send messages: (peerId, message) => Promise.
      */
     constructor(sendFn) {
@@ -512,7 +512,7 @@ export class StreamManager {
 
     /**
      * Creates a writable stream to send to a peer.
-     * 
+     *
      * @param {string} name - Stream name/type.
      * @param {string} peerId - Target peer ID.
      * @param {StreamOptions & { meta?: Object }} [options] - Options.
@@ -528,7 +528,7 @@ export class StreamManager {
 
     /**
      * Registers a handler for incoming streams.
-     * 
+     *
      * @param {string} name - Stream name to handle.
      * @param {(stream: ReadableSignalStream) => Promise<void>} handler - Handler function.
      * @returns {Function} Unregister function.
@@ -541,7 +541,7 @@ export class StreamManager {
     /**
      * Handles incoming stream message.
      * Call this from CrossBus message handler.
-     * 
+     *
      * @param {Object} message - Stream message.
      * @param {string} peerId - Source peer ID.
      */

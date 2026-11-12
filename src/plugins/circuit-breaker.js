@@ -37,18 +37,18 @@ export const DEFAULT_CIRCUIT_OPTIONS = {
 
 /**
  * Circuit Breaker implementation.
- * 
+ *
  * States:
  * - CLOSED: Normal operation, tracking failures
  * - OPEN: Circuit tripped, all requests fail fast
  * - HALF_OPEN: Allowing test requests to check recovery
- * 
+ *
  * @example
  * const breaker = new CircuitBreaker({
  *   failureThreshold: 3,
  *   resetTimeout: 10000
  * });
- * 
+ *
  * try {
  *   const result = await breaker.execute(() => 
  *     bus.request('unstable-service', 'getData')
@@ -89,7 +89,7 @@ export class CircuitBreaker {
 
     /**
      * Creates a new circuit breaker.
-     * 
+     *
      * @param {CircuitBreakerOptions} [options={}]
      */
     constructor(options = {}) {
@@ -148,12 +148,12 @@ export class CircuitBreaker {
 
     /**
      * Executes a function through the circuit breaker.
-     * 
+     *
      * @template T
      * @param {() => Promise<T>} fn - Function to execute.
      * @returns {Promise<T>}
      * @throws {CrossBusError} When circuit is open.
-     * 
+     *
      * @example
      * const result = await breaker.execute(async () => {
      *   return await bus.request('service', 'method');
@@ -219,7 +219,7 @@ export class CircuitBreaker {
 
     /**
      * Handles successful execution.
-     * 
+     *
      */
     #onSuccess() {
         this.#totalSuccesses++;
@@ -244,7 +244,7 @@ export class CircuitBreaker {
 
     /**
      * Handles failed execution.
-     * 
+     *
      */
     #onFailure() {
         this.#totalFailures++;
@@ -271,7 +271,7 @@ export class CircuitBreaker {
 
     /**
      * Checks if circuit should transition to half-open.
-     * 
+     *
      */
     #checkHalfOpen() {
         if (this.#state === CircuitState.OPEN && this.#openedAt) {
@@ -288,7 +288,7 @@ export class CircuitBreaker {
 
     /**
      * Notifies state change callback.
-     * 
+     *
      */
     #notifyStateChange(from, to) {
         if (this.#options.onStateChange) {
@@ -299,19 +299,19 @@ export class CircuitBreaker {
 
 /**
  * Creates a circuit breaker wrapper for CrossBus peer requests.
- * 
+ *
  * @param {import("../core/cross-bus.js").CrossBus} bus - CrossBus instance.
  * @param {string} peerId - Peer ID to protect.
  * @param {CircuitBreakerOptions} [options={}]
  * @returns {{ request: Function, breaker: CircuitBreaker }}
- * 
+ *
  * @example
  * const { request, breaker } = createPeerCircuitBreaker(
  *   bus, 
  *   'unstable-widget',
  *   { failureThreshold: 3 }
  * );
- * 
+ *
  * try {
  *   const data = await request('getData', { id: 5 });
  * } catch (error) {
@@ -328,7 +328,7 @@ export function createPeerCircuitBreaker(bus, peerId, options = {}) {
 
         /**
          * Request through circuit breaker.
-         * 
+         *
          * @param {string} handlerName - Handler to invoke.
          * @param {*} [payload] - Request payload.
          * @param {Object} [requestOptions] - Request options.

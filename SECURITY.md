@@ -31,7 +31,7 @@ Send an email to **giuseppe.sc8.lavina@gmail.com** (or open a private security a
 
 ## Security Features
 
-CrossBus includes several security features by default:
+CrossBus provides configurable security controls; no independent security rating or certification is claimed.
 
 ### Origin Validation
 ```javascript
@@ -41,12 +41,12 @@ const bus = new CrossBus({
 ```
 
 ### Three-Way Handshake
-All peer connections require mutual authentication via INIT → ACK → COMPLETE protocol.
+The standalone handshake utility implements INIT → ACK → COMPLETE negotiation. `addPeer()` and `addTransport()` do not require that handshake, and it is not cryptographic authentication. Bind peer IDs to trusted transport sources; do not trust peer IDs supplied in message payloads.
 
 ### Encryption Plugin
-Optional AES-256-GCM end-to-end encryption:
+Optional AES-256-GCM payload encryption (key distribution and endpoint authentication are application responsibilities):
 ```javascript
-import { withEncryption } from 'crossbus/plugins/encryption';
+import { withEncryption, Encryption } from 'crossbus/plugins/encryption';
 const key = await Encryption.deriveKey('password', 'salt');
 withEncryption(bus, key);
 ```
@@ -69,3 +69,11 @@ withRateLimiter(bus, { maxRequests: 100, windowMs: 1000 });
 ## Acknowledgments
 
 We thank all security researchers who responsibly disclose vulnerabilities.
+
+## Enforcement and boundaries
+
+`createSecure()` requires an explicit nonempty allowlist, rejects wildcard patterns and enables strict mode. Configure transport origin/source checks too. Manually supplied messages require an authenticated channel identity. Responses must come from the requested peer. Inbound/outbound hook errors stop processing; inbound RPC validation failures return an error without running the protected handler.
+
+`maxPendingRequests` bounds in-flight requests. `maxPayloadSize` applies a conservative in-memory estimate (two bytes per UTF-16 code unit, binary byte lengths and per-value overhead), not an exact wire-size guarantee. Zero disables either budget. Per-handler rate limiting is a local fixed window, not a distributed DoS defense. The schema plugin supports selected keywords; it is not a complete JSON Schema implementation.
+
+Native adapters restrict origins and main frames, and reject malformed or oversized envelopes. See [native integration and qualification limits](native/README.md). Shared/service worker transport availability does not imply persistent storage or offline delivery. Production deployment, browser compatibility and security should be validated for the application's actual configuration.

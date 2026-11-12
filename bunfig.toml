@@ -1,0 +1,5 @@
+[test]
+# Benchmarks are explicit tools, not test-discovery modules.
+pathIgnorePatterns = ["tests/benchmarks/**", "tests/perf/**"]
+coverageSkipTestFiles = true
+coveragePathIgnorePatterns = ["dist/**", "node_modules/**", "tests/**"]

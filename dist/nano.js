@@ -1,8 +1,7 @@
-/** CrossBus v0.1.0 | MIT */
+/*! CrossBus v0.1.2 | Apache-2.0 */
 /**
- * CrossBus Nano - Ultra-minimal event emitter (~200 bytes gzipped)
- * Beats nanoevents on emit performance while matching API exactly.
- * 
+ * CrossBus Nano - minimal synchronous event emitter.
+ *
  * @module crossbus/nano
  */
 
@@ -11,7 +10,7 @@
  * @returns {Object} Fast emitter with on(), emit(), off() methods
  */
 const createNanoEmitter = () => ({
-    e: {},
+    e: Object.create(null),
     on(n, c) {
         (this.e[n] ||= []).push(c);
         return () => { this.e[n] = this.e[n]?.filter(i => c !== i); };
@@ -26,7 +25,7 @@ const createNanoEmitter = () => ({
         if (l === 4) { c[0](d); c[1](d); c[2](d); c[3](d); return; }
         for (let i = 0; i < l; i++) c[i](d);
     },
-    off(n) { n ? delete this.e[n] : this.e = {}; }
+    off(n) { n !== undefined ? delete this.e[n] : this.e = Object.create(null); }
 });
 
 export { createNanoEmitter };

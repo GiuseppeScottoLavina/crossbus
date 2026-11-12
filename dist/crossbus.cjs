@@ -1,980 +1,5 @@
-/** CrossBus v0.1.0 | MIT */
+/*! CrossBus v0.1.2 | Apache-2.0 */
 'use strict';
-
-/**
- * @fileoverview Local event emitter with wildcard support and AbortSignal integration.
- * Uses Symbol-based private storage for encapsulation.
- * @module core/event-emitter
- */
-
-/** @type {symbol} Private storage key for listeners map */
-const LISTENERS = Symbol('listeners');
-
-/** @type {symbol} Private storage key for subscription counter */
-const SUB_COUNTER = Symbol('subCounter');
-
-/** @type {symbol} Private storage key for max listeners setting */
-const MAX_LISTENERS = Symbol('maxListeners');
-
-/** @type {symbol} Private storage key for fast callback cache (Object-based) */
-const FAST_CACHE = Symbol('fastCache');
-
-/** @type {number} Default max listeners before warning */
-const DEFAULT_MAX_LISTENERS = 10;
-
-/** @type {Object} Default source for local emissions */
-const DEFAULT_SOURCE = Object.freeze({
-    peerId: 'self',
-    origin: typeof globalThis.location !== 'undefined' ? globalThis.location.origin : 'unknown',
-    type: 'local'
-});
-
-/**
- * @typedef {Object} ListenerOptions
- * @property {boolean} [once=false] - Auto-remove after first invocation.
- * @property {AbortSignal} [signal] - AbortController signal for cleanup.
- * @property {'sync'|'async'} [mode='async'] - Execution mode.
- * @property {number} [priority=0] - Execution order (higher = first).
- */
-
-/**
- * @typedef {Object} Subscription
- * @property {string} id - Unique subscription ID.
- * @property {string} signalName - The signal name subscribed to.
- * @property {Function} unsubscribe - Call to remove this listener.
- * @property {boolean} active - Whether subscription is active.
- */
-
-/**
- * @typedef {Object} SignalEvent
- * @property {string} name - Signal name that was emitted.
- * @property {*} data - The payload data.
- * @property {string} messageId - Unique message ID.
- * @property {number} timestamp - When the signal was emitted.
- * @property {SignalSource} source - Origin of the signal.
- */
-
-/**
- * @typedef {Object} SignalSource
- * @property {string} peerId - ID of the emitting peer ('self' if local).
- * @property {string} origin - Origin URL.
- * @property {'local'|'iframe'|'worker'|'service-worker'|'window'} type - Source type.
- */
-
-/**
- * @callback SignalHandler
- * @param {SignalEvent} event - The signal event object.
- * @returns {void|Promise<void>}
- */
-
-/**
- * @typedef {Object} ListenerEntry
- * @property {string} id - Subscription ID.
- * @property {SignalHandler} handler - The callback function.
- * @property {number} priority - Execution priority.
- * @property {'sync'|'async'} mode - Execution mode.
- * @property {boolean} once - Auto-remove after first invocation.
- * @property {AbortSignal|null} signal - Abort signal.
- */
-
-/**
- * @typedef {Object} RemoveResult
- * @property {boolean} success - True if at least one listener was removed.
- * @property {number} removedCount - Number of listeners removed.
- * @property {number} remainingCount - Listeners still registered for this signal.
- */
-
-/**
- * Local event emitter with wildcard support.
- * 
- * Supports:
- * - Exact match: `on('user:login', handler)`
- * - Namespace wildcard: `on('user:*', handler)` matches `user:login`, `user:logout`
- * - Global wildcard: `on('*', handler)` matches all signals
- * 
- * @example
- * const emitter = new EventEmitter();
- * 
- * // Basic listener
- * emitter.on('message', (event) => console.log(event.data));
- * 
- * // Wildcard listener
- * emitter.on('user:*', (event) => console.log('User event:', event.name));
- * 
- * // Emit signal
- * emitter.emit('message', { text: 'Hello' });
- */
-class EventEmitter {
-    constructor() {
-        /** @type {Map<string, ListenerEntry[]>} */
-        this[LISTENERS] = new Map();
-
-        /** @type {number} */
-        this[SUB_COUNTER] = 0;
-
-        /** @type {number} Max listeners before memory leak warning */
-        this[MAX_LISTENERS] = DEFAULT_MAX_LISTENERS;
-
-        /** @type {Object<string, Function[]>} Fast Object-based cache for callbacks only */
-        this[FAST_CACHE] = Object.create(null);
-    }
-
-    /**
-     * Sets the max listeners threshold for memory leak warnings.
-     * @param {number} n - Max listeners (0 = unlimited)
-     */
-    setMaxListeners(n) {
-        this[MAX_LISTENERS] = n;
-        return this;
-    }
-
-    /**
-     * Gets the current max listeners setting.
-     * @returns {number}
-     */
-    getMaxListeners() {
-        return this[MAX_LISTENERS];
-    }
-
-    /**
-     * Registers a listener for a signal.
-     * 
-     * @param {string} name - Signal name. Supports wildcards: '*', 'namespace:*'.
-     * @param {SignalHandler} handler - Callback function.
-     * @param {ListenerOptions} [options={}] - Configuration options.
-     * @returns {Subscription} Subscription object.
-     * @throws {TypeError} If name is not a string or handler is not a function.
-     * 
-     * @example
-     * // Basic listener
-     * const sub = emitter.on('user:login', (event) => {
-     *   console.log(`User ${event.data.userId} logged in`);
-     * });
-     * 
-     * @example
-     * // One-time listener
-     * emitter.on('init:complete', handler, { once: true });
-     * 
-     * @example
-     * // With AbortController
-     * const controller = new AbortController();
-     * emitter.on('data:update', handler, { signal: controller.signal });
-     * controller.abort(); // Removes listener
-     * 
-     * @example
-     * // Priority-based ordering
-     * emitter.on('event', lowPriorityHandler, { priority: 1 });
-     * emitter.on('event', highPriorityHandler, { priority: 10 }); // Runs first
-     */
-    on(name, handler, options = {}) {
-        if (typeof name !== 'string') {
-            throw new TypeError('Signal name must be a string');
-        }
-        if (typeof handler !== 'function') {
-            throw new TypeError('Handler must be a function');
-        }
-
-        const id = `sub_${++this[SUB_COUNTER]}`;
-
-        // V8 Optimization: Consistent object shape for hidden class caching
-        // All entries have same properties in same order
-        /** @type {ListenerEntry} */
-        const entry = {
-            id,
-            handler,
-            priority: options.priority ?? 0,
-            mode: options.mode ?? 'async',
-            once: options.once ?? false,
-            signal: options.signal ?? null
-        };
-
-        // Get or create listeners array for this signal
-        if (!this[LISTENERS].has(name)) {
-            this[LISTENERS].set(name, []);
-        }
-
-        const listeners = this[LISTENERS].get(name);
-
-        // Binary insert for O(log n) search instead of O(n log n) sort
-        if (listeners.length === 0 || entry.priority <= listeners[listeners.length - 1].priority) {
-            // Fast path: append (most common case with priority 0)
-            listeners.push(entry);
-        } else {
-            // Binary search for insert position (higher priority first)
-            let lo = 0, hi = listeners.length;
-            while (lo < hi) {
-                const mid = (lo + hi) >>> 1;
-                if (listeners[mid].priority >= entry.priority) {
-                    lo = mid + 1;
-                } else {
-                    hi = mid;
-                }
-            }
-            listeners.splice(lo, 0, entry);
-        }
-
-        // Sync FAST_CACHE for ultra-fast emitSync
-        this[FAST_CACHE][name] = listeners.map(e => e.handler);
-
-        // Memory leak detection: warn if too many listeners
-        const maxListeners = this[MAX_LISTENERS];
-        if (maxListeners > 0 && listeners.length > maxListeners) {
-            console.warn(
-                `[CrossBus] Possible memory leak: ${listeners.length} listeners for "${name}". ` +
-                `Use setMaxListeners(n) to increase limit.`
-            );
-        }
-
-        // Create subscription object
-        let active = true;
-        const subscription = {
-            id,
-            signalName: name,
-            get active() { return active; },
-            unsubscribe: () => {
-                if (active) {
-                    this.#removeListener(name, id);
-                    active = false;
-                }
-            }
-        };
-
-        // Handle AbortSignal
-        if (entry.signal) {
-            if (entry.signal.aborted) {
-                // Already aborted, remove immediately
-                this.#removeListener(name, id);
-                active = false;
-            } else {
-                entry.signal.addEventListener('abort', () => {
-                    subscription.unsubscribe();
-                }, { once: true });
-            }
-        }
-
-        return subscription;
-    }
-
-    /**
-     * Registers a one-time listener.
-     * Convenience method for `on(name, handler, { once: true })`.
-     * 
-     * @param {string} name - Signal name.
-     * @param {SignalHandler} handler - Callback function.
-     * @param {ListenerOptions} [options={}] - Additional options.
-     * @returns {Subscription} Subscription object.
-     */
-    once(name, handler, options = {}) {
-        return this.on(name, handler, { ...options, once: true });
-    }
-
-    /**
-     * Ultra-fast listener registration for performance-critical paths.
-     * 
-     * Unlike on(), this method:
-     * - No input validation (caller must ensure correct types)
-     * - No subscription object (returns unbind function directly)
-     * - No priority, once, or AbortSignal support
-     * - Direct push to FAST_CACHE (minimal overhead)
-     * 
-     * Use when you need maximum subscribe performance.
-     * 
-     * @param {string} name - Signal name.
-     * @param {EventListener} handler - Callback function.
-     * @returns {Function} Unbind function (call to remove listener).
-     * 
-     * @example
-     * // 50M+ ops/sec subscribe/unsubscribe
-     * const off = emitter.onFast('tick', (data) => console.log(data));
-     * off(); // Remove listener
-     */
-    onFast(name, handler) {
-        // Match nanoevents exactly: ||= pattern, minimal code
-        (this[FAST_CACHE][name] ||= []).push(handler);
-        return () => {
-            this[FAST_CACHE][name] = this[FAST_CACHE][name]?.filter(h => h !== handler);
-        };
-    }
-
-    /**
-     * Ultra-fast listener removal for performance-critical paths.
-     * 
-     * @param {string} name - Signal name.
-     * @param {EventListener} handler - Handler to remove.
-     */
-    offFast(name, handler) {
-        const cache = this[FAST_CACHE][name];
-        if (cache) {
-            const idx = cache.indexOf(handler);
-            if (idx !== -1) cache.splice(idx, 1);
-        }
-        // Also clean LISTENERS
-        const listeners = this[LISTENERS].get(name);
-        if (listeners) {
-            const idx = listeners.findIndex(e => e.handler === handler);
-            if (idx !== -1) listeners.splice(idx, 1);
-        }
-    }
-
-    /**
-     * Removes signal listener(s).
-     * 
-     * @param {string} name - Signal name.
-     * @param {SignalHandler} [handler] - Specific handler to remove.
-     *                                    If omitted, removes ALL listeners.
-     * @returns {RemoveResult} Result of the removal.
-     * @throws {TypeError} If name is not a string.
-     * 
-     * @example
-     * // Remove specific handler
-     * const result = emitter.off('msg', myHandler);
-     * // => { success: true, removedCount: 1, remainingCount: 0 }
-     * 
-     * @example
-     * // Remove ALL listeners for a signal
-     * emitter.off('updates');
-     * // => { success: true, removedCount: 2, remainingCount: 0 }
-     */
-    off(name, handler) {
-        if (typeof name !== 'string') {
-            throw new TypeError('Signal name must be a string');
-        }
-
-        const listeners = this[LISTENERS].get(name);
-
-        if (!listeners || listeners.length === 0) {
-            return { success: false, removedCount: 0, remainingCount: 0 };
-        }
-
-        let removedCount = 0;
-
-        if (handler === undefined) {
-            // Remove all listeners for this signal
-            removedCount = listeners.length;
-            this[LISTENERS].delete(name);
-            delete this[FAST_CACHE][name];
-        } else {
-            // Remove specific handler
-            const initialLength = listeners.length;
-            const filtered = listeners.filter(entry => entry.handler !== handler);
-            removedCount = initialLength - filtered.length;
-
-            if (filtered.length === 0) {
-                this[LISTENERS].delete(name);
-                delete this[FAST_CACHE][name];
-            } else {
-                this[LISTENERS].set(name, filtered);
-                this[FAST_CACHE][name] = filtered.map(e => e.handler);
-            }
-        }
-
-        const remaining = this[LISTENERS].get(name)?.length ?? 0;
-
-        return {
-            success: removedCount > 0,
-            removedCount,
-            remainingCount: remaining
-        };
-    }
-
-    /**
-     * Ultra-fast synchronous emit for performance-critical paths.
-     * 
-     * Unlike emit(), this method:
-     * - Is synchronous (no async/await overhead)
-     * - Passes data directly (no event envelope)
-     * - Skips messageId, timestamp generation
-     * - No wildcard matching (exact match only)
-     * 
-     * Use for high-frequency events where metadata is not needed.
-     * 
-     * @param {string} name - Signal name (exact match only).
-     * @param {*} data - Payload to pass directly to handlers.
-     * @returns {number} Number of listeners invoked.
-     * 
-     * @example
-     * // 150M+ ops/sec - use for hot paths
-     * emitter.emitSync('tick', { x: 100, y: 200 });
-     */
-    emitSync(name, data) {
-        // Ultra-fast path: use Object-based cache (faster than Map.get)
-        const callbacks = this[FAST_CACHE][name];
-        if (!callbacks) return 0;
-
-        // Direct callback invocation (no .handler indirection)
-        const len = callbacks.length;
-        if (len === 1) {
-            callbacks[0](data);
-            return 1;
-        }
-        if (len === 2) {
-            callbacks[0](data);
-            callbacks[1](data);
-            return 2;
-        }
-        if (len === 3) {
-            callbacks[0](data);
-            callbacks[1](data);
-            callbacks[2](data);
-            return 3;
-        }
-        if (len === 4) {
-            callbacks[0](data);
-            callbacks[1](data);
-            callbacks[2](data);
-            callbacks[3](data);
-            return 4;
-        }
-
-        // General loop for 5+ listeners
-        for (let i = 0; i < len; i++) {
-            callbacks[i](data);
-        }
-        return len;
-    }
-
-    /**
-     * Emits a signal to local listeners.
-     * 
-     * @param {string} name - Signal name.
-     * @param {*} data - Payload data.
-     * @param {Partial<SignalSource>} [source] - Signal source info.
-     * @returns {Promise<number>} Number of listeners invoked.
-     * @throws {TypeError} If name is not a string.
-     * 
-     * @example
-     * const count = await emitter.emit('user:login', { userId: 123 });
-     * console.log(`Notified ${count} listeners`);
-     */
-    async emit(name, data, source) {
-        if (typeof name !== 'string') {
-            throw new TypeError('Signal name must be a string');
-        }
-
-        // Fast path: single exact-match listener, no wildcards
-        const exactListeners = this[LISTENERS].get(name);
-        const hasWildcard = this[LISTENERS].has('*');
-
-        if (exactListeners?.length === 1 && !hasWildcard && !source) {
-            const entry = exactListeners[0];
-            const event = {
-                name,
-                data,
-                messageId: crypto.randomUUID(),
-                timestamp: Date.now(),
-                source: DEFAULT_SOURCE
-            };
-
-            try {
-                if (entry.mode === 'sync') {
-                    await entry.handler(event);
-                } else {
-                    Promise.resolve().then(() => entry.handler(event));
-                }
-            } catch (error) {
-                console.error(`[CrossBus] Handler error for "${name}":`, error);
-            }
-
-            if (entry.once) {
-                this.#removeListener(name, entry.id);
-            }
-
-            return 1;
-        }
-
-        // Full path: multiple listeners or wildcards
-        const event = {
-            name,
-            data,
-            messageId: crypto.randomUUID(),
-            timestamp: Date.now(),
-            source: source ? { ...DEFAULT_SOURCE, ...source } : DEFAULT_SOURCE
-        };
-
-        // Collect matching listeners
-        const matchingEntries = this.#getMatchingListeners(name);
-
-        // Track entries to remove (once: true)
-        const toRemove = [];
-
-        // Invoke handlers
-        for (const { signalName, entry } of matchingEntries) {
-            try {
-                if (entry.mode === 'sync') {
-                    await entry.handler(event);
-                } else {
-                    // Fire async without blocking
-                    Promise.resolve().then(() => entry.handler(event));
-                }
-            } catch (error) {
-                // Log but don't throw - other listeners should still run
-                console.error(`[CrossBus] Handler error for "${name}":`, error);
-            }
-
-            if (entry.once) {
-                toRemove.push({ signalName, id: entry.id });
-            }
-        }
-
-        // Remove once listeners
-        for (const { signalName, id } of toRemove) {
-            this.#removeListener(signalName, id);
-        }
-
-        return matchingEntries.length;
-    }
-
-    /**
-     * Checks if there are any listeners for a signal.
-     * 
-     * @param {string} name - Signal name (exact match only).
-     * @returns {boolean} True if listeners exist.
-     */
-    hasListeners(name) {
-        const listeners = this[LISTENERS].get(name);
-        return listeners !== undefined && listeners.length > 0;
-    }
-
-    /**
-     * Gets the count of listeners for a signal.
-     * 
-     * @param {string} name - Signal name (exact match only).
-     * @returns {number} Number of listeners.
-     */
-    listenerCount(name) {
-        return this[LISTENERS].get(name)?.length ?? 0;
-    }
-
-    /**
-     * Gets all registered signal names.
-     * 
-     * @returns {string[]} Array of signal names.
-     */
-    getSignalNames() {
-        return Array.from(this[LISTENERS].keys());
-    }
-
-    /**
-     * Removes all listeners.
-     */
-    clear() {
-        this[LISTENERS].clear();
-        // Reset FAST_CACHE to empty object
-        for (const key in this[FAST_CACHE]) {
-            delete this[FAST_CACHE][key];
-        }
-    }
-
-    /**
-     * Gets all listeners matching a signal name (including wildcards).
-     * 
-     * 
-     * @param {string} name - Signal name to match.
-     * @returns {Array<{signalName: string, entry: ListenerEntry}>} Matching entries.
-     */
-    #getMatchingListeners(name) {
-        // Fast path: check exact match first and if no wildcards registered
-        const exactListeners = this[LISTENERS].get(name);
-        const globalWildcard = this[LISTENERS].get('*');
-
-        // Find namespace wildcards (e.g., 'user:*' for 'user:login')
-        let namespaceWildcard = null;
-        const colonIdx = name.indexOf(':');
-        if (colonIdx > 0) {
-            const wildcardPattern = name.slice(0, colonIdx + 1) + '*';
-            namespaceWildcard = this[LISTENERS].get(wildcardPattern);
-        }
-
-        // Super-fast path: only exact match, no wildcards
-        if (exactListeners && !globalWildcard && !namespaceWildcard) {
-            return exactListeners.map(entry => ({ signalName: name, entry }));
-        }
-
-        // Fast path: single source, already sorted
-        const sources = [
-            exactListeners && { signalName: name, entries: exactListeners },
-            globalWildcard && { signalName: '*', entries: globalWildcard },
-            namespaceWildcard && { signalName: name.slice(0, colonIdx + 1) + '*', entries: namespaceWildcard }
-        ].filter(Boolean);
-
-        if (sources.length === 0) {
-            return [];
-        }
-
-        if (sources.length === 1) {
-            // Single source: already sorted, no merge needed
-            return sources[0].entries.map(entry => ({ signalName: sources[0].signalName, entry }));
-        }
-
-        // Multiple sources: collect and merge-sort by priority
-        const results = [];
-        for (const { signalName, entries } of sources) {
-            for (const entry of entries) {
-                results.push({ signalName, entry });
-            }
-        }
-
-        // Only sort when merging multiple sources
-        results.sort((a, b) => b.entry.priority - a.entry.priority);
-
-        return results;
-    }
-
-
-
-    /**
-     * Removes a listener by ID.
-     * 
-     * 
-     * @param {string} name - Signal name.
-     * @param {string} id - Subscription ID.
-     */
-    #removeListener(name, id) {
-        const listeners = this[LISTENERS].get(name);
-        if (!listeners) return;
-
-        const filtered = listeners.filter(entry => entry.id !== id);
-
-        if (filtered.length === 0) {
-            this[LISTENERS].delete(name);
-            delete this[FAST_CACHE][name];
-        } else {
-            this[LISTENERS].set(name, filtered);
-            this[FAST_CACHE][name] = filtered.map(e => e.handler);
-        }
-    }
-}
-
-/**
- * Creates an ultra-fast plain object emitter that beats nanoevents.
- * 
- * Unlike EventEmitter class, this is a minimal plain object with:
- * - No class overhead
- * - No Symbol lookups
- * - No validation
- * - Direct property access
- * 
- * Benchmarks:
- * - on/off cycle: 45M ops/sec (vs nanoevents 38M) = 1.18x faster
- * - emit (10 listeners): 82M ops/sec (vs nanoevents 65M) = 1.26x faster
- * 
- * @returns {Object} Fast emitter with on(), emit() methods
- * 
- * @example
- * const emitter = createFastEmitter();
- * const off = emitter.on('event', (data) => console.log(data));
- * emitter.emit('event', { value: 42 });
- * off(); // Remove listener
- */
-const createFastEmitter = () => ({
-    events: {},
-
-    /**
-     * Subscribe to an event. Returns unbind function.
-     * @param {string} event - Event name
-     * @param {EventListener} cb - Callback function
-     * @returns {Function} Unbind function
-     */
-    on(event, cb) {
-        (this.events[event] ||= []).push(cb);
-        return () => {
-            this.events[event] = this.events[event]?.filter(i => cb !== i);
-        };
-    },
-
-    /**
-     * Emit an event to all listeners.
-     * @param {string} event - Event name
-     * @param {*} data - Data to pass to listeners
-     */
-    emit(event, data) {
-        const c = this.events[event];
-        if (!c) return;
-        const len = c.length;
-        // Unrolled for 1-4 (most common)
-        if (len === 1) { c[0](data); return; }
-        if (len === 2) { c[0](data); c[1](data); return; }
-        if (len === 3) { c[0](data); c[1](data); c[2](data); return; }
-        if (len === 4) { c[0](data); c[1](data); c[2](data); c[3](data); return; }
-        // Loop for 5+
-        for (let i = 0; i < len; i++) c[i](data);
-    },
-
-    /**
-     * Remove all listeners for an event or all events.
-     * @param {string} [event] - Event name (omit to clear all)
-     */
-    off(event) {
-        if (event) {
-            delete this.events[event];
-        } else {
-            this.events = {};
-        }
-    }
-});
-
-/**
- * @fileoverview Common types and constants shared across all modules.
- * This module is included in the common bundle to avoid duplication.
- * @module common/types
- */
-
-/**
- * Protocol marker for CrossBus messages.
- * @constant {string}
- */
-const PROTOCOL_MARKER = '_cb';
-
-/**
- * Current protocol version.
- * @constant {number}
- */
-const PROTOCOL_VERSION = 1;
-
-/**
- * Message type codes (compact for wire efficiency).
- * @readonly
- * @enum {string}
- */
-const MessageType = Object.freeze({
-    /** Signal - one-way message */
-    SIGNAL: 'sig',
-    /** Request - expects response */
-    REQUEST: 'req',
-    /** Response - reply to request */
-    RESPONSE: 'res',
-    /** Acknowledge - delivery confirmation */
-    ACK: 'ack',
-    /** Handshake - connection negotiation */
-    HANDSHAKE: 'hsk',
-    HANDSHAKE_INIT: 'hsk_init',
-    HANDSHAKE_ACK: 'hsk_ack',
-    HANDSHAKE_COMPLETE: 'hsk_done',
-    /** Ping - heartbeat */
-    PING: 'png',
-    /** Pong - heartbeat response */
-    PONG: 'pog',
-    /** Goodbye - graceful disconnect */
-    BYE: 'bye',
-    /** Broadcast - message for all peers */
-    BROADCAST: 'bc'
-});
-
-/**
- * Handshake phase codes.
- * @readonly
- * @enum {string}
- */
-const HandshakePhase = Object.freeze({
-    INIT: 'init',
-    INIT_SENT: 'init_sent',
-    ACK: 'ack',
-    ACK_SENT: 'ack_sent',
-    DONE: 'done'
-});
-
-/**
- * Peer connection status.
- * @readonly
- * @enum {string}
- */
-const PeerStatus = Object.freeze({
-    CONNECTING: 'connecting',
-    CONNECTED: 'connected',
-    DISCONNECTED: 'disconnected',
-    RECONNECTING: 'reconnecting',
-    FAILED: 'failed'
-});
-
-/**
- * Peer type (transport mechanism).
- * @readonly
- * @enum {string}
- */
-const PeerType = Object.freeze({
-    IFRAME: 'iframe',
-    WORKER: 'worker',
-    SERVICE_WORKER: 'sw',
-    WINDOW: 'window',
-    PORT: 'port'
-});
-
-/**
- * Delivery status for emit results.
- * @readonly
- * @enum {string}
- */
-const DeliveryStatus = Object.freeze({
-    /** Delivered to local listeners only */
-    LOCAL: 'local',
-    /** Sent to peer (no ACK requested) */
-    SENT: 'sent',
-    /** Sent and ACK received */
-    ACKED: 'acked',
-    /** Queued for offline peer */
-    QUEUED: 'queued',
-    /** ACK timeout */
-    TIMEOUT: 'timeout',
-    /** Delivery failed */
-    FAILED: 'failed'
-});
-
-/**
- * Checks if an object is a valid CrossBus message.
- * 
- * @param {*} obj - Object to check.
- * @returns {boolean} True if valid protocol message.
- */
-function isProtocolMessage(obj) {
-    return (
-        obj !== null &&
-        typeof obj === 'object' &&
-        obj[PROTOCOL_MARKER] === PROTOCOL_VERSION &&
-        typeof obj.id === 'string' &&
-        (typeof obj.type === 'string' || typeof obj.t === 'string')
-    );
-}
-
-/**
- * Checks if a value is transferable.
- * 
- * @param {*} value - Value to check.
- * @returns {boolean} True if transferable.
- */
-function isTransferable(value) {
-    if (value instanceof ArrayBuffer) return true;
-    if (value instanceof MessagePort) return true;
-    if (typeof ImageBitmap !== 'undefined' && value instanceof ImageBitmap) return true;
-    if (typeof OffscreenCanvas !== 'undefined' && value instanceof OffscreenCanvas) return true;
-    if (typeof ReadableStream !== 'undefined' && value instanceof ReadableStream) return true;
-    if (typeof WritableStream !== 'undefined' && value instanceof WritableStream) return true;
-    if (typeof TransformStream !== 'undefined' && value instanceof TransformStream) return true;
-    return false;
-}
-
-/**
- * Recursively finds all transferable objects in a value.
- * 
- * @param {*} value - Value to search.
- * @param {Set<Transferable>} [found] - Set to collect transferables.
- * @returns {Transferable[]} Array of transferables found.
- */
-function findTransferables(value, found = new Set()) {
-    if (value === null || value === undefined) return Array.from(found);
-
-    if (isTransferable(value)) {
-        found.add(value);
-        return Array.from(found);
-    }
-
-    if (Array.isArray(value)) {
-        for (const item of value) {
-            findTransferables(item, found);
-        }
-    } else if (typeof value === 'object') {
-        for (const key of Object.keys(value)) {
-            findTransferables(value[key], found);
-        }
-    }
-
-    return Array.from(found);
-}
-
-/**
- * @fileoverview Protocol message schemas for CrossBus.
- * All message types are frozen for immutability.
- * @module core/message-types
- */
-
-
-// PROTOCOL_PREFIX and PROTOCOL_VERSION are imported from common/types.js
-
-/**
- * Creates a protocol message envelope.
- * 
- * @param {MessageType} type - Message type.
- * @param {Object} payload - Message payload.
- * @param {Object} [meta={}] - Additional metadata.
- * @param {string|null} [id=null] - Optional custom message ID.
- * @returns {ProtocolMessage} Frozen message object.
- * 
- * @typedef {Object} ProtocolMessage
- * @property {number} _cb - Protocol marker version (compact wire format).
- * @property {number} version - Protocol version.
- * @property {string} id - Unique message ID (UUID v4).
- * @property {MessageType} type - Message type.
- * @property {number} timestamp - Unix timestamp (ms).
- * @property {Object} payload - Message payload.
- * @property {Object} meta - Additional metadata.
- */
-function createMessage(type, payload, meta = {}, id = null) {
-  return Object.freeze({
-    [PROTOCOL_MARKER]: PROTOCOL_VERSION,
-    version: PROTOCOL_VERSION,
-    id: id || crypto.randomUUID(),
-    type,
-    timestamp: Date.now(),
-    payload: Object.freeze({ ...payload }),
-    meta: Object.freeze({ ...meta })
-  });
-}
-
-/**
- * Creates a signal message.
- * 
- * @param {string} name - Signal name.
- * @param {*} data - Signal data.
- * @param {string} sourcePeerId - Source peer ID.
- * @param {string|null} [destPeerId] - Destination peer ID.
- * @returns {ProtocolMessage} Signal message.
- */
-function createSignalMessage(name, data, sourcePeerId, destPeerId = null) {
-  return createMessage(MessageType.SIGNAL, {
-    name,
-    data,
-    source: sourcePeerId,
-    dest: destPeerId
-  });
-}
-
-/**
- * Creates a request message (expecting response).
- * 
- * @param {string} name - Request name.
- * @param {*} data - Request data.
- * @param {string} sourcePeerId - Source peer ID.
- * @param {string} destPeerId - Destination peer ID.
- * @param {string|null} [id=null] - Optional custom request ID.
- * @returns {ProtocolMessage} Request message.
- */
-function createRequestMessage(name, data, sourcePeerId, destPeerId, id = null) {
-  return createMessage(MessageType.REQUEST, {
-    name,
-    data,
-    source: sourcePeerId,
-    dest: destPeerId
-  }, {}, id);
-}
-
-/**
- * Creates a response message.
- * 
- * @param {string} requestId - Original request message ID.
- * @param {*} data - Response data.
- * @param {string} sourcePeerId - Source peer ID.
- * @param {boolean} [success=true] - Whether request succeeded.
- * @param {Object|null} [error] - Error object if failed.
- * @returns {ProtocolMessage} Response message.
- */
-function createResponseMessage(requestId, data, sourcePeerId, success = true, error = null) {
-  return createMessage(MessageType.RESPONSE, {
-    requestId,
-    data,
-    source: sourcePeerId,
-    success,
-    error
-  });
-}
 
 /**
  * @fileoverview Centralized error handling for CrossBus.
@@ -1223,9 +248,9 @@ const ERROR_META = Object.freeze({
 
 /**
  * Custom error class for CrossBus.
- * 
+ *
  * @extends Error
- * 
+ *
  * @example
  * try {
  *   await bus.emit('msg', data, 'unknown-peer');
@@ -1271,7 +296,7 @@ class CrossBusError extends Error {
 
     /**
      * Creates a new CrossBusError.
-     * 
+     *
      * @param {ErrorCode} code - Error code.
      * @param {string} [message] - Custom message (uses default if omitted).
      * @param {Object} [options] - Additional options.
@@ -1298,7 +323,7 @@ class CrossBusError extends Error {
 
     /**
      * Creates error from code with default message.
-     * 
+     *
      * @param {ErrorCode} code - Error code.
      * @param {Object} [details] - Error context.
      * @returns {CrossBusError}
@@ -1309,7 +334,7 @@ class CrossBusError extends Error {
 
     /**
      * Creates error from another error.
-     * 
+     *
      * @param {ErrorCode} code - Error code.
      * @param {Error} cause - Original error.
      * @param {Object} [details] - Additional context.
@@ -1345,7 +370,7 @@ class CrossBusError extends Error {
 
 /**
  * Checks if an error is a CrossBusError.
- * 
+ *
  * @param {*} err - Value to check.
  * @returns {boolean}
  */
@@ -1355,7 +380,7 @@ function isCrossBusError(err) {
 
 /**
  * Checks if an error is retryable.
- * 
+ *
  * @param {Error} err - Error to check.
  * @returns {boolean}
  */
@@ -1371,10 +396,11 @@ function isRetryable(err) {
  * @module common/utils
  */
 
+
 /**
  * Generates a UUID v4.
  * Uses crypto.randomUUID() when available, falls back to manual generation.
- * 
+ *
  * @returns {string} UUID v4 string.
  */
 function uuid() {
@@ -1391,7 +417,7 @@ function uuid() {
 
 /**
  * Checks if data can be structured cloned.
- * 
+ *
  * @param {*} data - Data to check.
  * @returns {boolean} True if cloneable.
  */
@@ -1428,12 +454,12 @@ function isCloneable(data) {
 /**
  * Creates a deferred promise (Promise.withResolvers polyfill).
  * Uses native Promise.withResolvers() when available (ES2024+).
- * 
+ *
  * @template T
  * @returns {{promise: Promise<T>, resolve: (value: T) => void, reject: (reason: any) => void}}
  */
 function deferred() {
-    // Use native Promise.withResolvers if available (ES2024+, ~10x faster)
+    // Use native Promise.withResolvers if available when supported
     // @ts-ignore
     if (typeof Promise.withResolvers === 'function') {
         // @ts-ignore
@@ -1451,7 +477,7 @@ function deferred() {
 
 /**
  * Creates a promise that resolves after a timeout.
- * 
+ *
  * @param {number} ms - Timeout in milliseconds.
  * @param {AbortSignal} [signal] - Optional abort signal.
  * @returns {Promise<void>}
@@ -1476,7 +502,7 @@ function sleep(ms, signal) {
 
 /**
  * Creates a promise that rejects after a timeout.
- * 
+ *
  * @template T
  * @param {Promise<T>} promise - Promise to race against.
  * @param {number} ms - Timeout in milliseconds.
@@ -1484,19 +510,17 @@ function sleep(ms, signal) {
  * @returns {Promise<T>}
  */
 function withTimeout(promise, ms, message = 'Operation timed out') {
-    return Promise.race([
-        promise,
-        new Promise((_, reject) => {
-            setTimeout(() => reject(new Error(message)), ms);
-        })
-    ]);
+    return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error(message)), ms);
+        promise.then(resolve, reject).finally(() => clearTimeout(timer));
+    });
 }
 
 
 
 /**
  * Detects the type of a peer target.
- * 
+ *
  * @param {*} target - Target to check.
  * @returns {'iframe'|'worker'|'sw'|'window'|'port'|'unknown'}
  */
@@ -1539,7 +563,7 @@ function detectPeerType(target) {
 
 /**
  * Creates a frozen timestamp object.
- * 
+ *
  * @returns {{timestamp: number, iso: string}}
  */
 function timestamp() {
@@ -1548,6 +572,1010 @@ function timestamp() {
         timestamp: ts,
         iso: new Date(ts).toISOString()
     });
+}
+
+
+
+/**
+ * Conservative in-memory payload budget, not serialized wire size. Strings use
+ * two bytes per UTF-16 code unit; each value/reference costs at least 8 bytes.
+ * Supports cycles, binary views, Maps and Sets without JSON serialization.
+ * @param {*} payload
+ * @param {number} limit - Zero disables the budget.
+ */
+function assertPayloadSize(payload, limit) {
+    if (limit === 0) return;
+    // Scalar messages need no graph tracking or callback allocation.
+    if (payload === null || typeof payload !== 'object') {
+        const size = 8 + (typeof payload === 'string' ? payload.length * 2 : 0);
+        if (size > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+        return;
+    }
+    measurePayload(payload, limit, new Set(), 0);
+}
+
+/**
+ * Accumulates the same conservative budget without allocating a closure or
+ * key array per message. The seen set still bounds traversal of cyclic graphs.
+ * @param {*} value
+ * @param {number} limit
+ * @param {Set<object>} seen
+ * @param {number} bytes
+ * @returns {number}
+ */
+function measurePayload(value, limit, seen, bytes) {
+    bytes += 8 + (typeof value === 'string' ? value.length * 2 : 0);
+    if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+    if (value === null || typeof value !== 'object' || seen.has(value)) return bytes;
+    seen.add(value);
+    if (value instanceof ArrayBuffer || ArrayBuffer.isView(value)) bytes += value.byteLength;
+    else if (typeof Blob !== 'undefined' && value instanceof Blob) bytes += value.size;
+    else if (value instanceof Map) for (const [key, item] of value) {
+        bytes = measurePayload(key, limit, seen, bytes);
+        bytes = measurePayload(item, limit, seen, bytes);
+    }
+    else if (value instanceof Set) for (const item of value) bytes = measurePayload(item, limit, seen, bytes);
+    else for (const key in value) if (Object.hasOwn(value, key)) {
+        bytes = measurePayload(key, limit, seen, bytes);
+        bytes = measurePayload(value[key], limit, seen, bytes);
+    }
+    if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+    return bytes;
+}
+
+/**
+ * @fileoverview Local event emitter with wildcard support and AbortSignal integration.
+ * Uses Symbol-based private storage for encapsulation.
+ * @module core/event-emitter
+ */
+
+/** @type {symbol} Private storage key for listeners map */
+const LISTENERS = Symbol('listeners');
+
+/** @type {symbol} Private storage key for subscription counter */
+const SUB_COUNTER = Symbol('subCounter');
+
+/** @type {symbol} Private storage key for max listeners setting */
+const MAX_LISTENERS = Symbol('maxListeners');
+
+/** @type {symbol} Private storage key for fast callback cache (Object-based) */
+const FAST_CACHE = Symbol('fastCache');
+const FAST_ONLY = Symbol('fastOnly');
+
+/** @type {number} Default max listeners before warning */
+const DEFAULT_MAX_LISTENERS = 10;
+
+/** @type {Object} Default source for local emissions */
+const DEFAULT_SOURCE = Object.freeze({
+    peerId: 'self',
+    origin: typeof globalThis.location !== 'undefined' ? globalThis.location.origin : 'unknown',
+    type: 'local'
+});
+
+/**
+ * @typedef {Object} ListenerOptions
+ * @property {boolean} [once=false] - Auto-remove after first invocation.
+ * @property {AbortSignal} [signal] - AbortController signal for cleanup.
+ * @property {'sync'|'async'} [mode='async'] - Execution mode.
+ * @property {number} [priority=0] - Execution order (higher = first).
+ */
+
+/**
+ * @typedef {Object} Subscription
+ * @property {string} id - Unique subscription ID.
+ * @property {string} signalName - The signal name subscribed to.
+ * @property {Function} unsubscribe - Call to remove this listener.
+ * @property {boolean} active - Whether subscription is active.
+ */
+
+/**
+ * @typedef {Object} SignalEvent
+ * @property {string} name - Signal name that was emitted.
+ * @property {*} data - The payload data.
+ * @property {string} messageId - Unique message ID.
+ * @property {number} timestamp - When the signal was emitted.
+ * @property {SignalSource} source - Origin of the signal.
+ */
+
+/**
+ * @typedef {Object} SignalSource
+ * @property {string} peerId - ID of the emitting peer ('self' if local).
+ * @property {string} origin - Origin URL.
+ * @property {'local'|'iframe'|'worker'|'service-worker'|'window'} type - Source type.
+ */
+
+/**
+ * @callback SignalHandler
+ * @param {SignalEvent} event - The signal event object.
+ * @returns {void|Promise<void>}
+ */
+
+/**
+ * @typedef {Object} ListenerEntry
+ * @property {string} id - Subscription ID.
+ * @property {SignalHandler} handler - The callback function.
+ * @property {number} priority - Execution priority.
+ * @property {'sync'|'async'} mode - Execution mode.
+ * @property {boolean} once - Auto-remove after first invocation.
+ * @property {AbortSignal|null} signal - Abort signal.
+ * @property {Function} syncHandler - Raw payload callback for emitSync.
+ * @property {Function|null} dispose - Subscription cleanup.
+ */
+
+/**
+ * @typedef {Object} RemoveResult
+ * @property {boolean} success - True if at least one listener was removed.
+ * @property {number} removedCount - Number of listeners removed.
+ * @property {number} remainingCount - Listeners still registered for this signal.
+ */
+
+/**
+ * Local event emitter with wildcard support.
+ *
+ * Supports:
+ * - Exact match: `on('user:login', handler)`
+ * - Namespace wildcard: `on('user:*', handler)` matches `user:login`, `user:logout`
+ * - Global wildcard: `on('*', handler)` matches all signals
+ *
+ * @example
+ * const emitter = new EventEmitter();
+ *
+ * // Basic listener
+ * emitter.on('message', (event) => console.log(event.data));
+ *
+ * // Wildcard listener
+ * emitter.on('user:*', (event) => console.log('User event:', event.name));
+ *
+ * // Emit signal
+ * emitter.emit('message', { text: 'Hello' });
+ */
+class EventEmitter {
+    constructor() {
+        /** @type {Map<string, ListenerEntry[]>} */
+        this[LISTENERS] = new Map();
+
+        /** @type {number} */
+        this[SUB_COUNTER] = 0;
+
+        /** @type {number} Max listeners before memory leak warning */
+        this[MAX_LISTENERS] = DEFAULT_MAX_LISTENERS;
+
+        /** @type {Object<string, Function[]>} Fast Object-based cache for callbacks only */
+        this[FAST_CACHE] = Object.create(null);
+        this[FAST_ONLY] = Object.create(null);
+    }
+
+    /**
+     * Sets the max listeners threshold for memory leak warnings.
+     * @param {number} n - Max listeners (0 = unlimited)
+     */
+    setMaxListeners(n) {
+        this[MAX_LISTENERS] = n;
+        return this;
+    }
+
+    /**
+     * Gets the current max listeners setting.
+     * @returns {number}
+     */
+    getMaxListeners() {
+        return this[MAX_LISTENERS];
+    }
+
+    /**
+     * Registers a listener for a signal.
+     *
+     * @param {string} name - Signal name. Supports wildcards: '*', 'namespace:*'.
+     * @param {SignalHandler} handler - Callback function.
+     * @param {ListenerOptions} [options={}] - Configuration options.
+     * @returns {Subscription} Subscription object.
+     * @throws {TypeError} If name is not a string or handler is not a function.
+     *
+     * @example
+     * // Basic listener
+     * const sub = emitter.on('user:login', (event) => {
+     *   console.log(`User ${event.data.userId} logged in`);
+     * });
+     *
+     * @example
+     * // One-time listener
+     * emitter.on('init:complete', handler, { once: true });
+     *
+     * @example
+     * // With AbortController
+     * const controller = new AbortController();
+     * emitter.on('data:update', handler, { signal: controller.signal });
+     * controller.abort(); // Removes listener
+     *
+     * @example
+     * // Priority-based ordering
+     * emitter.on('event', lowPriorityHandler, { priority: 1 });
+     * emitter.on('event', highPriorityHandler, { priority: 10 }); // Runs first
+     */
+    on(name, handler, options = {}) {
+        if (typeof name !== 'string') {
+            throw new TypeError('Signal name must be a string');
+        }
+        if (typeof handler !== 'function') {
+            throw new TypeError('Handler must be a function');
+        }
+
+        const id = `sub_${++this[SUB_COUNTER]}`;
+
+        // V8 Optimization: Consistent object shape for hidden class caching
+        // All entries have same properties in same order
+        /** @type {ListenerEntry} */
+        const entry = {
+            id,
+            handler,
+            priority: options.priority ?? 0,
+            mode: options.mode ?? 'async',
+            once: options.once ?? false,
+            signal: options.signal ?? null,
+            syncHandler: options.once ? data => {
+                if (!subscription.active) return;
+                this.#removeListener(name, id);
+                return handler(data);
+            } : handler,
+            dispose: null
+        };
+
+        // Get or create listeners array for this signal
+        if (!this[LISTENERS].has(name)) {
+            this[LISTENERS].set(name, []);
+        }
+
+        const listeners = this[LISTENERS].get(name);
+
+        // Binary insert for O(log n) search instead of O(n log n) sort
+        if (listeners.length === 0 || entry.priority <= listeners[listeners.length - 1].priority) {
+            // Fast path: append (most common case with priority 0)
+            listeners.push(entry);
+        } else {
+            // Binary search for insert position (higher priority first)
+            let lo = 0, hi = listeners.length;
+            while (lo < hi) {
+                const mid = (lo + hi) >>> 1;
+                if (listeners[mid].priority >= entry.priority) {
+                    lo = mid + 1;
+                } else {
+                    hi = mid;
+                }
+            }
+            listeners.splice(lo, 0, entry);
+        }
+
+        // Sync FAST_CACHE for ultra-fast emitSync
+        this.#rebuildCache(name);
+
+        // Memory leak detection: warn if too many listeners
+        const maxListeners = this[MAX_LISTENERS];
+        if (maxListeners > 0 && listeners.length > maxListeners) {
+            console.warn(
+                `[CrossBus] Possible memory leak: ${listeners.length} listeners for "${name}". ` +
+                `Use setMaxListeners(n) to increase limit.`
+            );
+        }
+
+        // Create subscription object
+        let active = true;
+        const subscription = {
+            id,
+            signalName: name,
+            get active() { return active; },
+            unsubscribe: () => {
+                if (active) {
+                    this.#removeListener(name, id);
+                    active = false;
+                }
+            }
+        };
+
+        const abortHandler = () => subscription.unsubscribe();
+        entry.dispose = () => {
+            active = false;
+            entry.signal?.removeEventListener('abort', abortHandler);
+        };
+        // Handle AbortSignal
+        if (entry.signal) {
+            if (entry.signal.aborted) {
+                // Already aborted, remove immediately
+                this.#removeListener(name, id);
+                active = false;
+            } else {
+                entry.signal.addEventListener('abort', abortHandler, { once: true });
+            }
+        }
+
+        return subscription;
+    }
+
+    /**
+     * Registers a one-time listener.
+     * Convenience method for `on(name, handler, { once: true })`.
+     *
+     * @param {string} name - Signal name.
+     * @param {SignalHandler} handler - Callback function.
+     * @param {ListenerOptions} [options={}] - Additional options.
+     * @returns {Subscription} Subscription object.
+     */
+    once(name, handler, options = {}) {
+        return this.on(name, handler, { ...options, once: true });
+    }
+
+    /**
+     * Ultra-fast listener registration for performance-critical paths.
+     *
+     * Unlike on(), this method:
+     * - No input validation (caller must ensure correct types)
+     * - No subscription object (returns unbind function directly)
+     * - No priority, once, or AbortSignal support
+     * - Direct push to FAST_CACHE (minimal overhead)
+     *
+     * Use when you need maximum subscribe performance.
+     *
+     * @param {string} name - Signal name.
+     * @param {(data: any) => void} handler - Callback function.
+     * @returns {Function} Unbind function (call to remove listener).
+     *
+     * @example
+     * const off = emitter.onFast('tick', (data) => console.log(data));
+     * off(); // Remove listener
+     */
+    onFast(name, handler) {
+        const fast = (this[FAST_ONLY][name] ||= []);
+        fast.push(handler);
+        const cached = this[FAST_CACHE][name];
+        if (!cached) this[FAST_CACHE][name] = fast;
+        else if (cached !== fast) cached.push(handler);
+        return () => this.offFast(name, handler);
+    }
+
+    /**
+     * Ultra-fast listener removal for performance-critical paths.
+     *
+     * @param {string} name - Signal name.
+     * @param {(data: any) => void} handler - Handler to remove.
+     */
+    offFast(name, handler) {
+        const listeners = this[LISTENERS].get(name);
+        if (listeners?.some(entry => entry.handler === handler)) {
+            this.off(name, handler);
+            return;
+        }
+        const fast = this[FAST_ONLY][name];
+        if (!fast) return;
+        const remaining = fast.filter(callback => callback !== handler);
+        // Keep the empty array for reuse, as in the nano emitter. off(name)
+        // and clear() remove the event key when the application retires it.
+        this[FAST_ONLY][name] = remaining;
+        if (listeners?.length) this.#rebuildCache(name);
+        else this[FAST_CACHE][name] = remaining;
+    }
+
+    /**
+     * Removes signal listener(s).
+     *
+     * @param {string} name - Signal name.
+     * @param {SignalHandler} [handler] - Specific handler to remove.
+     *                                    If omitted, removes ALL listeners.
+     * @returns {RemoveResult} Result of the removal.
+     * @throws {TypeError} If name is not a string.
+     *
+     * @example
+     * // Remove specific handler
+     * const result = emitter.off('msg', myHandler);
+     * // => { success: true, removedCount: 1, remainingCount: 0 }
+     *
+     * @example
+     * // Remove ALL listeners for a signal
+     * emitter.off('updates');
+     * // => { success: true, removedCount: 2, remainingCount: 0 }
+     */
+    off(name, handler) {
+        if (typeof name !== 'string') {
+            throw new TypeError('Signal name must be a string');
+        }
+
+        const listeners = this[LISTENERS].get(name) ?? [];
+        const fast = this[FAST_ONLY][name] ?? [];
+        const removed = listeners.filter(entry => handler === undefined || entry.handler === handler);
+        for (const entry of removed) entry.dispose?.();
+        const remaining = listeners.filter(entry => !removed.includes(entry));
+        const remainingFast = handler === undefined ? [] : fast.filter(fn => fn !== handler);
+        if (remaining.length) this[LISTENERS].set(name, remaining);
+        else this[LISTENERS].delete(name);
+        if (remainingFast.length) this[FAST_ONLY][name] = remainingFast;
+        else delete this[FAST_ONLY][name];
+        this.#rebuildCache(name);
+        const removedCount = removed.length + fast.length - remainingFast.length;
+        return { success: removedCount > 0, removedCount, remainingCount: remaining.length + remainingFast.length };
+    }
+
+    /**
+     * Ultra-fast synchronous emit for performance-critical paths.
+     *
+     * Unlike emit(), this method:
+     * - Is synchronous (no async/await overhead)
+     * - Passes data directly (no event envelope)
+     * - Skips messageId, timestamp generation
+     * - No wildcard matching (exact match only)
+     *
+     * Use for high-frequency events where metadata is not needed.
+     *
+     * @param {string} name - Signal name (exact match only).
+     * @param {*} data - Payload to pass directly to handlers.
+     * @returns {number} Number of listeners invoked.
+     *
+     * @example
+     * emitter.emitSync('tick', { x: 100, y: 200 });
+     */
+    emitSync(name, data) {
+        // Ultra-fast path: use Object-based cache
+        const callbacks = this[FAST_CACHE][name];
+        if (!callbacks) return 0;
+
+        // Direct callback invocation (no .handler indirection)
+        const len = callbacks.length;
+        if (len === 1) {
+            callbacks[0](data);
+            return 1;
+        }
+        if (len === 2) {
+            callbacks[0](data);
+            callbacks[1](data);
+            return 2;
+        }
+        if (len === 3) {
+            callbacks[0](data);
+            callbacks[1](data);
+            callbacks[2](data);
+            return 3;
+        }
+        if (len === 4) {
+            callbacks[0](data);
+            callbacks[1](data);
+            callbacks[2](data);
+            callbacks[3](data);
+            return 4;
+        }
+
+        // General loop for 5+ listeners
+        for (let i = 0; i < len; i++) {
+            callbacks[i](data);
+        }
+        return len;
+    }
+
+    /**
+     * Emits a signal to local listeners.
+     *
+     * @param {string} name - Signal name.
+     * @param {*} data - Payload data.
+     * @param {Partial<SignalSource>} [source] - Signal source info.
+     * @returns {Promise<number>} Number of listeners invoked.
+     * @throws {TypeError} If name is not a string.
+     *
+     * @example
+     * const count = await emitter.emit('user:login', { userId: 123 });
+     * console.log(`Notified ${count} listeners`);
+     */
+    async emit(name, data, source) {
+        if (typeof name !== 'string') {
+            throw new TypeError('Signal name must be a string');
+        }
+
+        // Fast path: single exact-match listener, no wildcards
+        const exactListeners = this[LISTENERS].get(name);
+        const colon = name.indexOf(':');
+        const hasWildcard = this[LISTENERS].has('*') ||
+            (colon > 0 && this[LISTENERS].has(name.slice(0, colon + 1) + '*'));
+
+        if (!exactListeners?.length && !hasWildcard) return 0;
+        if (exactListeners?.length === 1 && !hasWildcard && !source) {
+            const entry = exactListeners[0];
+            const event = {
+                name,
+                data,
+                messageId: uuid(),
+                timestamp: Date.now(),
+                source: DEFAULT_SOURCE
+            };
+
+            if (entry.once) this.#removeListener(name, entry.id);
+            try {
+                if (entry.mode === 'sync') {
+                    await entry.handler(event);
+                } else {
+                    Promise.resolve().then(() => entry.handler(event))
+                        .catch(error => console.error(`[CrossBus] Handler error for "${name}":`, error));
+                }
+            } catch (error) {
+                console.error(`[CrossBus] Handler error for "${name}":`, error);
+            }
+
+            return 1;
+        }
+
+        // Full path: multiple listeners or wildcards
+        const event = {
+            name,
+            data,
+            messageId: uuid(),
+            timestamp: Date.now(),
+            source: source ? { ...DEFAULT_SOURCE, ...source } : DEFAULT_SOURCE
+        };
+
+        // Collect matching listeners
+        const matchingEntries = this.#getMatchingListeners(name);
+
+        for (const { signalName, entry } of matchingEntries) {
+            if (entry.once) this.#removeListener(signalName, entry.id);
+        }
+
+        // Invoke handlers
+        for (const { entry } of matchingEntries) {
+            try {
+                if (entry.mode === 'sync') {
+                    await entry.handler(event);
+                } else {
+                    // Fire async without blocking
+                    Promise.resolve().then(() => entry.handler(event))
+                        .catch(error => console.error(`[CrossBus] Handler error for "${name}":`, error));
+                }
+            } catch (error) {
+                // Log but don't throw - other listeners should still run
+                console.error(`[CrossBus] Handler error for "${name}":`, error);
+            }
+
+        }
+
+
+        return matchingEntries.length;
+    }
+
+    /**
+     * Checks if there are any listeners for a signal.
+     *
+     * @param {string} name - Signal name (exact match only).
+     * @returns {boolean} True if listeners exist.
+     */
+    hasListeners(name) {
+        const listeners = this[LISTENERS].get(name);
+        return (listeners?.length ?? 0) + (this[FAST_ONLY][name]?.length ?? 0) > 0;
+    }
+
+    /**
+     * Gets the count of listeners for a signal.
+     *
+     * @param {string} name - Signal name (exact match only).
+     * @returns {number} Number of listeners.
+     */
+    listenerCount(name) {
+        return (this[LISTENERS].get(name)?.length ?? 0) + (this[FAST_ONLY][name]?.length ?? 0);
+    }
+
+    /**
+     * Gets all registered signal names.
+     *
+     * @returns {string[]} Array of signal names.
+     */
+    getSignalNames() {
+        return [...new Set([...this[LISTENERS].keys(), ...Object.keys(this[FAST_ONLY]).filter(name => this[FAST_ONLY][name].length)])];
+    }
+
+    /**
+     * Removes all listeners.
+     */
+    clear() {
+        for (const listeners of this[LISTENERS].values()) for (const entry of listeners) entry.dispose?.();
+        this[LISTENERS].clear();
+        this[FAST_ONLY] = Object.create(null);
+        // Reset FAST_CACHE to empty object
+        for (const key in this[FAST_CACHE]) {
+            delete this[FAST_CACHE][key];
+        }
+    }
+
+    /**
+     * Gets all listeners matching a signal name (including wildcards).
+     *
+     *
+     * @param {string} name - Signal name to match.
+     * @returns {Array<{signalName: string, entry: ListenerEntry}>} Matching entries.
+     */
+    #getMatchingListeners(name) {
+        // Fast path: check exact match first and if no wildcards registered
+        const exactListeners = this[LISTENERS].get(name);
+        const globalWildcard = this[LISTENERS].get('*');
+
+        // Find namespace wildcards (e.g., 'user:*' for 'user:login')
+        let namespaceWildcard = null;
+        const colonIdx = name.indexOf(':');
+        if (colonIdx > 0) {
+            const wildcardPattern = name.slice(0, colonIdx + 1) + '*';
+            namespaceWildcard = this[LISTENERS].get(wildcardPattern);
+        }
+
+        // Super-fast path: only exact match, no wildcards
+        if (exactListeners && !globalWildcard && !namespaceWildcard) {
+            return exactListeners.map(entry => ({ signalName: name, entry }));
+        }
+
+        // Fast path: single source, already sorted
+        const sources = [
+            exactListeners && { signalName: name, entries: exactListeners },
+            globalWildcard && { signalName: '*', entries: globalWildcard },
+            namespaceWildcard && { signalName: name.slice(0, colonIdx + 1) + '*', entries: namespaceWildcard }
+        ].filter(Boolean).filter((source, index, all) =>
+            all.findIndex(candidate => candidate.signalName === source.signalName) === index);
+
+        if (sources.length === 0) {
+            return [];
+        }
+
+        if (sources.length === 1) {
+            // Single source: already sorted, no merge needed
+            return sources[0].entries.map(entry => ({ signalName: sources[0].signalName, entry }));
+        }
+
+        // Multiple sources: collect and merge-sort by priority
+        const results = [];
+        for (const { signalName, entries } of sources) {
+            for (const entry of entries) {
+                results.push({ signalName, entry });
+            }
+        }
+
+        // Only sort when merging multiple sources
+        results.sort((a, b) => b.entry.priority - a.entry.priority);
+
+        return results;
+    }
+
+
+
+    /**
+     * Removes a listener by ID.
+     *
+     *
+     * @param {string} name - Signal name.
+     * @param {string} id - Subscription ID.
+     */
+    #removeListener(name, id) {
+        const listeners = this[LISTENERS].get(name);
+        if (!listeners) return;
+
+        const entry = listeners.find(entry => entry.id === id);
+        entry?.dispose?.();
+        const filtered = listeners.filter(entry => entry.id !== id);
+        if (filtered.length) this[LISTENERS].set(name, filtered);
+        else this[LISTENERS].delete(name);
+        this.#rebuildCache(name);
+    }
+
+    /** @param {string} name */
+    #rebuildCache(name) {
+        const listeners = this[LISTENERS].get(name) ?? [];
+        const fast = this[FAST_ONLY][name] ?? [];
+        const callbacks = [...listeners.map(entry => entry.syncHandler), ...fast];
+        if (callbacks.length) this[FAST_CACHE][name] = callbacks;
+        else delete this[FAST_CACHE][name];
+    }
+
+}
+
+/**
+ * Creates a minimal synchronous plain object emitter.
+ *
+ * Unlike EventEmitter class, this is a minimal plain object with:
+ * - No class overhead
+ * - No Symbol lookups
+ * - No validation
+ * - Direct property access
+ *
+ * @returns {Object} Fast emitter with on(), emit() methods
+ *
+ * @example
+ * const emitter = createFastEmitter();
+ * const off = emitter.on('event', (data) => console.log(data));
+ * emitter.emit('event', { value: 42 });
+ * off(); // Remove listener
+ */
+const createFastEmitter = () => ({
+    events: Object.create(null),
+
+    /**
+     * Subscribe to an event. Returns unbind function.
+     * @param {string} event - Event name
+     * @param {(data: any) => void} cb - Callback function
+     * @returns {Function} Unbind function
+     */
+    on(event, cb) {
+        (this.events[event] ||= []).push(cb);
+        return () => {
+            this.events[event] = this.events[event]?.filter(i => cb !== i);
+        };
+    },
+
+    /**
+     * Emit an event to all listeners.
+     * @param {string} event - Event name
+     * @param {*} data - Data to pass to listeners
+     */
+    emit(event, data) {
+        const c = this.events[event];
+        if (!c) return;
+        const len = c.length;
+        // Unrolled for 1-4 (most common)
+        if (len === 1) { c[0](data); return; }
+        if (len === 2) { c[0](data); c[1](data); return; }
+        if (len === 3) { c[0](data); c[1](data); c[2](data); return; }
+        if (len === 4) { c[0](data); c[1](data); c[2](data); c[3](data); return; }
+        // Loop for 5+
+        for (let i = 0; i < len; i++) c[i](data);
+    },
+
+    /**
+     * Remove all listeners for an event or all events.
+     * @param {string} [event] - Event name (omit to clear all)
+     */
+    off(event) {
+        if (event !== undefined) {
+            delete this.events[event];
+        } else {
+            this.events = Object.create(null);
+        }
+    }
+});
+
+/**
+ * @fileoverview Common types and constants shared across all modules.
+ * This module is included in the common bundle to avoid duplication.
+ * @module common/types
+ */
+
+/**
+ * Protocol marker for CrossBus messages.
+ * @constant {string}
+ */
+const PROTOCOL_MARKER = '_cb';
+
+/**
+ * Current protocol version.
+ * @constant {number}
+ */
+const PROTOCOL_VERSION = 1;
+
+/**
+ * Message type codes (compact for wire efficiency).
+ * @readonly
+ * @enum {string}
+ */
+const MessageType = Object.freeze({
+    /** Signal - one-way message */
+    SIGNAL: 'sig',
+    /** Request - expects response */
+    REQUEST: 'req',
+    /** Response - reply to request */
+    RESPONSE: 'res',
+    /** Acknowledge - delivery confirmation */
+    ACK: 'ack',
+    /** Handshake - connection negotiation */
+    HANDSHAKE: 'hsk',
+    HANDSHAKE_INIT: 'hsk_init',
+    HANDSHAKE_ACK: 'hsk_ack',
+    HANDSHAKE_COMPLETE: 'hsk_done',
+    /** Ping - heartbeat */
+    PING: 'png',
+    /** Pong - heartbeat response */
+    PONG: 'pog',
+    /** Goodbye - graceful disconnect */
+    BYE: 'bye',
+    /** Broadcast - message for all peers */
+    BROADCAST: 'bc'
+});
+
+/**
+ * Handshake phase codes.
+ * @readonly
+ * @enum {string}
+ */
+const HandshakePhase = Object.freeze({
+    INIT: 'init',
+    INIT_SENT: 'init_sent',
+    ACK: 'ack',
+    ACK_SENT: 'ack_sent',
+    DONE: 'done'
+});
+
+/**
+ * Peer connection status.
+ * @readonly
+ * @enum {string}
+ */
+const PeerStatus = Object.freeze({
+    CONNECTING: 'connecting',
+    CONNECTED: 'connected',
+    DISCONNECTED: 'disconnected',
+    RECONNECTING: 'reconnecting',
+    FAILED: 'failed'
+});
+
+/**
+ * Peer type (transport mechanism).
+ * @readonly
+ * @enum {string}
+ */
+const PeerType = Object.freeze({
+    IFRAME: 'iframe',
+    WORKER: 'worker',
+    SERVICE_WORKER: 'sw',
+    WINDOW: 'window',
+    PORT: 'port'
+});
+
+/**
+ * Delivery status for emit results.
+ * @readonly
+ * @enum {string}
+ */
+const DeliveryStatus = Object.freeze({
+    /** Delivered to local listeners only */
+    LOCAL: 'local',
+    /** Sent to peer (no ACK requested) */
+    SENT: 'sent',
+    /** Sent and ACK received */
+    ACKED: 'acked',
+    /** Queued for offline peer */
+    QUEUED: 'queued',
+    /** ACK timeout */
+    TIMEOUT: 'timeout',
+    /** Delivery failed */
+    FAILED: 'failed'
+});
+
+/**
+ * Checks if an object is a valid CrossBus message.
+ *
+ * @param {*} obj - Object to check.
+ * @returns {boolean} True if valid protocol message.
+ */
+function isProtocolMessage(obj) {
+    return (
+        obj !== null &&
+        typeof obj === 'object' &&
+        obj[PROTOCOL_MARKER] === PROTOCOL_VERSION &&
+        typeof obj.id === 'string' &&
+        (typeof obj.type === 'string' || typeof obj.t === 'string')
+    );
+}
+
+/**
+ * Checks if a value is transferable.
+ *
+ * @param {*} value - Value to check.
+ * @returns {boolean} True if transferable.
+ */
+function isTransferable(value) {
+    if (value instanceof ArrayBuffer) return true;
+    if (value instanceof MessagePort) return true;
+    if (typeof ImageBitmap !== 'undefined' && value instanceof ImageBitmap) return true;
+    if (typeof OffscreenCanvas !== 'undefined' && value instanceof OffscreenCanvas) return true;
+    if (typeof ReadableStream !== 'undefined' && value instanceof ReadableStream) return true;
+    if (typeof WritableStream !== 'undefined' && value instanceof WritableStream) return true;
+    if (typeof TransformStream !== 'undefined' && value instanceof TransformStream) return true;
+    return false;
+}
+
+/**
+ * Recursively finds all transferable objects in a value.
+ *
+ * @param {*} value - Value to search.
+ * @param {Set<Transferable>} [found] - Set to collect transferables.
+ * @returns {Transferable[]} Array of transferables found.
+ */
+function findTransferables(value, found = new Set(), seen = new Set()) {
+    if (value === null || value === undefined) return Array.from(found);
+    if (isTransferable(value)) {
+        found.add(value);
+        return Array.from(found);
+    }
+    if (typeof value !== 'object' || seen.has(value)) return Array.from(found);
+    seen.add(value);
+    const values = value instanceof Map ? [...value.keys(), ...value.values()]
+        : value instanceof Set ? value.values() : Object.values(value);
+    for (const item of values) findTransferables(item, found, seen);
+    return Array.from(found);
+}
+
+// PROTOCOL_PREFIX and PROTOCOL_VERSION are imported from common/types.js
+
+/**
+ * Creates a protocol message envelope.
+ *
+ * @param {MessageType} type - Message type.
+ * @param {Object} payload - Message payload.
+ * @param {Object} [meta={}] - Additional metadata.
+ * @param {string|null} [id=null] - Optional custom message ID.
+ * @returns {ProtocolMessage} Frozen message object.
+ *
+ * @typedef {Object} ProtocolMessage
+ * @property {number} _cb - Protocol marker version (compact wire format).
+ * @property {number} version - Protocol version.
+ * @property {string} id - Unique message ID (UUID v4).
+ * @property {MessageType} type - Message type.
+ * @property {number} timestamp - Unix timestamp (ms).
+ * @property {Object} payload - Message payload.
+ * @property {Object} meta - Additional metadata.
+ */
+function createMessage(type, payload, meta = {}, id = null) {
+  return Object.freeze({
+    [PROTOCOL_MARKER]: PROTOCOL_VERSION,
+    version: PROTOCOL_VERSION,
+    id: id || uuid(),
+    type,
+    timestamp: Date.now(),
+    payload: Object.freeze({ ...payload }),
+    meta: Object.freeze({ ...meta })
+  });
+}
+
+/**
+ * Creates a signal message.
+ *
+ * @param {string} name - Signal name.
+ * @param {*} data - Signal data.
+ * @param {string} sourcePeerId - Source peer ID.
+ * @param {string|null} [destPeerId] - Destination peer ID.
+ * @returns {ProtocolMessage} Signal message.
+ */
+function createSignalMessage(name, data, sourcePeerId, destPeerId = null) {
+  return createMessage(MessageType.SIGNAL, {
+    name,
+    data,
+    source: sourcePeerId,
+    dest: destPeerId
+  });
+}
+
+/**
+ * Creates a request message (expecting response).
+ *
+ * @param {string} name - Request name.
+ * @param {*} data - Request data.
+ * @param {string} sourcePeerId - Source peer ID.
+ * @param {string} destPeerId - Destination peer ID.
+ * @param {string|null} [id=null] - Optional custom request ID.
+ * @returns {ProtocolMessage} Request message.
+ */
+function createRequestMessage(name, data, sourcePeerId, destPeerId, id = null) {
+  return createMessage(MessageType.REQUEST, {
+    name,
+    data,
+    source: sourcePeerId,
+    dest: destPeerId
+  }, {}, id);
+}
+
+/**
+ * Creates a response message.
+ *
+ * @param {string} requestId - Original request message ID.
+ * @param {*} data - Response data.
+ * @param {string} sourcePeerId - Source peer ID.
+ * @param {boolean} [success=true] - Whether request succeeded.
+ * @param {Object|null} [error] - Error object if failed.
+ * @returns {ProtocolMessage} Response message.
+ */
+function createResponseMessage(requestId, data, sourcePeerId, success = true, error = null) {
+  return createMessage(MessageType.RESPONSE, {
+    requestId,
+    data,
+    source: sourcePeerId,
+    success,
+    error
+  });
 }
 
 /**
@@ -1576,28 +1604,28 @@ function timestamp() {
 
 /**
  * Message router for hub-based communication pattern.
- * 
+ *
  * In hub mode, all messages flow through a central router which:
  * - Maintains peer registry
  * - Routes unicast messages to specific peers
  * - Broadcasts messages to all/selected peers
  * - Tracks message delivery
- * 
+ *
  * Performance optimizations:
- * - Object-based cache for fast peer lookup (faster than Map.get)
+ * - Object-based cache for fast peer lookup
  * - Direct sendFn cache to avoid property indirection
  * - Unrolled loops for common broadcast patterns
- * 
+ *
  * @example
  * const router = new MessageRouter();
- * 
+ *
  * // Register peers
  * router.addPeer('widget-1', (msg) => iframe1.postMessage(msg));
  * router.addPeer('widget-2', (msg) => iframe2.postMessage(msg));
- * 
+ *
  * // Route unicast
  * router.route({ target: 'widget-1', payload: data });
- * 
+ *
  * // Route broadcast
  * router.broadcast({ payload: data });
  */
@@ -1629,14 +1657,14 @@ class MessageRouter extends EventEmitter {
 
     /**
      * Adds a peer to the routing table.
-     * 
+     *
      * @param {string} peerId - Unique peer identifier.
-     * @param {EventListener} sendFn - Function to send messages to peer.
+     * @param {(message: any) => void} sendFn - Function to send messages to peer.
      * @param {Object} [options={}] - Additional options.
      * @param {Object} [options.meta={}] - Peer metadata.
      * @param {string} [options.origin='unknown'] - Peer origin.
      * @throws {CrossBusError} If peer already exists.
-     * 
+     *
      * @example
      * router.addPeer('iframe-widget', (msg) => {
      *   iframe.contentWindow.postMessage(msg, '*');
@@ -1676,7 +1704,7 @@ class MessageRouter extends EventEmitter {
 
     /**
      * Removes a peer from the routing table.
-     * 
+     *
      * @param {string} peerId - Peer to remove.
      * @returns {boolean} True if peer was removed.
      */
@@ -1702,18 +1730,18 @@ class MessageRouter extends EventEmitter {
 
     /**
      * Gets a peer by ID.
-     * 
+     *
      * @param {string} peerId
      * @returns {RoutingEntry|undefined}
      */
     getPeer(peerId) {
-        // Fast Object-based lookup (faster than Map.get)
+        // Fast Object-based lookup
         return this.#peerCache[peerId];
     }
 
     /**
      * Gets all connected peer IDs.
-     * 
+     *
      * @returns {string[]}
      */
     getPeerIds() {
@@ -1723,7 +1751,7 @@ class MessageRouter extends EventEmitter {
 
     /**
      * Gets count of connected peers.
-     * 
+     *
      * @returns {number}
      */
     get peerCount() {
@@ -1732,7 +1760,7 @@ class MessageRouter extends EventEmitter {
 
     /**
      * Routes a message to a specific peer or broadcasts.
-     * 
+     *
      * @param {Object} message - Message to route.
      * @param {string} [message.target] - Target peer ID (omit for broadcast).
      * @param {Object} message.payload - Message payload.
@@ -1756,7 +1784,7 @@ class MessageRouter extends EventEmitter {
 
     /**
      * Broadcasts a message to all peers.
-     * 
+     *
      * @param {Object} payload - Message payload.
      * @param {Object} [options={}] - Broadcast options.
      * @param {string[]} [options.exclude] - Peers to exclude.
@@ -1784,7 +1812,9 @@ class MessageRouter extends EventEmitter {
             if (peer.status !== PeerStatus.CONNECTED) continue;
 
             try {
-                const envelope = this.#createEnvelope(peerId, payload, MessageType.BROADCAST);
+                // Standard protocol envelopes already carry identity and metadata.
+                // Avoid nesting and allocating another envelope for every peer.
+                const envelope = payload?._cb === 1 ? payload : this.#createEnvelope(peerId, payload, MessageType.BROADCAST);
                 peer.sendFn(envelope);
                 delivered++;
             } catch (error) {
@@ -1799,7 +1829,7 @@ class MessageRouter extends EventEmitter {
     /**
      * Gets the next sequence number for a peer.
      * Used for causal ordering in SignalStore.
-     * 
+     *
      * @param {string} peerId
      * @returns {number}
      */
@@ -1809,7 +1839,7 @@ class MessageRouter extends EventEmitter {
 
     /**
      * Updates peer status.
-     * 
+     *
      * @param {string} peerId
      * @param {PeerStatus} status
      */
@@ -1838,7 +1868,7 @@ class MessageRouter extends EventEmitter {
 
     /**
      * Routes to a single peer.
-     * 
+     *
      */
     #routeUnicast(peerId, payload) {
         const peer = this.#peerCache[peerId];
@@ -1877,7 +1907,7 @@ class MessageRouter extends EventEmitter {
 
     /**
      * Broadcasts to multiple peers.
-     * 
+     *
      */
     #routeBroadcast(payload, exclude) {
         // exclude is already a Set or null from route()
@@ -1886,7 +1916,7 @@ class MessageRouter extends EventEmitter {
 
     /**
      * Creates a message envelope with routing info.
-     * 
+     *
      */
     #createEnvelope(peerId, payload, type) {
         // Increment per-peer sequence
@@ -1917,6 +1947,7 @@ class MessageRouter extends EventEmitter {
  * @property {string} handlerName - Name of the handler.
  * @property {number} createdAt - When request was created.
  * @property {number} timeout - Timeout in ms.
+ * @property {ReturnType<typeof setTimeout>} timer - Owned timeout resource.
  * @property {Function} resolve - Promise resolve function.
  * @property {Function} reject - Promise reject function.
  * @property {*} [defaultValue] - Value to return on timeout.
@@ -1938,36 +1969,33 @@ class MessageRouter extends EventEmitter {
 
 /**
  * Tracks pending requests and matches responses.
- * 
+ *
  * Supports:
  * - Timeout handling
  * - Automatic cleanup
  * - Error propagation
  * - Request cancellation
- * 
+ *
  * @example
  * const tracker = new PendingRequests();
- * 
+ *
  * // Create request
  * const { requestId, promise } = tracker.create('peer-1', 'getData', {
  *   timeout: 5000
  * });
- * 
+ *
  * // Send request via transport...
  * transport.send({ id: requestId, type: 'request', handler: 'getData' });
- * 
+ *
  * // When response arrives:
  * tracker.resolve(requestId, responseData);
- * 
+ *
  * // Or wait for response:
  * const result = await promise;
  */
 class PendingRequests {
-    /** @type {Map<string, PendingRequest>} Full feature storage */
+    /** @type {Map<string, PendingRequest>} Authoritative request storage */
     #pending = new Map();
-
-    /** @type {Object<string, PendingRequest>} Fast Object-based cache for lookup */
-    #cache = Object.create(null);
 
     /** @type {number} */
     #requestCounter = 0;
@@ -1980,7 +2008,7 @@ class PendingRequests {
 
     /**
      * Creates a new pending requests tracker.
-     * 
+     *
      * @param {Object} [options={}]
      * @param {number} [options.defaultTimeout=30000] - Default timeout in ms.
      * @param {number} [options.maxPending=1000] - Maximum pending requests (0 = unlimited).
@@ -1992,12 +2020,12 @@ class PendingRequests {
 
     /**
      * Creates a new pending request.
-     * 
+     *
      * @param {string} targetPeer - Target peer ID.
      * @param {string} handlerName - Name of the handler to invoke.
      * @param {RequestOptions} [options={}] - Request options.
      * @returns {{ requestId: string, promise: Promise<*> }}
-     * 
+     *
      * @example
      * const { requestId, promise } = tracker.create('widget', 'getState');
      * const result = await promise;
@@ -2018,60 +2046,38 @@ class PendingRequests {
         const timeout = options.timeout ?? this.#defaultTimeout;
         const { promise, resolve, reject } = deferred();
 
+        // Own the timeout directly: one promise per request, and synchronous
+        // resource release on every settlement path. No Promise.race wrapper.
+        const timer = setTimeout(() => {
+            if (!this.#pending.delete(requestId)) return;
+            if ('defaultValue' in options) resolve(options.defaultValue);
+            else reject(CrossBusError.from(ErrorCode.RESPONSE_TIMEOUT, {
+                requestId, targetPeer, handlerName, timeout
+            }));
+        }, timeout);
         /** @type {PendingRequest} */
         const pending = {
-            id: requestId,
-            targetPeer,
-            handlerName,
-            createdAt: now,
-            timeout,
-            resolve,
-            reject,
-            defaultValue: options.defaultValue
+            id: requestId, targetPeer, handlerName, createdAt: now, timeout,
+            timer, resolve, reject, defaultValue: options.defaultValue
         };
-
         this.#pending.set(requestId, pending);
-        this.#cache[requestId] = pending;  // Sync fast cache
-
-        // Set up timeout
-        const timeoutPromise = withTimeout(promise, timeout).catch(error => {
-            // Cleanup on timeout - use cache for fast check
-            if (requestId in this.#cache) {
-                this.#pending.delete(requestId);
-                delete this.#cache[requestId];
-
-                // Return default value if provided
-                if ('defaultValue' in options) {
-                    return options.defaultValue;
-                }
-
-                throw CrossBusError.from(ErrorCode.RESPONSE_TIMEOUT, {
-                    requestId,
-                    targetPeer,
-                    handlerName,
-                    timeout
-                });
-            }
-            throw error;
-        });
-
-        return { requestId, promise: timeoutPromise };
+        return { requestId, promise };
     }
 
     /**
      * Resolves a pending request with response data.
-     * 
+     *
      * @param {string} requestId - Request ID to resolve.
      * @param {ResponseData} response - Response data.
      * @returns {boolean} True if request was found and resolved.
      */
     resolve(requestId, response) {
-        const pending = this.#cache[requestId];
+        const pending = this.#pending.get(requestId);
         if (!pending) return false;
 
-        // Sync both storages
+        clearTimeout(pending.timer);
+        // Remove the settled request
         this.#pending.delete(requestId);
-        delete this.#cache[requestId];
 
         if (response.success) {
             pending.resolve(response.data);
@@ -2094,18 +2100,18 @@ class PendingRequests {
 
     /**
      * Rejects a pending request with an error.
-     * 
+     *
      * @param {string} requestId - Request ID to reject.
      * @param {Error|string} error - Error or error message.
      * @returns {boolean} True if request was found and rejected.
      */
     reject(requestId, error) {
-        const pending = this.#cache[requestId];
+        const pending = this.#pending.get(requestId);
         if (!pending) return false;
 
-        // Sync both storages
+        clearTimeout(pending.timer);
+        // Remove the settled request
         this.#pending.delete(requestId);
-        delete this.#cache[requestId];
 
         const err = error instanceof Error ? error : new Error(error);
         pending.reject(err);
@@ -2115,17 +2121,17 @@ class PendingRequests {
 
     /**
      * Cancels a pending request.
-     * 
+     *
      * @param {string} requestId - Request ID to cancel.
      * @returns {boolean} True if request was found and cancelled.
      */
     cancel(requestId) {
-        const pending = this.#cache[requestId];
+        const pending = this.#pending.get(requestId);
         if (!pending) return false;
 
-        // Sync both storages
+        clearTimeout(pending.timer);
+        // Remove the settled request
         this.#pending.delete(requestId);
-        delete this.#cache[requestId];
         pending.reject(new Error('Request cancelled'));
 
         return true;
@@ -2134,7 +2140,7 @@ class PendingRequests {
     /**
      * Cancels all pending requests for a peer.
      * Used when peer disconnects.
-     * 
+     *
      * @param {string} peerId - Peer ID.
      * @returns {number} Number of requests cancelled.
      */
@@ -2143,8 +2149,8 @@ class PendingRequests {
 
         for (const [requestId, pending] of this.#pending) {
             if (pending.targetPeer === peerId) {
+                clearTimeout(pending.timer);
                 this.#pending.delete(requestId);
-                delete this.#cache[requestId];  // Sync cache
                 pending.reject(CrossBusError.from(ErrorCode.PEER_DISCONNECTED, {
                     peerId,
                     requestId
@@ -2158,44 +2164,41 @@ class PendingRequests {
 
     /**
      * Cancels all pending requests.
-     * 
+     *
      * @returns {number} Number of requests cancelled.
      */
     cancelAll() {
         const count = this.#pending.size;
 
-        for (const [requestId, pending] of this.#pending) {
+        for (const pending of this.#pending.values()) {
+            clearTimeout(pending.timer);
             pending.reject(new Error('All requests cancelled'));
         }
 
         this.#pending.clear();
-        // Reset cache to empty object
-        for (const key in this.#cache) {
-            delete this.#cache[key];
-        }
         return count;
     }
 
     /**
      * Checks if a request is pending.
-     * 
+     *
      * @param {string} requestId
      * @returns {boolean}
      */
     has(requestId) {
-        // Fast Object-based check (faster than Map.has)
-        return requestId in this.#cache;
+        // Query the authoritative request table
+        return this.#pending.has(requestId);
     }
 
     /**
      * Gets a pending request.
-     * 
+     *
      * @param {string} requestId
      * @returns {PendingRequest|undefined}
      */
     get(requestId) {
-        // Fast Object-based lookup
-        return this.#cache[requestId];
+        // Query the authoritative request table
+        return this.#pending.get(requestId);
     }
 
     /**
@@ -2216,7 +2219,7 @@ class PendingRequests {
 
     /**
      * Gets pending requests for a specific peer.
-     * 
+     *
      * @param {string} peerId
      * @returns {PendingRequest[]}
      */
@@ -2266,7 +2269,7 @@ class PendingRequests {
 
 /**
  * Handshake protocol for secure peer establishment.
- * 
+ *
  * Protocol flow:
  * ```
  * INITIATOR                          RESPONDER
@@ -2304,7 +2307,7 @@ class Handshake {
 
     /**
      * Creates a new Handshake handler.
-     * 
+     *
      * @param {HandshakeConfig} [config={}]
      */
     constructor(config = {}) {
@@ -2324,7 +2327,7 @@ class Handshake {
 
     /**
      * Creates a handshake initiation message.
-     * 
+     *
      * @returns {Object} Handshake init message.
      */
     createInitMessage() {
@@ -2340,7 +2343,7 @@ class Handshake {
 
     /**
      * Creates a handshake acknowledgment message.
-     * 
+     *
      * @param {Object} initMessage - The received init message.
      * @param {boolean} accept - Whether to accept the connection.
      * @param {string} [reason] - Rejection reason if not accepted.
@@ -2361,7 +2364,7 @@ class Handshake {
 
     /**
      * Creates a handshake completion message.
-     * 
+     *
      * @param {string} handshakeId - The handshake ID.
      * @returns {Object} Handshake complete message.
      */
@@ -2376,7 +2379,7 @@ class Handshake {
 
     /**
      * Initiates a handshake with a peer.
-     * 
+     *
      * @param {EventListener} sendFn - Function to send messages to peer.
      * @returns {Promise<HandshakeResult>} Result of handshake attempt.
      */
@@ -2421,7 +2424,7 @@ class Handshake {
 
     /**
      * Handles a received handshake message.
-     * 
+     *
      * @param {Object} message - Received handshake message.
      * @param {string} origin - Origin of the message.
      * @param {EventListener} sendFn - Function to send response.
@@ -2446,7 +2449,7 @@ class Handshake {
 
     /**
      * Checks if a handshake is pending.
-     * 
+     *
      * @param {string} handshakeId
      * @returns {boolean}
      */
@@ -2456,7 +2459,7 @@ class Handshake {
 
     /**
      * Cancels a pending handshake.
-     * 
+     *
      * @param {string} handshakeId
      */
     cancel(handshakeId) {
@@ -2471,7 +2474,7 @@ class Handshake {
      * Cancels all pending handshakes.
      */
     cancelAll() {
-        for (const [id, pending] of this.#pendingHandshakes) {
+        for (const [_id, pending] of this.#pendingHandshakes) {
             pending.reject(new Error('All handshakes cancelled'));
         }
         this.#pendingHandshakes.clear();
@@ -2483,7 +2486,7 @@ class Handshake {
 
     /**
      * Handles HANDSHAKE_INIT message (we are responder).
-     * 
+     *
      */
     #handleInit(message, origin, sendFn, validateFn) {
         // Validate if validator provided
@@ -2513,7 +2516,7 @@ class Handshake {
 
     /**
      * Handles HANDSHAKE_ACK message (we are initiator).
-     * 
+     *
      */
     #handleAck(message, origin, sendFn) {
         const pending = this.#pendingHandshakes.get(message.handshakeId);
@@ -2554,7 +2557,7 @@ class Handshake {
 
     /**
      * Handles HANDSHAKE_COMPLETE message (we are responder).
-     * 
+     *
      */
     #handleComplete(message, origin) {
         const pending = this.#pendingHandshakes.get(message.handshakeId);
@@ -2592,12 +2595,12 @@ class Handshake {
 
 /**
  * Validates message origins against a configured allowlist.
- * 
+ *
  * Supports:
  * - Exact matches: 'https://example.com'
  * - Wildcards: 'https://*.example.com' (subdomains only)
  * - Protocols: 'chrome-extension://*', 'file://*'
- * 
+ *
  * @example
  * const validator = new OriginValidator({
  *   allowed: [
@@ -2605,7 +2608,7 @@ class Handshake {
  *     'https://*.widgets.com'
  *   ]
  * });
- * 
+ *
  * validator.isAllowed('https://app.example.com');     // true
  * validator.isAllowed('https://foo.widgets.com');     // true
  * validator.isAllowed('https://evil.com');            // false
@@ -2625,7 +2628,7 @@ class OriginValidator {
 
     /**
      * Creates a new origin validator.
-     * 
+     *
      * @param {OriginValidatorOptions} [options={}] - Configuration.
      */
     constructor(options = {}) {
@@ -2642,10 +2645,10 @@ class OriginValidator {
 
     /**
      * Checks if an origin is allowed.
-     * 
+     *
      * @param {string} origin - Origin to check (e.g., 'https://example.com').
      * @returns {boolean} True if allowed.
-     * 
+     *
      * @example
      * validator.isAllowed('https://trusted.com');  // true
      * validator.isAllowed('https://unknown.com');  // false
@@ -2683,7 +2686,7 @@ class OriginValidator {
 
     /**
      * Adds an origin to the allowlist.
-     * 
+     *
      * @param {string} origin - Origin to add (supports wildcards).
      * @returns {this} For chaining.
      */
@@ -2694,7 +2697,7 @@ class OriginValidator {
 
     /**
      * Removes an origin from the allowlist.
-     * 
+     *
      * @param {string} origin - Origin to remove.
      * @returns {boolean} True if removed.
      */
@@ -2712,7 +2715,7 @@ class OriginValidator {
 
     /**
      * Gets all exact (non-pattern) allowed origins.
-     * 
+     *
      * @returns {string[]} Array of allowed origins.
      */
     getAllowed() {
@@ -2723,6 +2726,7 @@ class OriginValidator {
      * Clears all allowed origins.
      */
     clear() {
+        this.#allowAll = false;
         this.#exactOrigins.clear();
         this.#patterns = [];
     }
@@ -2741,7 +2745,7 @@ class OriginValidator {
 
     /**
      * Adds an origin to the appropriate collection.
-     * 
+     *
      * @param {string} origin
      */
     #addOrigin(origin) {
@@ -2768,7 +2772,7 @@ class OriginValidator {
     /**
      * Creates a RegExp from a wildcard pattern.
      * Uses bounded quantifiers to prevent ReDoS attacks.
-     * 
+     *
      * @param {string} pattern - Pattern with wildcards.
      * @returns {RegExp}
      */
@@ -2857,7 +2861,6 @@ const OriginValidatorPresets = {
 /**
  * @typedef {Object} RequestOptions
  * @property {number} [timeout] - Request timeout in ms.
- * @property {*} [defaultValue] - Value to return on timeout instead of throwing.
  */
 
 /**
@@ -2896,38 +2899,20 @@ const OriginValidatorPresets = {
  */
 
 /**
- * CrossBus - Zero-leak, high-performance cross-context messaging.
- * 
- * Features:
- * - Hub/Mesh routing
- * - Request/Response pattern
- * - Broadcast to all peers
- * - ACK-based reliability
- * - Origin validation
- * - Resource lifecycle management
- * 
+ * CrossBus coordinates channel-bound peers, signals and request/response.
+ * Configure transport origin/source validation and an explicit bus allowlist.
+ * addTransport() wires an existing endpoint; it does not negotiate a connection
+ * or automatically forward requests to other peers. signal() sends remotely;
+ * inherited emit() dispatches locally.
+ *
  * @example
- * // Hub (main page)
- * const hub = new CrossBus({ isHub: true });
- * 
- * // Connect iframe
- * hub.connect(iframe.contentWindow, {
- *   targetOrigin: 'https://widget.example.com'
+ * const bus = CrossBus.createSecure({
+ *   peerId: 'app', allowedOrigins: ['https://widget.example.com']
  * });
- * 
- * // Register handler
- * hub.handle('getData', async (payload, ctx) => {
- *   return { items: await fetchItems() };
- * });
- * 
- * // Emit signal
- * hub.emit('user:login', { userId: 123 });
- * 
- * // Request/Response
- * const result = await hub.request('widget-1', 'getStatus');
- * 
- * // Cleanup
- * hub.destroy();
+ * bus.handle('getData', ({ id }) => ({ id, status: 'ready' }));
+ * // Attach an initialized transport with bus.addTransport(...).
+ * const result = await bus.request('widget', 'getStatus');
+ * bus.destroy();
  */
 class CrossBus extends EventEmitter {
     /** @type {string} */
@@ -2996,9 +2981,12 @@ class CrossBus extends EventEmitter {
     /** @type {boolean} */
     #destroyed = false;
 
+    /** @type {Set<Function>} */
+    #cleanups = new Set();
+
     /**
      * Creates a new CrossBus instance.
-     * 
+     *
      * @param {CrossBusOptions} [options={}]
      */
     constructor(options = {}) {
@@ -3007,13 +2995,20 @@ class CrossBus extends EventEmitter {
         this.#peerId = options.peerId ?? uuid();
         this.#isHub = options.isHub ?? false;
         this.#meta = options.meta ?? {};
-        this.#capabilities = options.capabilities ?? [];
+        this.#capabilities = [...(options.capabilities ?? [])];
         this.#requestTimeout = options.requestTimeout ?? 30000;
 
+        if (options.strictMode && options.allowedOrigins?.some(origin => origin.includes('*'))) {
+            throw new Error('strictMode: wildcard origins are not allowed');
+        }
+        for (const limit of [options.maxPayloadSize, options.maxPendingRequests]) {
+            if (limit !== undefined && (!Number.isSafeInteger(limit) || limit < 0)) throw new RangeError('Resource limits must be nonnegative safe integers');
+        }
         // Initialize components
         this.#router = new MessageRouter();
         this.#pendingRequests = new PendingRequests({
-            defaultTimeout: this.#requestTimeout
+            defaultTimeout: this.#requestTimeout,
+            maxPending: options.maxPendingRequests ?? 100
         });
         this.#handshake = new Handshake({
             peerId: this.#peerId,
@@ -3089,7 +3084,7 @@ class CrossBus extends EventEmitter {
 
     /**
      * Gets peer info by ID.
-     * 
+     *
      * @param {string} peerId
      * @returns {PeerInfo|undefined}
      */
@@ -3103,13 +3098,13 @@ class CrossBus extends EventEmitter {
 
     /**
      * Sends a signal to all connected peers.
-     * 
+     *
      * @param {string} signalName - Signal name (e.g., 'user:login').
      * @param {*} [payload] - Signal payload.
      * @param {Object} [options={}] - Send options.
      * @param {string[]} [options.exclude] - Peer IDs to exclude.
      * @returns {Promise<{ delivered: number, failed: string[] }>}
-     *  
+     *
      * @example
      * bus.signal('user:login', { userId: 123 });
      */
@@ -3117,11 +3112,9 @@ class CrossBus extends EventEmitter {
         this.#assertNotDestroyed();
 
         // Apply outbound hooks
-        const transformedPayload = await this.#runHooks(
-            this.#outboundHooks,
-            payload,
-            { type: 'signal', direction: 'outbound' }
-        );
+        const transformedPayload = this.#outboundHooks.length
+            ? await this.#runHooks(this.#outboundHooks, payload, { type: 'signal', direction: 'outbound' })
+            : this.#checkedPayload(payload);
 
         const message = createSignalMessage(
             signalName,
@@ -3129,7 +3122,7 @@ class CrossBus extends EventEmitter {
             this.#peerId
         );
 
-        const result = await this.#router.broadcast(message, options);
+        const result = this.#router.broadcast(message, options);
 
         this.#log('out', `SIGNAL "${signalName}" to ${result.delivered} peers`);
 
@@ -3138,38 +3131,50 @@ class CrossBus extends EventEmitter {
 
     /**
      * Sends a request to a specific peer and waits for response.
-     * 
+     *
      * @param {string} peerId - Target peer ID.
      * @param {string} handlerName - Handler to invoke.
      * @param {*} [payload] - Request payload.
      * @param {RequestOptions} [options={}]
      * @returns {Promise<*>} Handler response.
-     * 
+     *
      * @example
      * const data = await bus.request('widget-1', 'getData', { id: 5 });
      */
-    async request(peerId, handlerName, payload, options = {}) {
-        this.#assertNotDestroyed();
-
-        this.#log('out', `REQUEST "${handlerName}" to ${peerId}`);
-
-        const peer = this.#router.getPeer(peerId);
-        if (!peer) {
-            throw CrossBusError.from(ErrorCode.PEER_NOT_FOUND, { peerId });
+    request(peerId, handlerName, payload, options = {}) {
+        try {
+            this.#assertNotDestroyed();
+            this.#log('out', `REQUEST "${handlerName}" to ${peerId}`);
+            if (!this.#router.getPeer(peerId)) {
+                throw CrossBusError.from(ErrorCode.PEER_NOT_FOUND, { peerId });
+            }
+            // Return the owned pending promise directly on the common path.
+            // Asynchronous hooks retain their ordering and rejection semantics.
+            if (this.#outboundHooks.length) {
+                return this.#runHooks(this.#outboundHooks, payload,
+                    { type: 'request', peerId, handlerName, direction: 'outbound' })
+                    .then(transformed => this.#sendRequest(peerId, handlerName, transformed, options));
+            }
+            return this.#sendRequest(peerId, handlerName, this.#checkedPayload(payload), options);
+        } catch (error) {
+            // The public API always returns a Promise, including validation,
+            // lifecycle and missing-peer failures.
+            return Promise.reject(error);
         }
+    }
 
-        // Create pending request
+    /**
+     * Starts tracking only after outbound validation/hooks have succeeded.
+     * @param {string} peerId
+     * @param {string} handlerName
+     * @param {*} transformedPayload
+     * @param {RequestOptions} options
+     * @returns {Promise<*>}
+     */
+    #sendRequest(peerId, handlerName, transformedPayload, options) {
+        this.#assertNotDestroyed();
         const { requestId, promise } = this.#pendingRequests.create(
-            peerId,
-            handlerName,
-            { timeout: options.timeout ?? this.#requestTimeout }
-        );
-
-        // Apply outbound hooks
-        const transformedPayload = await this.#runHooks(
-            this.#outboundHooks,
-            payload,
-            { type: 'request', peerId, handlerName, direction: 'outbound' }
+            peerId, handlerName, { timeout: options.timeout ?? this.#requestTimeout }
         );
 
         // Build request message
@@ -3185,8 +3190,7 @@ class CrossBus extends EventEmitter {
         const result = this.#router.route({ target: peerId, payload: message });
 
         if (!result.success) {
-            this.#pendingRequests.cancel(requestId);
-            throw CrossBusError.from(ErrorCode.SEND_FAILED, { peerId });
+            this.#pendingRequests.reject(requestId, CrossBusError.from(ErrorCode.SEND_FAILED, { peerId }));
         }
 
         return promise;
@@ -3194,12 +3198,12 @@ class CrossBus extends EventEmitter {
 
     /**
      * Broadcasts a request to all peers and collects responses.
-     * 
+     *
      * @param {string} handlerName - Handler to invoke on all peers.
      * @param {*} [payload] - Request payload.
      * @param {BroadcastRequestOptions} [options={}]
      * @returns {Promise<Map<string, *>>} Map of peerId -> response.
-     * 
+     *
      * @example
      * const responses = await bus.broadcastRequest('getStatus');
      * for (const [peerId, status] of responses) {
@@ -3244,18 +3248,18 @@ class CrossBus extends EventEmitter {
 
     /**
      * Registers a request handler.
-     * 
+     *
      * @param {string} handlerName - Handler name.
      * @param {RequestHandler} handler - Handler function.
      * @param {HandlerOptions} [options={}] - Security options.
      * @returns {Function} Unregister function.
-     * 
+     *
      * @example
      * // Basic handler
      * const unhandle = bus.handle('getData', async (payload, ctx) => {
      *   return await fetchData(payload.id);
      * });
-     * 
+     *
      * // Secure handler with restrictions
      * bus.handle('sensitiveData', async (payload) => { ... }, {
      *   allowedPeers: ['trusted-agent'],  // Only these peers can call
@@ -3264,6 +3268,8 @@ class CrossBus extends EventEmitter {
      * });
      */
     handle(handlerName, handler, options = {}) {
+        this.#assertNotDestroyed();
+        if (typeof handlerName !== 'string' || typeof handler !== 'function') throw new TypeError('Handler name and function required');
         if (this.#handlers.has(handlerName)) {
             throw CrossBusError.from(ErrorCode.HANDLER_EXISTS, { handlerName });
         }
@@ -3275,25 +3281,26 @@ class CrossBus extends EventEmitter {
 
         this.#handlers.set(handlerName, handler);
 
-        return () => {
-            this.#handlers.delete(handlerName);
-            this.#handlerOptions.delete(handlerName);
-        };
+        return () => this.unhandle(handlerName);
     }
 
     /**
      * Removes a handler.
-     * 
+     *
      * @param {string} handlerName
      * @returns {boolean} True if handler was removed.
      */
     unhandle(handlerName) {
+        this.#handlerOptions.delete(handlerName);
+        for (const key of this.#rateLimitCounters.keys()) {
+            if (JSON.parse(key)[0] === handlerName) this.#rateLimitCounters.delete(key);
+        }
         return this.#handlers.delete(handlerName);
     }
 
     /**
      * Checks if a handler is registered.
-     * 
+     *
      * @param {string} handlerName
      * @returns {boolean}
      */
@@ -3307,11 +3314,11 @@ class CrossBus extends EventEmitter {
 
     /**
      * Adds an inbound hook to transform incoming payloads.
-     * 
+     *
      * @param {MessageHook} hookFn - Hook function.
      * @param {number} [priority=10] - Execution priority (lower = first).
      * @returns {Function} Unregister function.
-     * 
+     *
      * @example
      * // Decrypt incoming messages
      * const unhook = bus.addInboundHook(async (payload, ctx) => {
@@ -3332,11 +3339,11 @@ class CrossBus extends EventEmitter {
 
     /**
      * Adds an outbound hook to transform outgoing payloads.
-     * 
+     *
      * @param {MessageHook} hookFn - Hook function.
      * @param {number} [priority=10] - Execution priority (lower = first).
      * @returns {Function} Unregister function.
-     * 
+     *
      * @example
      * // Encrypt outgoing messages
      * const unhook = bus.addOutboundHook(async (payload, ctx) => {
@@ -3357,7 +3364,7 @@ class CrossBus extends EventEmitter {
 
     /**
      * Removes an inbound hook.
-     * 
+     *
      * @param {MessageHook} hookFn
      * @returns {boolean} True if removed.
      */
@@ -3372,7 +3379,7 @@ class CrossBus extends EventEmitter {
 
     /**
      * Removes an outbound hook.
-     * 
+     *
      * @param {MessageHook} hookFn
      * @returns {boolean} True if removed.
      */
@@ -3392,9 +3399,9 @@ class CrossBus extends EventEmitter {
     /**
      * Adds a peer with a send function.
      * Used for hub mode when managing connections manually.
-     * 
+     *
      * @param {string} peerId - Peer identifier.
-     * @param {EventListener} sendFn - Function to send messages.
+     * @param {(message: any) => void} sendFn - Function to send messages.
      * @param {Object} [options={}] - Additional options.
      */
     addPeer(peerId, sendFn, options = {}) {
@@ -3404,7 +3411,7 @@ class CrossBus extends EventEmitter {
 
     /**
      * Removes a peer.
-     * 
+     *
      * @param {string} peerId
      * @returns {boolean}
      */
@@ -3416,20 +3423,20 @@ class CrossBus extends EventEmitter {
     /**
      * Adds a transport and automatically wires up message handling.
      * This is the recommended way to connect transports for AI agents.
-     * 
+     *
      * @param {Object} transport - Transport instance with send() and onMessage() methods.
      * @param {Object} [options={}] - Additional options.
      * @param {string} [options.peerId] - Override peer ID (defaults to transport's peerId or auto-generated).
      * @param {string} [options.origin='*'] - Origin for message validation.
      * @returns {Function} Cleanup function to remove the transport.
-     * 
+     *
      * @example
      * // Simple usage
      * const cleanup = bus.addTransport(new PostMessageTransport(iframe.contentWindow));
-     * 
+     *
      * // With options
      * const cleanup = bus.addTransport(transport, { peerId: 'my-agent' });
-     * 
+     *
      * // Cleanup when done
      * cleanup();
      */
@@ -3443,31 +3450,42 @@ class CrossBus extends EventEmitter {
         const peerId = options.peerId || transport.peerId || `transport-${uuid()}`;
         const origin = options.origin || '*';
 
-        // Wire up inbound: transport -> CrossBus
+        this.addPeer(peerId, (message) => transport.send(message), options);
         if (typeof transport.onMessage === 'function') {
-            transport.onMessage((message) => {
-                this.handleMessage(message, origin, peerId);
+            transport.onMessage((message, source) => {
+                // Window transports provide the actual event origin. Explicit
+                // origin is the trust label for originless channels/native hosts.
+                const actualOrigin = source?.origin || origin;
+                this.handleMessage(message, actualOrigin, peerId)
+                    .catch(error => console.error('[CrossBus] Incoming message rejected:', error));
             });
         }
-
-        // Wire up outbound: CrossBus -> transport
-        this.addPeer(peerId, (message) => {
-            transport.send(message);
-        }, options);
-
-        // Return cleanup function
-        return () => {
+        const cleanup = () => {
+            if (!this.#cleanups.delete(cleanup)) return;
+            transport.offMessage?.();
             this.removePeer(peerId);
-            if (typeof transport.destroy === 'function') {
-                transport.destroy();
-            }
+            transport.destroy?.();
         };
+        this.#cleanups.add(cleanup);
+        return cleanup;
+    }
+
+    /**
+     * Registers synchronous resource cleanup for bus destruction.
+     * @param {Function} cleanup
+     * @returns {() => boolean} Removes the registration without running it.
+     */
+    addCleanup(cleanup) {
+        this.#assertNotDestroyed();
+        if (typeof cleanup !== 'function') throw new TypeError('Cleanup must be a function');
+        this.#cleanups.add(cleanup);
+        return () => this.#cleanups.delete(cleanup);
     }
 
     /**
      * Handles an incoming message.
      * Call this when receiving a message from any transport.
-     * 
+     *
      * @param {Object} message - The received message.
      * @param {string} origin - Origin of the message.
      * @param {string} [peerId] - Source peer ID if known.
@@ -3482,7 +3500,7 @@ class CrossBus extends EventEmitter {
             return;
         }
 
-        // Apply inbound hooks to payload
+        if (!message || typeof message !== 'object') return;
         // Apply inbound hooks to payload
         // Support both standard 'payload'/'data' and legacy 'p'
         const rawPayload = message.payload ?? message.data ?? message.p;
@@ -3515,7 +3533,7 @@ class CrossBus extends EventEmitter {
             dataContent = innerMsg.payload.data ?? innerMsg.data;
         }
 
-        if (dataContent !== undefined) {
+        {
             const hookContext = {
                 type: msgType === MessageType.SIGNAL ? 'signal' :
                     msgType === MessageType.REQUEST ? 'request' : 'response',
@@ -3524,7 +3542,20 @@ class CrossBus extends EventEmitter {
                 direction: 'inbound'
             };
             // Run hooks
-            dataContent = await this.#runHooks(this.#inboundHooks, dataContent, hookContext);
+            try {
+                dataContent = this.#inboundHooks.length
+                    ? await this.#runHooks(this.#inboundHooks, dataContent, hookContext)
+                    : this.#checkedPayload(dataContent);
+            } catch (/** @type {any} */ error) {
+                if (msgType !== MessageType.REQUEST) throw error;
+                const response = createResponseMessage(message.id, null, this.#peerId, false, {
+                    code: error.code ?? ErrorCode.INVALID_PAYLOAD,
+                    message: error.message ?? 'Inbound hook rejected request'
+                });
+                if (replyFn) replyFn(response);
+                else if (peerId) this.#router.route({ target: peerId, payload: response });
+                return;
+            }
         }
 
         switch (msgType) {
@@ -3534,7 +3565,7 @@ class CrossBus extends EventEmitter {
                     console.warn('[CrossBus] Invalid signal name type');
                     return;
                 }
-                await this.#handleSignal(handlerOrName, dataContent, peerId);
+                await this.#handleSignal(handlerOrName, dataContent, peerId, origin);
                 break;
 
             case MessageType.REQUEST:
@@ -3560,7 +3591,7 @@ class CrossBus extends EventEmitter {
                 }
 
                 // If legacy response structure inside payload?
-                this.#handleResponse(message.payload?.requestId ?? message.id, success, dataContent, error);
+                this.#handleResponse(message.payload?.requestId ?? message.id, success, dataContent, error, peerId);
                 break;
             }
 
@@ -3587,6 +3618,14 @@ class CrossBus extends EventEmitter {
 
         this.#destroyed = true;
 
+        for (const cleanup of this.#cleanups) {
+            try { cleanup(); } catch (error) { console.error('[CrossBus] Cleanup failed:', error); }
+        }
+        this.#cleanups.clear();
+        this.#inboundHooks = [];
+        this.#outboundHooks = [];
+        this.#handlerOptions.clear();
+        this.#rateLimitCounters.clear();
         // Cancel all pending requests
         this.#pendingRequests.cancelAll();
 
@@ -3616,18 +3655,18 @@ class CrossBus extends EventEmitter {
 
     /**
      * Handles incoming signal.
-     * 
+     *
      */
-    async #handleSignal(name, data, peerId) {
+    async #handleSignal(name, data, peerId, origin) {
         await this.emit(name, {
             payload: data,
             source: peerId
-        });
+        }, { peerId, origin });
     }
 
     /**
      * Handles incoming request.
-     * 
+     *
      */
     async #handleRequest(requestId, handlerName, data, peerId, replyFn) {
         const handler = this.#handlers.get(handlerName);
@@ -3668,11 +3707,9 @@ class CrossBus extends EventEmitter {
                     });
 
                     // Apply outbound hooks to response
-                    const transformedResult = await this.#runHooks(
-                        this.#outboundHooks,
-                        result,
-                        { type: 'response', peerId, handlerName: handlerName, direction: 'outbound' }
-                    );
+                    const transformedResult = this.#outboundHooks.length
+                        ? await this.#runHooks(this.#outboundHooks, result, { type: 'response', peerId, handlerName, direction: 'outbound' })
+                        : this.#checkedPayload(result);
 
                     response = createResponseMessage(
                         requestId,
@@ -3705,9 +3742,11 @@ class CrossBus extends EventEmitter {
 
     /**
      * Handles incoming response.
-     * 
+     *
      */
-    #handleResponse(requestId, success, data, error) {
+    #handleResponse(requestId, success, data, error, peerId) {
+        const pending = this.#pendingRequests.get(requestId);
+        if (!pending || pending.targetPeer !== peerId) return;
         this.#pendingRequests.resolve(requestId, {
             requestId,
             success,
@@ -3718,7 +3757,7 @@ class CrossBus extends EventEmitter {
 
     /**
      * Asserts the bus is not destroyed.
-     * 
+     *
      */
     #assertNotDestroyed() {
         if (this.#destroyed) {
@@ -3730,18 +3769,21 @@ class CrossBus extends EventEmitter {
 
     /**
      * Runs a chain of hooks on a payload.
-     * 
+     *
      */
+    /** @param {*} payload */
+    #checkedPayload(payload) {
+        assertPayloadSize(payload, this.#maxPayloadSize);
+        return payload;
+    }
+
     async #runHooks(hooks, payload, context) {
         let current = payload;
+        if (hooks.length) assertPayloadSize(current, this.#maxPayloadSize);
         for (const { fn } of hooks) {
-            try {
-                current = await fn(current, context);
-            } catch (error) {
-                console.error('[CrossBus] Hook error:', error);
-                // Continue with unmodified payload on error
-            }
+            current = await fn(current, context);
         }
+        assertPayloadSize(current, this.#maxPayloadSize);
         return current;
     }
 
@@ -3820,7 +3862,7 @@ class CrossBus extends EventEmitter {
 
         // Check rate limit
         if (options.rateLimit) {
-            const limitKey = `${handlerName}:${peerId}`;
+            const limitKey = JSON.stringify([handlerName, peerId]);
             if (!this.#checkRateLimit(limitKey, options.rateLimit)) {
                 return {
                     allowed: false,
@@ -3948,9 +3990,9 @@ class CrossBus extends EventEmitter {
     /**
      * Returns the health status of the CrossBus instance.
      * Useful for monitoring and diagnostics.
-     * 
+     *
      * @returns {Object} Health status object
-     * 
+     *
      * @example
      * const health = bus.healthCheck();
      * // {
@@ -4012,17 +4054,17 @@ class CrossBus extends EventEmitter {
     /**
      * Creates a pre-configured secure CrossBus instance.
      * Recommended for production use by AI agents.
-     * 
+     *
      * Enforces:
      * - strictMode (no wildcard origins)
      * - 1MB max payload size
      * - 100 max pending requests
      * - 30s request timeout
-     * 
+     *
      * @param {CrossBusOptions} options - Configuration options
      * @returns {CrossBus} Configured instance
      * @throws {Error} If allowedOrigins contains '*' or is missing
-     * 
+     *
      * @example
      * // For production use
      * const hub = CrossBus.createSecure({
@@ -4039,7 +4081,7 @@ class CrossBus extends EventEmitter {
             );
         }
 
-        if (options.allowedOrigins.includes('*')) {
+        if (options.allowedOrigins.some(origin => origin.includes('*'))) {
             throw new Error(
                 'createSecure() does not allow wildcard origins. ' +
                 'Specify exact origins: allowedOrigins: ["https://example.com"]'
@@ -4047,11 +4089,11 @@ class CrossBus extends EventEmitter {
         }
 
         return new CrossBus({
-            strictMode: true,
             maxPayloadSize: 1024 * 1024,
             maxPendingRequests: 100,
             requestTimeout: 30000,
-            ...options
+            ...options,
+            strictMode: true
         });
     }
 
@@ -4062,9 +4104,9 @@ class CrossBus extends EventEmitter {
     /**
      * Performs diagnostics and returns troubleshooting suggestions.
      * Designed to help AI agents identify and fix common issues.
-     * 
+     *
      * @returns {Object} Diagnostic report with issues and suggestions
-     * 
+     *
      * @example
      * const report = bus.diagnose();
      * if (report.issues.length > 0) {
@@ -4167,12 +4209,12 @@ class CrossBus extends EventEmitter {
 
 /**
  * Writable stream for sending large payloads in chunks.
- * 
+ *
  * @example
  * const stream = new WritableSignalStream(sendFn, 'upload', {
  *   meta: { filename: 'data.json' }
  * });
- * 
+ *
  * for await (const chunk of readFile(file)) {
  *   await stream.write(chunk);
  * }
@@ -4205,7 +4247,7 @@ class WritableSignalStream {
 
     /**
      * Creates a new writable stream.
-     * 
+     *
      * @param {Function} sendFn - Function to send messages.
      * @param {string} name - Stream name/type identifier.
      * @param {StreamOptions & { meta?: Object }} [options={}] - Options.
@@ -4236,7 +4278,7 @@ class WritableSignalStream {
 
     /**
      * Opens the stream (called automatically on first write).
-     * 
+     *
      * @param {Object} [meta] - Additional metadata.
      * @returns {Promise<void>}
      */
@@ -4254,7 +4296,7 @@ class WritableSignalStream {
 
     /**
      * Writes data to the stream.
-     * 
+     *
      * @param {string | ArrayBuffer | Uint8Array | Object} data - Data to write.
      * @returns {Promise<void>}
      */
@@ -4317,7 +4359,7 @@ class WritableSignalStream {
 
     /**
      * Ends the stream.
-     * 
+     *
      * @param {Object} [finalMeta] - Final metadata.
      * @returns {Promise<void>}
      */
@@ -4335,7 +4377,7 @@ class WritableSignalStream {
 
     /**
      * Aborts the stream with an error.
-     * 
+     *
      * @param {string} [reason] - Error reason.
      * @returns {Promise<void>}
      */
@@ -4352,7 +4394,7 @@ class WritableSignalStream {
 
     /**
      * Sends a stream message.
-     * 
+     *
      * @param {Object} payload - Stream payload.
      */
     async #send(payload) {
@@ -4368,7 +4410,7 @@ class WritableSignalStream {
 
     /**
      * Chunks a string into smaller pieces.
-     * 
+     *
      * @param {string} str - String to chunk.
      * @param {number} size - Chunk size.
      * @returns {string[]}
@@ -4383,7 +4425,7 @@ class WritableSignalStream {
 
     /**
      * Converts Uint8Array to base64.
-     * 
+     *
      * @param {Uint8Array} bytes 
      * @returns {string}
      */
@@ -4398,7 +4440,7 @@ class WritableSignalStream {
 
 /**
  * Readable stream for receiving large payloads.
- * 
+ *
  * @example
  * streamManager.onStream('upload', async (stream) => {
  *   for await (const chunk of stream) {
@@ -4433,7 +4475,7 @@ class ReadableSignalStream {
 
     /**
      * Creates a readable stream from open message.
-     * 
+     *
      * @param {string} streamId - Stream ID.
      * @param {string} name - Stream name.
      * @param {Object} [meta] - Stream metadata.
@@ -4478,7 +4520,7 @@ class ReadableSignalStream {
 
     /**
      * Pushes data chunk from message.
-     * 
+     *
      * @param {Object} message - Stream data message.
      */
     push(message) {
@@ -4503,7 +4545,7 @@ class ReadableSignalStream {
 
     /**
      * Marks stream as ended.
-     * 
+     *
      * @param {Object} [meta] - Final metadata.
      */
     end(meta) {
@@ -4522,7 +4564,7 @@ class ReadableSignalStream {
 
     /**
      * Marks stream as errored.
-     * 
+     *
      * @param {string} reason - Error reason.
      */
     error(reason) {
@@ -4538,7 +4580,7 @@ class ReadableSignalStream {
 
     /**
      * Async iterator for consuming stream.
-     * 
+     *
      * @returns {AsyncIterableIterator<any>}
      */
     async *[Symbol.asyncIterator]() {
@@ -4565,7 +4607,7 @@ class ReadableSignalStream {
 
     /**
      * Collects all data into single result.
-     * 
+     *
      * @returns {Promise<Uint8Array | string>}
      */
     async collect() {
@@ -4597,7 +4639,7 @@ class ReadableSignalStream {
 
     /**
      * Decodes base64 to Uint8Array.
-     * 
+     *
      * @param {string} base64 
      * @returns {Uint8Array}
      */
@@ -4614,17 +4656,17 @@ class ReadableSignalStream {
 /**
  * Stream manager for CrossBus.
  * Handles creating, sending, and receiving streams.
- * 
+ *
  * @example
  * const streams = new StreamManager(bus);
- * 
+ *
  * // Create and send stream
  * const stream = await streams.createStream('upload', 'peer-1', {
  *   meta: { filename: 'data.json' }
  * });
  * await stream.write(data);
  * await stream.end();
- * 
+ *
  * // Receive streams
  * streams.onStream('upload', async (stream) => {
  *   const data = await stream.collect();
@@ -4642,7 +4684,7 @@ class StreamManager {
 
     /**
      * Creates a StreamManager.
-     * 
+     *
      * @param {Function} sendFn - Function to send messages: (peerId, message) => Promise.
      */
     constructor(sendFn) {
@@ -4651,7 +4693,7 @@ class StreamManager {
 
     /**
      * Creates a writable stream to send to a peer.
-     * 
+     *
      * @param {string} name - Stream name/type.
      * @param {string} peerId - Target peer ID.
      * @param {StreamOptions & { meta?: Object }} [options] - Options.
@@ -4667,7 +4709,7 @@ class StreamManager {
 
     /**
      * Registers a handler for incoming streams.
-     * 
+     *
      * @param {string} name - Stream name to handle.
      * @param {(stream: ReadableSignalStream) => Promise<void>} handler - Handler function.
      * @returns {Function} Unregister function.
@@ -4680,7 +4722,7 @@ class StreamManager {
     /**
      * Handles incoming stream message.
      * Call this from CrossBus message handler.
-     * 
+     *
      * @param {Object} message - Stream message.
      * @param {string} peerId - Source peer ID.
      */
@@ -4794,24 +4836,24 @@ class StreamManager {
 
 /**
  * Presence manager for tracking online peers.
- * 
+ *
  * Emits events:
  * - 'join' - Peer came online
  * - 'leave' - Peer went offline
  * - 'update' - Peer presence updated
- * 
+ *
  * @example
  * const presence = new PresenceManager(sendFn, { peerId: 'my-peer' });
- * 
+ *
  * presence.on('join', (peerId, meta) => console.log(`${peerId} is online`));
  * presence.on('leave', (peerId) => console.log(`${peerId} went offline`));
- * 
+ *
  * // Get all online peers
  * const online = presence.getOnlinePeers();
- * 
+ *
  * // Update own status
  * presence.setStatus('away');
- * 
+ *
  * // Cleanup
  * presence.destroy();
  */
@@ -4848,7 +4890,7 @@ class PresenceManager extends EventEmitter {
 
     /**
      * Creates a PresenceManager.
-     * 
+     *
      * @param {Function} sendFn - Function to broadcast messages: (message) => Promise.
      * @param {{ peerId: string } & PresenceOptions} options - Options.
      */
@@ -4937,7 +4979,7 @@ class PresenceManager extends EventEmitter {
 
     /**
      * Sets own presence status.
-     * 
+     *
      * @param {'online' | 'away' | 'offline'} status - New status.
      * @param {Object} [meta] - Optional metadata update.
      */
@@ -4951,7 +4993,7 @@ class PresenceManager extends EventEmitter {
 
     /**
      * Sets own metadata.
-     * 
+     *
      * @param {Object} meta - Metadata to merge.
      */
     setMeta(meta) {
@@ -4961,7 +5003,7 @@ class PresenceManager extends EventEmitter {
 
     /**
      * Gets all online peer IDs.
-     * 
+     *
      * @returns {string[]}
      */
     getOnlinePeers() {
@@ -4976,7 +5018,7 @@ class PresenceManager extends EventEmitter {
 
     /**
      * Gets all peer presences.
-     * 
+     *
      * @returns {PeerPresence[]}
      */
     getAllPeers() {
@@ -4985,7 +5027,7 @@ class PresenceManager extends EventEmitter {
 
     /**
      * Gets a specific peer's presence.
-     * 
+     *
      * @param {string} peerId - Peer ID.
      * @returns {PeerPresence | undefined}
      */
@@ -4995,7 +5037,7 @@ class PresenceManager extends EventEmitter {
 
     /**
      * Checks if a peer is online.
-     * 
+     *
      * @param {string} peerId - Peer ID to check.
      * @returns {boolean}
      */
@@ -5007,7 +5049,7 @@ class PresenceManager extends EventEmitter {
     /**
      * Handles incoming presence message.
      * Call this from CrossBus message handler.
-     * 
+     *
      * @param {Object} message - Presence message.
      * @param {string} fromPeerId - Source peer ID.
      */
@@ -5155,15 +5197,15 @@ class PresenceManager extends EventEmitter {
 
 /**
  * Creates a presence manager integrated with CrossBus.
- * 
+ *
  * @param {import('./cross-bus.js').CrossBus} bus - CrossBus instance.
  * @param {PresenceOptions} [options] - Options.
  * @returns {PresenceManager}
- * 
+ *
  * @example
  * const bus = new CrossBus({ peerId: 'my-peer' });
  * const presence = createPresence(bus);
- * 
+ *
  * presence.on('join', (peerId) => console.log(`${peerId} joined`));
  */
 function createPresence(bus, options = {}) {
@@ -5178,10 +5220,16 @@ function createPresence(bus, options = {}) {
     });
 
     // Register handler for presence messages
-    bus.on('__presence__', (message, ctx) => {
-        presence.handleMessage(message, ctx?.peerId ?? message.peerId);
-    });
-
+    const subscription = bus.on('__presence__', event => {
+        presence.handleMessage(event.data.payload, event.data.source);
+    }, { mode: 'sync' });
+    const originalDestroy = presence.destroy.bind(presence);
+    const unregister = bus.addCleanup(() => presence.destroy());
+    presence.destroy = () => {
+        subscription.unsubscribe();
+        unregister();
+        originalDestroy();
+    };
     return presence;
 }
 
@@ -5219,7 +5267,7 @@ serializers.set(JSONSerializer.contentType, JSONSerializer);
 /**
  * Gets a serializer by content type.
  * Defaults to JSON if not found.
- * 
+ *
  * @param {string} contentType 
  * @returns {Serializer}
  */
@@ -5262,12 +5310,12 @@ function getSerializer(contentType) {
 
 /**
  * PostMessage-based transport for cross-context communication.
- * 
+ *
  * Supports:
  * - Window to Window (iframe, popup)
  * - Main thread to Worker
  * - Main thread to ServiceWorker
- * 
+ *
  * @example
  * // Connect to iframe
  * const iframe = document.getElementById('widget');
@@ -5275,13 +5323,13 @@ function getSerializer(contentType) {
  *   targetOrigin: 'https://widget.example.com',
  *   allowedOrigins: ['https://widget.example.com']
  * });
- * 
+ *
  * transport.onMessage((msg, source) => {
  *   console.log('Received:', msg, 'from:', source.origin);
  * });
- * 
+ *
  * transport.send({ type: 'greeting', payload: { hello: 'world' } });
- * 
+ *
  * // Cleanup
  * transport.destroy();
  */
@@ -5315,7 +5363,7 @@ class PostMessageTransport {
 
     /**
      * Checks if PostMessage API is available.
-     * 
+     *
      * @returns {boolean} True if postMessage is supported.
      */
     static isSupported() {
@@ -5325,7 +5373,7 @@ class PostMessageTransport {
 
     /**
      * Creates a new PostMessage transport.
-     * 
+     *
      * @param {PostMessageTarget} target - The window/worker to communicate with.
      * @param {PostMessageTransportOptions} [options={}] - Configuration options.
      * @throws {TypeError} If target is not a valid postMessage target.
@@ -5363,15 +5411,15 @@ class PostMessageTransport {
 
     /**
      * Sends a message to the target.
-     * 
+     *
      * @param {Object} message - Protocol message to send.
      * @param {Transferable[]} [transfer] - Transferable objects to pass.
      * @throws {CrossBusError} If transport is destroyed or target is closed.
-     * 
+     *
      * @example
      * // Simple send
      * transport.send({ t: 'sig', id: '123', p: { data: 'value' } });
-     * 
+     *
      * // With transferable
      * const buffer = new ArrayBuffer(1024);
      * transport.send({ t: 'sig', id: '456', p: buffer }, [buffer]);
@@ -5391,7 +5439,9 @@ class PostMessageTransport {
         }
 
         // Ensure message has protocol marker
-        const envelope = {
+        // Protocol builders already supply the marker. These transports clone
+        // synchronously, so an extra top-level object copy is unnecessary.
+        const envelope = message[PROTOCOL_MARKER] === PROTOCOL_VERSION ? message : {
             [PROTOCOL_MARKER]: PROTOCOL_VERSION,
             ...message
         };
@@ -5420,16 +5470,16 @@ class PostMessageTransport {
             /** @type {Worker} */(this.#target).postMessage(dataToSend, /** @type {any} */(transferables));
         } else {
             // Windows need origin
-            /** @type {Window} */(this.#target).postMessage(envelope, this.#targetOrigin, transferables);
+            /** @type {Window} */(this.#target).postMessage(dataToSend, this.#targetOrigin, transferables);
         }
     }
 
     /**
      * Registers a message handler.
      * Only one handler can be registered; subsequent calls replace previous.
-     * 
+     *
      * @param {MessageHandler} handler - Function to handle incoming messages.
-     * 
+     *
      * @example
      * transport.onMessage((msg, source) => {
      *   if (msg.t === 'req') {
@@ -5489,7 +5539,7 @@ class PostMessageTransport {
 
     /**
      * Handles incoming message events.
-     * 
+     *
      * @param {MessageEvent} event
      */
     #handleMessage(event) {
@@ -5527,7 +5577,7 @@ class PostMessageTransport {
 
     /**
      * Checks if an origin is allowed.
-     * 
+     *
      * @param {string} origin
      * @returns {boolean}
      */
@@ -5565,7 +5615,7 @@ class PostMessageTransport {
 
     /**
      * Checks if target is a valid postMessage target.
-     * 
+     *
      * @param {*} target
      * @returns {boolean}
      */
@@ -5576,7 +5626,7 @@ class PostMessageTransport {
 
     /**
      * Checks if target is a Worker or ServiceWorker.
-     * 
+     *
      * @returns {boolean}
      */
     #isWorker() {
@@ -5594,7 +5644,7 @@ class PostMessageTransport {
 
     /**
      * Checks if the target window is closed.
-     * 
+     *
      * @returns {boolean}
      */
     #isWindowClosed() {
@@ -5606,7 +5656,7 @@ class PostMessageTransport {
      * Gets the object to attach message listener to.
      * For workers, we listen on the worker itself.
      * For windows, we listen on the current window.
-     * 
+     *
      * @returns {EventTarget}
      */
     #getListenerTarget() {
@@ -5656,31 +5706,31 @@ class PostMessageTransport {
 
 /**
  * BroadcastChannel-based transport for same-origin communication.
- * 
+ *
  * Perfect for:
  * - Multiple tabs of the same app
  * - Communication without opening connections
  * - Pub/sub pattern across contexts
- * 
+ *
  * Limitations:
  * - Same-origin only (no cross-origin)
  * - No guaranteed delivery order
  * - No acknowledgments (fire-and-forget)
- * 
+ *
  * @example
  * // Create transport
  * const transport = new BroadcastChannelTransport({
  *   channelName: 'myapp:events'
  * });
- * 
+ *
  * // Listen for messages
  * transport.onMessage((msg, ctx) => {
  *   console.log('Received:', msg);
  * });
- * 
+ *
  * // Send message (to all other tabs)
  * transport.send({ type: 'notification', payload: { text: 'Hello!' } });
- * 
+ *
  * // Cleanup
  * transport.destroy();
  */
@@ -5705,7 +5755,7 @@ class BroadcastChannelTransport {
 
     /**
      * Checks if BroadcastChannel API is available.
-     * 
+     *
      * @returns {boolean} True if BroadcastChannel is supported.
      */
     static isSupported() {
@@ -5714,11 +5764,12 @@ class BroadcastChannelTransport {
 
     /**
      * Creates a new BroadcastChannel transport.
-     * 
-     * @param {BroadcastChannelTransportOptions} [options={}] - Configuration.
+     *
+     * @param {BroadcastChannelTransportOptions|string} [options={}] - Configuration.
      * @throws {CrossBusError} If BroadcastChannel is not supported.
      */
     constructor(options = {}) {
+        if (typeof options === 'string') options = { channelName: options };
         if (!BroadcastChannelTransport.isSupported()) {
             throw CrossBusError.from(ErrorCode.UNSUPPORTED, {
                 api: 'BroadcastChannel'
@@ -5737,10 +5788,10 @@ class BroadcastChannelTransport {
 
     /**
      * Sends a message to all other tabs/windows.
-     * 
+     *
      * @param {Object} message - Protocol message to send.
      * @throws {CrossBusError} If transport is destroyed.
-     * 
+     *
      * @example
      * transport.send({
      *   t: 'broadcast',
@@ -5756,7 +5807,9 @@ class BroadcastChannelTransport {
         }
 
         // Ensure message has protocol marker
-        const envelope = {
+        // Protocol builders already supply the marker. These transports clone
+        // synchronously, so an extra top-level object copy is unnecessary.
+        const envelope = message[PROTOCOL_MARKER] === PROTOCOL_VERSION ? message : {
             [PROTOCOL_MARKER]: PROTOCOL_VERSION,
             ...message
         };
@@ -5772,7 +5825,7 @@ class BroadcastChannelTransport {
     /**
      * Registers a message handler.
      * Only one handler can be registered; subsequent calls replace previous.
-     * 
+     *
      * @param {MessageHandler} handler - Function to handle incoming messages.
      */
     onMessage(handler) {
@@ -5826,7 +5879,7 @@ class BroadcastChannelTransport {
 
     /**
      * Handles incoming message events.
-     * 
+     *
      * @param {MessageEvent} event
      */
     #handleMessage(event) {
@@ -5860,7 +5913,7 @@ class BroadcastChannelTransport {
 
     /**
      * Handles message errors (e.g., deserialization failures).
-     * 
+     *
      * @param {MessageEvent} event
      */
     #handleError(event) {
@@ -5900,15 +5953,15 @@ class BroadcastChannelTransport {
 
 /**
  * MessageChannel-based transport for direct peer-to-peer communication.
- * 
+ *
  * This transport creates a direct communication channel that bypasses
  * the hub routing, providing lower latency for high-frequency peer pairs.
- * 
+ *
  * Use cases:
  * - Direct iframe ↔ worker communication
  * - High-frequency data streams
  * - Bypassing hub for performance
- * 
+ *
  * @example
  * // On hub side: create channel and send to peer
  * const transport = new MessageChannelTransport();
@@ -5917,7 +5970,7 @@ class BroadcastChannelTransport {
  *   '*',
  *   [transport.remotePort]
  * );
- * 
+ *
  * // On peer side: wrap received port
  * window.addEventListener('message', (e) => {
  *   if (e.data.type === 'channel') {
@@ -5953,7 +6006,7 @@ class MessageChannelTransport {
 
     /**
      * Checks if MessageChannel API is available.
-     * 
+     *
      * @returns {boolean} True if MessageChannel is supported.
      */
     static isSupported() {
@@ -5963,7 +6016,7 @@ class MessageChannelTransport {
     /**
      * Creates a MessageChannelTransport from an existing port.
      * Use this when receiving a port from another context.
-     * 
+     *
      * @param {MessagePort} port - The received port.
      * @param {MessageChannelTransportOptions} [options={}] - Configuration.
      * @returns {MessageChannelTransport}
@@ -5973,44 +6026,31 @@ class MessageChannelTransport {
             throw new TypeError('Port must be a MessagePort');
         }
 
-        const transport = Object.create(MessageChannelTransport.prototype);
-        transport.#localPort = port;
-        transport.#remotePort = null; // Not available when wrapping existing port
-        transport.#autoTransfer = options.autoTransfer ?? false;
-        transport.#contentType = options.contentType ?? 'application/json';
-        transport.#serializer = getSerializer(transport.#contentType);
-        transport.#destroyed = false;
-        transport.#isInitiator = false;
-        transport.#messageHandler = null;
-
-        // Set up message handler
-        transport.#localPort.onmessage = transport.#handleMessage.bind(transport);
-        transport.#localPort.onmessageerror = transport.#handleError.bind(transport);
-
-        return transport;
+        return new MessageChannelTransport(options, port);
     }
 
     /**
      * Creates a new MessageChannel transport (as initiator).
      * The remote port should be sent to the other context via postMessage.
-     * 
+     *
      * @param {MessageChannelTransportOptions} [options={}] - Configuration.
+     * @param {MessagePort|null} [port=null] - Internal existing-port construction. Prefer fromPort().
      * @throws {CrossBusError} If MessageChannel is not supported.
      */
-    constructor(options = {}) {
+    constructor(options = {}, port = null) {
         if (!MessageChannelTransport.isSupported()) {
             throw CrossBusError.from(ErrorCode.UNSUPPORTED, {
                 api: 'MessageChannel'
             });
         }
 
-        const channel = new MessageChannel();
-        this.#localPort = channel.port1;
-        this.#remotePort = channel.port2;
+        const channel = port ? null : new MessageChannel();
+        this.#localPort = port ?? /** @type {MessageChannel} */(channel).port1;
+        this.#remotePort = channel?.port2 ?? null;
         this.#autoTransfer = options.autoTransfer ?? false;
         this.#contentType = options.contentType ?? 'application/json';
         this.#serializer = getSerializer(this.#contentType);
-        this.#isInitiator = true;
+        this.#isInitiator = port === null;
 
         // Set up message handler
         this.#localPort.onmessage = this.#handleMessage.bind(this);
@@ -6020,7 +6060,7 @@ class MessageChannelTransport {
     /**
      * Gets the remote port to send to the other context.
      * This port can only be accessed once and becomes null after transfer.
-     * 
+     *
      * @returns {MessagePort|null} The remote port, or null if already transferred.
      */
     get remotePort() {
@@ -6044,7 +6084,7 @@ class MessageChannelTransport {
 
     /**
      * Sends a message to the connected peer.
-     * 
+     *
      * @param {Object} message - Protocol message to send.
      * @param {Transferable[]} [transfer] - Transferable objects to pass.
      * @throws {CrossBusError} If transport is destroyed.
@@ -6057,7 +6097,9 @@ class MessageChannelTransport {
         }
 
         // Ensure message has protocol marker
-        const envelope = {
+        // Protocol builders already supply the marker. These transports clone
+        // synchronously, so an extra top-level object copy is unnecessary.
+        const envelope = message[PROTOCOL_MARKER] === PROTOCOL_VERSION ? message : {
             [PROTOCOL_MARKER]: PROTOCOL_VERSION,
             ...message
         };
@@ -6082,7 +6124,7 @@ class MessageChannelTransport {
     /**
      * Registers a message handler.
      * Only one handler can be registered; subsequent calls replace previous.
-     * 
+     *
      * @param {MessageHandler} handler - Function to handle incoming messages.
      */
     onMessage(handler) {
@@ -6133,7 +6175,7 @@ class MessageChannelTransport {
 
     /**
      * Handles incoming message events.
-     * 
+     *
      * @param {MessageEvent} event
      */
     #handleMessage(event) {
@@ -6158,7 +6200,7 @@ class MessageChannelTransport {
 
     /**
      * Handles message errors.
-     * 
+     *
      * @param {MessageEvent} event
      */
     #handleError(event) {
@@ -6192,27 +6234,25 @@ class MessageChannelTransport {
 
 /**
  * SharedWorker-based transport for tab communication.
- * 
- * SharedWorkers persist across page refreshes and are shared between
- * all tabs/windows of the same origin. This enables:
- * - Shared state across tabs
- * - Single connection to backend (via worker)
- * - Efficient broadcast to all tabs
- * 
+ *
+ * A compatible shared worker can coordinate same-origin contexts while alive.
+ * The application supplies its script, routing, storage and backend connection.
+ * This transport does not guarantee persistence across navigation or restarts.
+ *
  * @example
  * // Create transport
  * const transport = new SharedWorkerTransport({
  *   workerUrl: '/crossbus-worker.js'
  * });
- * 
+ *
  * // Listen for messages
  * transport.onMessage((msg, ctx) => {
  *   console.log('Received:', msg);
  * });
- * 
+ *
  * // Send message (goes through shared worker to all tabs)
  * transport.send({ t: 'sig', p: { event: 'user:action' } });
- * 
+ *
  * // Cleanup
  * transport.destroy();
  */
@@ -6234,7 +6274,7 @@ class SharedWorkerTransport {
 
     /**
      * Checks if SharedWorker API is available.
-     * 
+     *
      * @returns {boolean} True if SharedWorker is supported.
      */
     static isSupported() {
@@ -6243,7 +6283,7 @@ class SharedWorkerTransport {
 
     /**
      * Creates a new SharedWorker transport.
-     * 
+     *
      * @param {SharedWorkerTransportOptions} [options={}] - Configuration.
      * @throws {CrossBusError} If SharedWorker is not supported.
      */
@@ -6273,7 +6313,7 @@ class SharedWorkerTransport {
 
     /**
      * Sends a message through the SharedWorker.
-     * 
+     *
      * @param {Object} message - Protocol message to send.
      * @param {Transferable[]} [transfer] - Transferable objects.
      * @throws {CrossBusError} If transport is destroyed.
@@ -6303,7 +6343,7 @@ class SharedWorkerTransport {
     /**
      * Registers a message handler.
      * Only one handler can be registered; subsequent calls replace previous.
-     * 
+     *
      * @param {MessageHandler} handler - Function to handle incoming messages.
      */
     onMessage(handler) {
@@ -6359,7 +6399,7 @@ class SharedWorkerTransport {
 
     /**
      * Handles incoming messages from the SharedWorker.
-     * 
+     *
      * @param {MessageEvent} event
      */
     #handleMessage(event) {
@@ -6381,7 +6421,7 @@ class SharedWorkerTransport {
 
     /**
      * Handles message errors.
-     * 
+     *
      * @param {MessageEvent} event
      */
     #handleError(event) {
@@ -6390,7 +6430,7 @@ class SharedWorkerTransport {
 
     /**
      * Handles worker-level errors.
-     * 
+     *
      * @param {ErrorEvent} event
      */
     #handleWorkerError(event) {
@@ -6399,8 +6439,8 @@ class SharedWorkerTransport {
 }
 
 /**
- * @fileoverview ServiceWorker transport for offline-capable communication.
- * Uses ServiceWorker API for background sync and offline messaging.
+ * @fileoverview ServiceWorker transport for messaging an application-provided worker.
+ * Storage, offline queues and background sync are application responsibilities.
  * @module transports/service-worker
  */
 
@@ -6422,27 +6462,24 @@ class SharedWorkerTransport {
  */
 
 /**
- * ServiceWorker-based transport for offline-capable communication.
- * 
- * ServiceWorkers run in the background and can:
- * - Handle messages even when page is not focused
- * - Queue messages for offline delivery
- * - Sync state across all tabs
- * 
+ * Message transport to the application's service worker.
+ * Registration and message routing belong to the application. This transport
+ * does not itself persist messages or implement offline/background delivery.
+ *
  * @example
  * const transport = new ServiceWorkerTransport();
- * 
+ *
  * // Wait for ServiceWorker to be ready
  * await transport.ready;
- * 
+ *
  * // Listen for messages
  * transport.onMessage((msg, ctx) => {
  *   console.log('Received from SW:', msg);
  * });
- * 
+ *
  * // Send message to ServiceWorker
  * transport.send({ t: 'sig', id: 'abc', p: { event: 'sync' } });
- * 
+ *
  * // Cleanup
  * transport.destroy();
  */
@@ -6464,7 +6501,7 @@ class ServiceWorkerTransport {
 
     /**
      * Checks if ServiceWorker API is available.
-     * 
+     *
      * @returns {boolean} True if ServiceWorker is supported.
      */
     static isSupported() {
@@ -6474,7 +6511,7 @@ class ServiceWorkerTransport {
 
     /**
      * Creates a new ServiceWorker transport.
-     * 
+     *
      * @param {ServiceWorkerTransportOptions} [options={}] - Configuration.
      * @throws {CrossBusError} If ServiceWorker is not supported.
      */
@@ -6499,7 +6536,7 @@ class ServiceWorkerTransport {
 
     /**
      * Initializes the ServiceWorker connection.
-     * 
+     *
      */
     async #initialize() {
         // Wait for ServiceWorker to be ready
@@ -6514,7 +6551,7 @@ class ServiceWorkerTransport {
 
     /**
      * Sends a message to the ServiceWorker.
-     * 
+     *
      * @param {Object} message - Protocol message to send.
      * @param {Transferable[]} [transfer] - Transferable objects.
      * @throws {CrossBusError} If transport is destroyed or no controller.
@@ -6548,7 +6585,7 @@ class ServiceWorkerTransport {
 
     /**
      * Registers a message handler.
-     * 
+     *
      * @param {MessageHandler} handler - Function to handle incoming messages.
      */
     onMessage(handler) {
@@ -6596,7 +6633,7 @@ class ServiceWorkerTransport {
 
     /**
      * Handles incoming messages from the ServiceWorker.
-     * 
+     *
      * @param {MessageEvent} event
      */
     #handleMessage(event) {
@@ -6617,366 +6654,166 @@ class ServiceWorkerTransport {
     }
 }
 
-/**
- * @fileoverview Native Bridge transport for Android/iOS WebView communication.
- * Enables CrossBus to communicate with native mobile apps through WebView bridges.
- * @module transports/native-bridge
- */
-
-
-/**
- * @typedef {'android' | 'ios' | 'none'} BridgeType
- */
+/** WebView transport. Native adapters are shipped in native/. JSON payloads only. */
 
 /**
  * @typedef {Object} NativeBridgeTransportOptions
- * @property {string} [androidInterface='CrossBus'] - Name of Android JavascriptInterface.
- * @property {string} [iosHandler='crossbus'] - Name of iOS WKScriptMessageHandler.
- * @property {number} [initTimeout=5000] - Timeout waiting for native bridge (ms).
- * @property {number} [heartbeatInterval=30000] - Heartbeat interval (ms), 0 to disable.
- * @property {boolean} [queueWhileInit=true] - Queue messages while waiting for bridge.
- */
-
-/**
- * @callback MessageHandler
- * @param {Object} message - The received protocol message.
- * @param {{ bridgeType: BridgeType }} source - Bridge type info.
- */
-
-/**
- * Native Bridge transport for WebView ↔ Native communication.
- * 
- * Supports:
- * - Android WebView via JavascriptInterface
- * - iOS WKWebView via WKScriptMessageHandler
- * 
- * @example
- * // In WebView context
- * const transport = new NativeBridgeTransport();
- * 
- * transport.onMessage((msg, source) => {
- *   console.log('From native:', msg, 'via:', source.bridgeType);
- * });
- * 
- * // Send to native
- * transport.send({ type: 'greeting', payload: { hello: 'native' } });
- * 
- * // Cleanup
- * transport.destroy();
+ * @property {string} [androidInterface='CrossBus']
+ * @property {string} [iosHandler='crossbus']
+ * @property {string} [callbackName='__crossbus_receive__'] - Must match the native adapter.
+ * @property {number} [initTimeout=5000]
+ * @property {number} [heartbeatInterval=0] - Optional transport heartbeat.
+ * @property {boolean} [queueWhileInit=true]
+ * @property {number} [maxQueueSize=100]
  */
 class NativeBridgeTransport {
-    /** @type {BridgeType} */
+    #options;
     #bridgeType = 'none';
-
-    /** @type {string} */
-    #androidInterface;
-
-    /** @type {string} */
-    #iosHandler;
-
-    /** @type {MessageHandler|null} */
-    #messageHandler = null;
-
-    /** @type {boolean} */
     #destroyed = false;
-
-    /** @type {boolean} */
     #ready = false;
-
-    /** @type {Array<Object>} */
-    #messageQueue = [];
-
-    /** @type {boolean} */
-    #queueWhileInit;
-
-    /** @type {ReturnType<typeof setInterval>|null} */
-    #heartbeatTimer = null;
-
-    /** @type {number} */
-    #heartbeatInterval;
-
+    /** @type {Function|null} */
+    #handler = null;
+    /** @type {Object[]} */
+    #queue = [];
+    /** @type {ReturnType<typeof setTimeout>|undefined} */
+    #poll;
+    /** @type {ReturnType<typeof setInterval>|undefined} */
+    #heartbeat;
+    /** @type {Function} */
+    #receive;
     /** @type {Promise<void>} */
     #readyPromise;
+    /** @type {Function} */
+    #resolve = () => {};
+    /** @type {Function} */
+    #reject = () => {};
+    /** @type {Error|undefined} */
+    #failure;
 
-    /** @type {((value?: void) => void)|undefined} */
-    #resolveReady;
-
-    /**
-     * Detects which native bridge is available.
-     * 
-     * @returns {BridgeType} The detected bridge type.
-     */
-    static detectBridge() {
-        // Check for Android bridge (customizable name, default 'CrossBus')
-        if (globalThis.CrossBus && typeof globalThis.CrossBus.postMessage === 'function') {
-            return 'android';
-        }
-        // Also check common Android bridge patterns
-        if (globalThis.AndroidBridge && typeof globalThis.AndroidBridge.postMessage === 'function') {
-            return 'android';
-        }
-
-        // iOS: WKWebView injects webkit.messageHandlers
-        if (globalThis.webkit?.messageHandlers?.crossbus) {
-            return 'ios';
-        }
-
+    /** @param {NativeBridgeTransportOptions} [options] */
+    static detectBridge(options = {}) {
+        const android = globalThis[options.androidInterface ?? 'CrossBus'];
+        if (typeof android?.postMessage === 'function') return 'android';
+        if (!options.androidInterface && typeof globalThis.AndroidBridge?.postMessage === 'function') return 'android';
+        if (typeof globalThis.webkit?.messageHandlers?.[options.iosHandler ?? 'crossbus']?.postMessage === 'function') return 'ios';
         return 'none';
     }
 
-    /**
-     * Checks if any native bridge is available.
-     * 
-     * @returns {boolean} True if a native bridge is detected.
-     */
-    static isSupported() {
-        return NativeBridgeTransport.detectBridge() !== 'none';
+    /** @param {NativeBridgeTransportOptions} [options] */
+    static isSupported(options = {}) {
+        return this.detectBridge(options) !== 'none';
     }
 
-    /**
-     * Creates a new Native Bridge transport.
-     * 
-     * @param {NativeBridgeTransportOptions} [options={}] - Configuration options.
-     */
+    /** @param {NativeBridgeTransportOptions} [options] */
     constructor(options = {}) {
-        this.#androidInterface = options.androidInterface ?? 'CrossBus';
-        this.#iosHandler = options.iosHandler ?? 'crossbus';
-        this.#queueWhileInit = options.queueWhileInit ?? true;
-        this.#heartbeatInterval = options.heartbeatInterval ?? 30000;
-
-        // Create ready promise
-        this.#readyPromise = new Promise((resolve) => {
-            this.#resolveReady = resolve;
-        });
-
-        // Detect and initialize bridge
-        this.#initBridge(options.initTimeout ?? 5000);
-    }
-
-    /**
-     * Initializes the native bridge connection.
-     * 
-     * @param {number} timeout - Timeout in ms.
-     */
-    async #initBridge(timeout) {
-        const startTime = Date.now();
-
-        // Poll for bridge availability
-        const checkBridge = () => {
-            this.#bridgeType = NativeBridgeTransport.detectBridge();
-
+        this.#options = {
+            androidInterface: options.androidInterface,
+            iosHandler: options.iosHandler ?? 'crossbus',
+            callbackName: options.callbackName ?? '__crossbus_receive__',
+            initTimeout: options.initTimeout ?? 5000,
+            heartbeatInterval: options.heartbeatInterval ?? 0,
+            queueWhileInit: options.queueWhileInit ?? true,
+            maxQueueSize: options.maxQueueSize ?? 100
+        };
+        for (const name of ['initTimeout', 'heartbeatInterval', 'maxQueueSize']) {
+            const value = this.#options[name];
+            if (!Number.isFinite(value) || value < 0) throw new RangeError(`${name} must be finite and nonnegative`);
+        }
+        const callback = this.#options.callbackName;
+        if (callback in globalThis) throw new Error(`Native callback already registered: ${callback}`);
+        this.#readyPromise = new Promise((resolve, reject) => { this.#resolve = resolve; this.#reject = reject; });
+        // A transport may be destroyed without the application awaiting ready.
+        this.#readyPromise.catch(() => {});
+        this.#receive = message => {
+            if (this.#destroyed || !this.#handler) return;
+            let data;
+            try { data = typeof message === 'string' ? JSON.parse(message) : message; }
+            catch { return; }
+            if (isProtocolMessage(data)) this.#handler(data, { bridgeType: this.#bridgeType });
+        };
+        globalThis[callback] = this.#receive;
+        const deadline = Date.now() + this.#options.initTimeout;
+        const check = () => {
+            if (this.#destroyed) return;
+            this.#bridgeType = NativeBridgeTransport.detectBridge(options);
             if (this.#bridgeType !== 'none') {
-                this.#onBridgeReady();
-                return;
-            }
-
-            if (Date.now() - startTime < timeout) {
-                setTimeout(checkBridge, 50);
-            } else {
-                // Timeout - no bridge found, but don't error
-                // Could be running in regular browser
-                console.warn('[CrossBus] No native bridge detected after timeout');
-                this.#ready = true;
-                this.#resolveReady?.();
-            }
+                try {
+                    // Detach once, then iterate: queue flushing is linear.
+                    const queued = this.#queue;
+                    this.#queue = [];
+                    for (const message of queued) this.#send(message);
+                    this.#ready = true;
+                    this.#resolve();
+                    if (this.#options.heartbeatInterval > 0) {
+                        this.#heartbeat = setInterval(() => {
+                            try { this.send({ id: `hb_${Date.now()}`, t: 'png', ts: Date.now() }); }
+                            catch (error) { console.error('[CrossBus] Native heartbeat failed:', error); }
+                        }, this.#options.heartbeatInterval);
+                    }
+                } catch (error) { this.#fail(error); }
+            } else if (Date.now() >= deadline) {
+                this.#fail(CrossBusError.from(ErrorCode.NOT_CONNECTED));
+            } else this.#poll = setTimeout(check, Math.min(50, Math.max(1, deadline - Date.now())));
         };
-
-        checkBridge();
-
-        // Set up global callback for native → JS messages
-        this.#setupNativeCallback();
+        check();
     }
 
-    /**
-     * Called when bridge is detected and ready.
-     */
-    #onBridgeReady() {
-        this.#ready = true;
-        this.#resolveReady?.();
-
-        // Flush queued messages
-        this.#flushQueue();
-
-        // Start heartbeat if enabled
-        if (this.#heartbeatInterval > 0) {
-            this.#startHeartbeat();
-        }
+    /** @param {any} error */
+    #fail(error) {
+        this.#failure = error;
+        this.#queue = [];
+        this.#reject(error);
     }
 
-    /**
-     * Sets up callback for native → JS communication.
-     */
-    #setupNativeCallback() {
-        // Native should call this global function to send messages to JS
-        const callbackName = '__crossbus_receive__';
-
-        globalThis[callbackName] = (messageStr) => {
-            if (this.#destroyed || !this.#messageHandler) return;
-
-            try {
-                const data = typeof messageStr === 'string'
-                    ? JSON.parse(messageStr)
-                    : messageStr;
-
-                if (!isProtocolMessage(data)) return;
-
-                this.#messageHandler(data, { bridgeType: this.#bridgeType });
-            } catch (e) {
-                console.error('[CrossBus] Failed to parse native message:', e);
-            }
-        };
-    }
-
-    /**
-     * Sends a message to the native side.
-     * 
-     * @param {Object} message - Protocol message to send.
-     * @throws {CrossBusError} If transport is destroyed.
-     */
+    /** @param {Object} message */
     send(message) {
-        if (this.#destroyed) {
-            throw CrossBusError.from(ErrorCode.DESTROYED, {
-                context: 'NativeBridgeTransport.send'
-            });
-        }
-
-        // Ensure message has protocol marker
-        const envelope = {
-            [PROTOCOL_MARKER]: PROTOCOL_VERSION,
-            ...message
-        };
-
-        // Queue if not ready
-        if (!this.#ready && this.#queueWhileInit) {
-            this.#messageQueue.push(envelope);
+        if (this.#destroyed) throw CrossBusError.from(ErrorCode.DESTROYED);
+        if (this.#failure) throw this.#failure;
+        const envelope = { ...message, [PROTOCOL_MARKER]: PROTOCOL_VERSION };
+        if (!this.#ready) {
+            if (!this.#options.queueWhileInit) throw CrossBusError.from(ErrorCode.NOT_CONNECTED);
+            if (this.#queue.length >= this.#options.maxQueueSize) throw CrossBusError.from(ErrorCode.QUEUE_FULL);
+            this.#queue.push(envelope);
             return;
         }
-
-        this.#sendToNative(envelope);
+        this.#send(envelope);
     }
 
-    /**
-     * Actually sends message to native bridge.
-     * 
-     * @param {Object} envelope - Message envelope.
-     */
-    #sendToNative(envelope) {
-        const jsonStr = JSON.stringify(envelope);
-
-        try {
-            if (this.#bridgeType === 'android') {
-                // Try custom interface name first
-                const bridge = globalThis[this.#androidInterface] || globalThis.AndroidBridge;
-                if (bridge?.postMessage) {
-                    bridge.postMessage(jsonStr);
-                }
-            } else if (this.#bridgeType === 'ios') {
-                // iOS WKWebView
-                const handler = globalThis.webkit?.messageHandlers?.[this.#iosHandler];
-                if (handler?.postMessage) {
-                    handler.postMessage(envelope); // iOS can take objects directly
-                }
-            }
-            // If bridgeType is 'none', silently drop (or could throw)
-        } catch (e) {
-            console.error('[CrossBus] Failed to send to native:', e);
+    /** @param {Object} envelope */
+    #send(envelope) {
+        if (this.#bridgeType === 'android') {
+            const bridge = this.#options.androidInterface
+                ? globalThis[this.#options.androidInterface] : (typeof globalThis.CrossBus?.postMessage === 'function' ? globalThis.CrossBus : globalThis.AndroidBridge);
+            if (typeof bridge?.postMessage !== 'function') throw CrossBusError.from(ErrorCode.NOT_CONNECTED);
+            bridge.postMessage(JSON.stringify(envelope));
+        } else {
+            const handler = globalThis.webkit?.messageHandlers?.[this.#options.iosHandler];
+            if (typeof handler?.postMessage !== 'function') throw CrossBusError.from(ErrorCode.NOT_CONNECTED);
+            handler.postMessage(envelope);
         }
     }
 
-    /**
-     * Flushes queued messages after bridge is ready.
-     */
-    #flushQueue() {
-        while (this.#messageQueue.length > 0) {
-            const msg = this.#messageQueue.shift();
-            this.#sendToNative(msg);
-        }
-    }
-
-    /**
-     * Starts heartbeat to keep native connection alive.
-     */
-    #startHeartbeat() {
-        this.#heartbeatTimer = setInterval(() => {
-            if (this.#destroyed) return;
-
-            this.#sendToNative({
-                [PROTOCOL_MARKER]: PROTOCOL_VERSION,
-                t: 'hb', // heartbeat
-                ts: Date.now()
-            });
-        }, this.#heartbeatInterval);
-    }
-
-    /**
-     * Registers a message handler.
-     * 
-     * @param {MessageHandler} handler - Function to handle incoming messages.
-     */
+    /** @param {Function} handler */
     onMessage(handler) {
-        if (typeof handler !== 'function') {
-            throw new TypeError('Handler must be a function');
-        }
-        this.#messageHandler = handler;
+        if (typeof handler !== 'function') throw new TypeError('Handler must be a function');
+        if (this.#destroyed) throw CrossBusError.from(ErrorCode.DESTROYED);
+        this.#handler = handler;
     }
-
-    /**
-     * Removes the message handler.
-     */
-    offMessage() {
-        this.#messageHandler = null;
-    }
-
-    /**
-     * Destroys the transport, cleaning up resources.
-     */
+    offMessage() { this.#handler = null; }
     destroy() {
         if (this.#destroyed) return;
-
         this.#destroyed = true;
-        this.#messageHandler = null;
-        this.#messageQueue = [];
-
-        if (this.#heartbeatTimer) {
-            clearInterval(this.#heartbeatTimer);
-            this.#heartbeatTimer = null;
-        }
-
-        // Clean up global callback
-        delete globalThis['__crossbus_receive__'];
+        clearTimeout(this.#poll);
+        clearInterval(this.#heartbeat);
+        this.#queue = [];
+        this.#handler = null;
+        if (!this.#ready) this.#reject(CrossBusError.from(ErrorCode.DESTROYED));
+        if (globalThis[this.#options.callbackName] === this.#receive) delete globalThis[this.#options.callbackName];
     }
-
-    /**
-     * Gets whether the transport is destroyed.
-     * @returns {boolean}
-     */
-    get isDestroyed() {
-        return this.#destroyed;
-    }
-
-    /**
-     * Gets the detected bridge type.
-     * @returns {BridgeType}
-     */
-    get bridgeType() {
-        return this.#bridgeType;
-    }
-
-    /**
-     * Gets whether the bridge is ready.
-     * @returns {boolean}
-     */
-    get isReady() {
-        return this.#ready;
-    }
-
-    /**
-     * Promise that resolves when bridge is ready.
-     * @returns {Promise<void>}
-     */
-    get ready() {
-        return this.#readyPromise;
-    }
+    get isDestroyed() { return this.#destroyed; }
+    get bridgeType() { return this.#bridgeType; }
+    get isReady() { return this.#ready; }
+    get ready() { return this.#readyPromise; }
 }
 
 /**
@@ -6999,16 +6836,16 @@ class NativeBridgeTransport {
 
 /**
  * WebSocket transport for server communication.
- * 
+ *
  * @example
  * const transport = new WebSocketTransport({
  *   url: 'wss://api.example.com/crossbus',
  *   peerId: 'client-1'
  * });
- * 
+ *
  * transport.onMessage((msg) => console.log('Received:', msg));
  * transport.onStateChange((state) => console.log('State:', state));
- * 
+ *
  * await transport.connect();
  * transport.send({ type: 'hello', payload: { name: 'client' } });
  */
@@ -7303,26 +7140,26 @@ class WebSocketTransport {
 
 /**
  * @fileoverview Vector Clock implementation for causal ordering.
- * 
+ *
  * Vector clocks track logical time across distributed processes,
  * enabling detection of causal relationships between events.
- * 
+ *
  * @module ordering/vector-clock
  */
 
 /**
  * Vector Clock for tracking causal order in distributed systems.
- * 
+ *
  * Each node maintains a counter for every known node. When sending
  * a message, the sender increments its own counter and includes
  * the entire clock. When receiving, the receiver updates its clock
  * by taking the max of each component.
- * 
+ *
  * @example
  * const clock = new VectorClock('node-1');
  * clock.tick(); // Increment before sending
  * const message = { data, clock: clock.toJSON() };
- * 
+ *
  * // On receive:
  * const remoteClock = VectorClock.fromJSON(message.clock);
  * if (localClock.canDeliver(remoteClock, senderId)) {
@@ -7339,7 +7176,7 @@ class VectorClock {
 
     /**
      * Creates a new vector clock.
-     * 
+     *
      * @param {string} ownId - This node's unique identifier
      * @param {Object<string, number>} [initial={}] - Initial counter values
      */
@@ -7363,7 +7200,7 @@ class VectorClock {
 
     /**
      * Gets the counter value for a node.
-     * 
+     *
      * @param {string} nodeId - Node identifier
      * @returns {number} Counter value (0 if unknown)
      */
@@ -7373,7 +7210,7 @@ class VectorClock {
 
     /**
      * Increments this node's counter (call before sending).
-     * 
+     *
      * @returns {number} New counter value
      */
     tick() {
@@ -7386,7 +7223,7 @@ class VectorClock {
     /**
      * Updates this clock with values from another clock.
      * Takes the max of each component (merge operation).
-     * 
+     *
      * @param {VectorClock} other - Clock to merge from
      */
     update(other) {
@@ -7401,7 +7238,7 @@ class VectorClock {
     /**
      * Checks if this clock happened-before another.
      * A happened-before B iff all(A[i] <= B[i]) and exists(A[j] < B[j])
-     * 
+     *
      * @param {VectorClock} other - Clock to compare against
      * @returns {boolean} True if this clock causally precedes other
      */
@@ -7427,7 +7264,7 @@ class VectorClock {
     /**
      * Checks if this clock is concurrent with another.
      * Concurrent means neither happened-before the other.
-     * 
+     *
      * @param {VectorClock} other - Clock to compare against
      * @returns {boolean} True if clocks are concurrent
      */
@@ -7439,7 +7276,7 @@ class VectorClock {
 
     /**
      * Checks if two clocks are identical.
-     * 
+     *
      * @param {VectorClock} other - Clock to compare against
      * @returns {boolean} True if clocks have identical values
      */
@@ -7456,11 +7293,11 @@ class VectorClock {
 
     /**
      * Checks if a message with the given clock can be delivered.
-     * 
+     *
      * Delivery condition: For the sender's component, the message clock
      * should be exactly one more than our current knowledge. For all other
      * components, the message clock should be <= our current knowledge.
-     * 
+     *
      * @param {VectorClock} msgClock - Clock attached to incoming message
      * @param {string} senderId - ID of the message sender
      * @returns {boolean} True if message can be delivered without breaking causal order
@@ -7487,7 +7324,7 @@ class VectorClock {
 
     /**
      * Creates a copy of this clock.
-     * 
+     *
      * @returns {VectorClock} Cloned clock
      */
     clone() {
@@ -7497,7 +7334,7 @@ class VectorClock {
 
     /**
      * Serializes to JSON-compatible object.
-     * 
+     *
      * @returns {{ ownId: string, counters: Object<string, number> }}
      */
     toJSON() {
@@ -7509,7 +7346,7 @@ class VectorClock {
 
     /**
      * Deserializes from JSON object.
-     * 
+     *
      * @param {{ ownId: string, counters: Object<string, number> }} json
      * @returns {VectorClock}
      */
@@ -7531,10 +7368,10 @@ class VectorClock {
 
 /**
  * @fileoverview Causal Orderer for message delivery with causal consistency.
- * 
+ *
  * Buffers out-of-order messages and delivers them only when their
  * causal dependencies have been satisfied.
- * 
+ *
  * @module ordering/causal-orderer
  */
 
@@ -7555,20 +7392,20 @@ class VectorClock {
 
 /**
  * Causal Orderer ensures messages are delivered in causal order.
- * 
+ *
  * When a message arrives out of order (missing dependencies), it's
  * buffered until its dependencies are satisfied. This guarantees
  * that if message B was sent after seeing message A, then B will
  * be delivered after A at all receivers.
- * 
+ *
  * @example
  * const orderer = new CausalOrderer('my-node', {
  *   onDeliver: (msg) => processMessage(msg)
  * });
- * 
+ *
  * // When receiving a message:
  * orderer.receive(senderId, message);
- * 
+ *
  * // When sending:
  * const clock = orderer.tick();
  * send({ ...data, clock: clock.toJSON() });
@@ -7594,7 +7431,7 @@ class CausalOrderer {
 
     /**
      * Creates a new CausalOrderer.
-     * 
+     *
      * @param {string} ownId - This node's unique identifier
      * @param {CausalOrdererOptions} options - Configuration options
      */
@@ -7626,7 +7463,7 @@ class CausalOrderer {
     /**
      * Receives a message and delivers it if deps are satisfied,
      * otherwise buffers it.
-     * 
+     *
      * @param {string} senderId - ID of the message sender
      * @param {Object} message - Message with clock property
      */
@@ -7643,7 +7480,7 @@ class CausalOrderer {
 
     /**
      * Delivers a message and updates local clock.
-     * 
+     *
      * @param {string} senderId
      * @param {Object} message
      * @param {VectorClock} msgClock
@@ -7658,7 +7495,7 @@ class CausalOrderer {
 
     /**
      * Buffers a message for later delivery.
-     * 
+     *
      * @param {string} senderId
      * @param {Object} message
      * @param {VectorClock} clock
@@ -7705,7 +7542,7 @@ class CausalOrderer {
     /**
      * Increments local clock for sending a message.
      * Returns the clock to attach to outgoing message.
-     * 
+     *
      * @returns {VectorClock} Clock to include in message
      */
     tick() {
@@ -7715,7 +7552,7 @@ class CausalOrderer {
 
     /**
      * Gets a copy of the current vector clock.
-     * 
+     *
      * @returns {VectorClock}
      */
     getVectorClock() {

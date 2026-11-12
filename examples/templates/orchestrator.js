@@ -10,7 +10,8 @@
  * const result = await orchestrator.delegate('planner', 'plan', { goal: 'Build app' });
  */
 
-import { CrossBus, PostMessageTransport } from 'crossbus';
+import { CrossBus } from 'crossbus';
+const { PostMessageTransport } = await import('crossbus');
 
 export class Orchestrator {
     #bus;
@@ -43,26 +44,26 @@ export class Orchestrator {
     #setupEventHandlers() {
         // Agent announcements
         this.#bus.on('agent:ready', (event) => {
-            const { agentId, capabilities, meta } = event.data;
+            const { agentId, capabilities, meta } = event.data.payload;
             this.#registerAgent(agentId, { capabilities, meta, status: 'ready' });
         });
 
         // Agent status updates
         this.#bus.on('agent:thinking', (event) => {
-            const agent = this.#agents.get(event.data.agentId);
+            const agent = this.#agents.get(event.data.payload.agentId);
             if (agent) agent.status = 'thinking';
         });
 
         this.#bus.on('agent:response', (event) => {
-            const agent = this.#agents.get(event.data.agentId);
+            const agent = this.#agents.get(event.data.payload.agentId);
             if (agent) agent.status = 'ready';
         });
 
         this.#bus.on('agent:error', (event) => {
-            const agent = this.#agents.get(event.data.agentId);
+            const agent = this.#agents.get(event.data.payload.agentId);
             if (agent) {
                 agent.status = 'error';
-                agent.lastError = event.data.error;
+                agent.lastError = event.data.payload.error;
             }
         });
     }
@@ -127,7 +128,7 @@ export class Orchestrator {
             }, options.timeout || 10000);
 
             const handleReady = (event) => {
-                if (event.data.agentId === agentId) {
+                if (event.data.payload.agentId === agentId) {
                     clearTimeout(timeout);
                     this.#bus.off('agent:ready', handleReady);
                     resolve(agentId);

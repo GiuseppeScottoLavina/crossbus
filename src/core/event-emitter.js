@@ -1,3 +1,4 @@
+import { uuid } from '../common/utils.js';
 /**
  * @fileoverview Local event emitter with wildcard support and AbortSignal integration.
  * Uses Symbol-based private storage for encapsulation.
@@ -15,6 +16,7 @@ const MAX_LISTENERS = Symbol('maxListeners');
 
 /** @type {symbol} Private storage key for fast callback cache (Object-based) */
 const FAST_CACHE = Symbol('fastCache');
+const FAST_ONLY = Symbol('fastOnly');
 
 /** @type {number} Default max listeners before warning */
 const DEFAULT_MAX_LISTENERS = 10;
@@ -72,6 +74,8 @@ const DEFAULT_SOURCE = Object.freeze({
  * @property {'sync'|'async'} mode - Execution mode.
  * @property {boolean} once - Auto-remove after first invocation.
  * @property {AbortSignal|null} signal - Abort signal.
+ * @property {Function} syncHandler - Raw payload callback for emitSync.
+ * @property {Function|null} dispose - Subscription cleanup.
  */
 
 /**
@@ -83,21 +87,21 @@ const DEFAULT_SOURCE = Object.freeze({
 
 /**
  * Local event emitter with wildcard support.
- * 
+ *
  * Supports:
  * - Exact match: `on('user:login', handler)`
  * - Namespace wildcard: `on('user:*', handler)` matches `user:login`, `user:logout`
  * - Global wildcard: `on('*', handler)` matches all signals
- * 
+ *
  * @example
  * const emitter = new EventEmitter();
- * 
+ *
  * // Basic listener
  * emitter.on('message', (event) => console.log(event.data));
- * 
+ *
  * // Wildcard listener
  * emitter.on('user:*', (event) => console.log('User event:', event.name));
- * 
+ *
  * // Emit signal
  * emitter.emit('message', { text: 'Hello' });
  */
@@ -114,6 +118,7 @@ export class EventEmitter {
 
         /** @type {Object<string, Function[]>} Fast Object-based cache for callbacks only */
         this[FAST_CACHE] = Object.create(null);
+        this[FAST_ONLY] = Object.create(null);
     }
 
     /**
@@ -135,29 +140,29 @@ export class EventEmitter {
 
     /**
      * Registers a listener for a signal.
-     * 
+     *
      * @param {string} name - Signal name. Supports wildcards: '*', 'namespace:*'.
      * @param {SignalHandler} handler - Callback function.
      * @param {ListenerOptions} [options={}] - Configuration options.
      * @returns {Subscription} Subscription object.
      * @throws {TypeError} If name is not a string or handler is not a function.
-     * 
+     *
      * @example
      * // Basic listener
      * const sub = emitter.on('user:login', (event) => {
      *   console.log(`User ${event.data.userId} logged in`);
      * });
-     * 
+     *
      * @example
      * // One-time listener
      * emitter.on('init:complete', handler, { once: true });
-     * 
+     *
      * @example
      * // With AbortController
      * const controller = new AbortController();
      * emitter.on('data:update', handler, { signal: controller.signal });
      * controller.abort(); // Removes listener
-     * 
+     *
      * @example
      * // Priority-based ordering
      * emitter.on('event', lowPriorityHandler, { priority: 1 });
@@ -182,7 +187,13 @@ export class EventEmitter {
             priority: options.priority ?? 0,
             mode: options.mode ?? 'async',
             once: options.once ?? false,
-            signal: options.signal ?? null
+            signal: options.signal ?? null,
+            syncHandler: options.once ? data => {
+                if (!subscription.active) return;
+                this.#removeListener(name, id);
+                return handler(data);
+            } : handler,
+            dispose: null
         };
 
         // Get or create listeners array for this signal
@@ -211,7 +222,7 @@ export class EventEmitter {
         }
 
         // Sync FAST_CACHE for ultra-fast emitSync
-        this[FAST_CACHE][name] = listeners.map(e => e.handler);
+        this.#rebuildCache(name);
 
         // Memory leak detection: warn if too many listeners
         const maxListeners = this[MAX_LISTENERS];
@@ -236,6 +247,11 @@ export class EventEmitter {
             }
         };
 
+        const abortHandler = () => subscription.unsubscribe();
+        entry.dispose = () => {
+            active = false;
+            entry.signal?.removeEventListener('abort', abortHandler);
+        };
         // Handle AbortSignal
         if (entry.signal) {
             if (entry.signal.aborted) {
@@ -243,9 +259,7 @@ export class EventEmitter {
                 this.#removeListener(name, id);
                 active = false;
             } else {
-                entry.signal.addEventListener('abort', () => {
-                    subscription.unsubscribe();
-                }, { once: true });
+                entry.signal.addEventListener('abort', abortHandler, { once: true });
             }
         }
 
@@ -255,7 +269,7 @@ export class EventEmitter {
     /**
      * Registers a one-time listener.
      * Convenience method for `on(name, handler, { once: true })`.
-     * 
+     *
      * @param {string} name - Signal name.
      * @param {SignalHandler} handler - Callback function.
      * @param {ListenerOptions} [options={}] - Additional options.
@@ -267,66 +281,68 @@ export class EventEmitter {
 
     /**
      * Ultra-fast listener registration for performance-critical paths.
-     * 
+     *
      * Unlike on(), this method:
      * - No input validation (caller must ensure correct types)
      * - No subscription object (returns unbind function directly)
      * - No priority, once, or AbortSignal support
      * - Direct push to FAST_CACHE (minimal overhead)
-     * 
+     *
      * Use when you need maximum subscribe performance.
-     * 
+     *
      * @param {string} name - Signal name.
-     * @param {EventListener} handler - Callback function.
+     * @param {(data: any) => void} handler - Callback function.
      * @returns {Function} Unbind function (call to remove listener).
-     * 
+     *
      * @example
-     * // 50M+ ops/sec subscribe/unsubscribe
      * const off = emitter.onFast('tick', (data) => console.log(data));
      * off(); // Remove listener
      */
     onFast(name, handler) {
-        // Match nanoevents exactly: ||= pattern, minimal code
-        (this[FAST_CACHE][name] ||= []).push(handler);
-        return () => {
-            this[FAST_CACHE][name] = this[FAST_CACHE][name]?.filter(h => h !== handler);
-        };
+        const fast = (this[FAST_ONLY][name] ||= []);
+        fast.push(handler);
+        const cached = this[FAST_CACHE][name];
+        if (!cached) this[FAST_CACHE][name] = fast;
+        else if (cached !== fast) cached.push(handler);
+        return () => this.offFast(name, handler);
     }
 
     /**
      * Ultra-fast listener removal for performance-critical paths.
-     * 
+     *
      * @param {string} name - Signal name.
-     * @param {EventListener} handler - Handler to remove.
+     * @param {(data: any) => void} handler - Handler to remove.
      */
     offFast(name, handler) {
-        const cache = this[FAST_CACHE][name];
-        if (cache) {
-            const idx = cache.indexOf(handler);
-            if (idx !== -1) cache.splice(idx, 1);
-        }
-        // Also clean LISTENERS
         const listeners = this[LISTENERS].get(name);
-        if (listeners) {
-            const idx = listeners.findIndex(e => e.handler === handler);
-            if (idx !== -1) listeners.splice(idx, 1);
+        if (listeners?.some(entry => entry.handler === handler)) {
+            this.off(name, handler);
+            return;
         }
+        const fast = this[FAST_ONLY][name];
+        if (!fast) return;
+        const remaining = fast.filter(callback => callback !== handler);
+        // Keep the empty array for reuse, as in the nano emitter. off(name)
+        // and clear() remove the event key when the application retires it.
+        this[FAST_ONLY][name] = remaining;
+        if (listeners?.length) this.#rebuildCache(name);
+        else this[FAST_CACHE][name] = remaining;
     }
 
     /**
      * Removes signal listener(s).
-     * 
+     *
      * @param {string} name - Signal name.
      * @param {SignalHandler} [handler] - Specific handler to remove.
      *                                    If omitted, removes ALL listeners.
      * @returns {RemoveResult} Result of the removal.
      * @throws {TypeError} If name is not a string.
-     * 
+     *
      * @example
      * // Remove specific handler
      * const result = emitter.off('msg', myHandler);
      * // => { success: true, removedCount: 1, remainingCount: 0 }
-     * 
+     *
      * @example
      * // Remove ALL listeners for a signal
      * emitter.off('updates');
@@ -337,64 +353,41 @@ export class EventEmitter {
             throw new TypeError('Signal name must be a string');
         }
 
-        const listeners = this[LISTENERS].get(name);
-
-        if (!listeners || listeners.length === 0) {
-            return { success: false, removedCount: 0, remainingCount: 0 };
-        }
-
-        let removedCount = 0;
-
-        if (handler === undefined) {
-            // Remove all listeners for this signal
-            removedCount = listeners.length;
-            this[LISTENERS].delete(name);
-            delete this[FAST_CACHE][name];
-        } else {
-            // Remove specific handler
-            const initialLength = listeners.length;
-            const filtered = listeners.filter(entry => entry.handler !== handler);
-            removedCount = initialLength - filtered.length;
-
-            if (filtered.length === 0) {
-                this[LISTENERS].delete(name);
-                delete this[FAST_CACHE][name];
-            } else {
-                this[LISTENERS].set(name, filtered);
-                this[FAST_CACHE][name] = filtered.map(e => e.handler);
-            }
-        }
-
-        const remaining = this[LISTENERS].get(name)?.length ?? 0;
-
-        return {
-            success: removedCount > 0,
-            removedCount,
-            remainingCount: remaining
-        };
+        const listeners = this[LISTENERS].get(name) ?? [];
+        const fast = this[FAST_ONLY][name] ?? [];
+        const removed = listeners.filter(entry => handler === undefined || entry.handler === handler);
+        for (const entry of removed) entry.dispose?.();
+        const remaining = listeners.filter(entry => !removed.includes(entry));
+        const remainingFast = handler === undefined ? [] : fast.filter(fn => fn !== handler);
+        if (remaining.length) this[LISTENERS].set(name, remaining);
+        else this[LISTENERS].delete(name);
+        if (remainingFast.length) this[FAST_ONLY][name] = remainingFast;
+        else delete this[FAST_ONLY][name];
+        this.#rebuildCache(name);
+        const removedCount = removed.length + fast.length - remainingFast.length;
+        return { success: removedCount > 0, removedCount, remainingCount: remaining.length + remainingFast.length };
     }
 
     /**
      * Ultra-fast synchronous emit for performance-critical paths.
-     * 
+     *
      * Unlike emit(), this method:
      * - Is synchronous (no async/await overhead)
      * - Passes data directly (no event envelope)
      * - Skips messageId, timestamp generation
      * - No wildcard matching (exact match only)
-     * 
+     *
      * Use for high-frequency events where metadata is not needed.
-     * 
+     *
      * @param {string} name - Signal name (exact match only).
      * @param {*} data - Payload to pass directly to handlers.
      * @returns {number} Number of listeners invoked.
-     * 
+     *
      * @example
-     * // 150M+ ops/sec - use for hot paths
      * emitter.emitSync('tick', { x: 100, y: 200 });
      */
     emitSync(name, data) {
-        // Ultra-fast path: use Object-based cache (faster than Map.get)
+        // Ultra-fast path: use Object-based cache
         const callbacks = this[FAST_CACHE][name];
         if (!callbacks) return 0;
 
@@ -432,13 +425,13 @@ export class EventEmitter {
 
     /**
      * Emits a signal to local listeners.
-     * 
+     *
      * @param {string} name - Signal name.
      * @param {*} data - Payload data.
      * @param {Partial<SignalSource>} [source] - Signal source info.
      * @returns {Promise<number>} Number of listeners invoked.
      * @throws {TypeError} If name is not a string.
-     * 
+     *
      * @example
      * const count = await emitter.emit('user:login', { userId: 123 });
      * console.log(`Notified ${count} listeners`);
@@ -450,30 +443,31 @@ export class EventEmitter {
 
         // Fast path: single exact-match listener, no wildcards
         const exactListeners = this[LISTENERS].get(name);
-        const hasWildcard = this[LISTENERS].has('*');
+        const colon = name.indexOf(':');
+        const hasWildcard = this[LISTENERS].has('*') ||
+            (colon > 0 && this[LISTENERS].has(name.slice(0, colon + 1) + '*'));
 
+        if (!exactListeners?.length && !hasWildcard) return 0;
         if (exactListeners?.length === 1 && !hasWildcard && !source) {
             const entry = exactListeners[0];
             const event = {
                 name,
                 data,
-                messageId: crypto.randomUUID(),
+                messageId: uuid(),
                 timestamp: Date.now(),
                 source: DEFAULT_SOURCE
             };
 
+            if (entry.once) this.#removeListener(name, entry.id);
             try {
                 if (entry.mode === 'sync') {
                     await entry.handler(event);
                 } else {
-                    Promise.resolve().then(() => entry.handler(event));
+                    Promise.resolve().then(() => entry.handler(event))
+                        .catch(error => console.error(`[CrossBus] Handler error for "${name}":`, error));
                 }
             } catch (error) {
                 console.error(`[CrossBus] Handler error for "${name}":`, error);
-            }
-
-            if (entry.once) {
-                this.#removeListener(name, entry.id);
             }
 
             return 1;
@@ -483,7 +477,7 @@ export class EventEmitter {
         const event = {
             name,
             data,
-            messageId: crypto.randomUUID(),
+            messageId: uuid(),
             timestamp: Date.now(),
             source: source ? { ...DEFAULT_SOURCE, ...source } : DEFAULT_SOURCE
         };
@@ -491,71 +485,68 @@ export class EventEmitter {
         // Collect matching listeners
         const matchingEntries = this.#getMatchingListeners(name);
 
-        // Track entries to remove (once: true)
-        const toRemove = [];
+        for (const { signalName, entry } of matchingEntries) {
+            if (entry.once) this.#removeListener(signalName, entry.id);
+        }
 
         // Invoke handlers
-        for (const { signalName, entry } of matchingEntries) {
+        for (const { entry } of matchingEntries) {
             try {
                 if (entry.mode === 'sync') {
                     await entry.handler(event);
                 } else {
                     // Fire async without blocking
-                    Promise.resolve().then(() => entry.handler(event));
+                    Promise.resolve().then(() => entry.handler(event))
+                        .catch(error => console.error(`[CrossBus] Handler error for "${name}":`, error));
                 }
             } catch (error) {
                 // Log but don't throw - other listeners should still run
                 console.error(`[CrossBus] Handler error for "${name}":`, error);
             }
 
-            if (entry.once) {
-                toRemove.push({ signalName, id: entry.id });
-            }
         }
 
-        // Remove once listeners
-        for (const { signalName, id } of toRemove) {
-            this.#removeListener(signalName, id);
-        }
 
         return matchingEntries.length;
     }
 
     /**
      * Checks if there are any listeners for a signal.
-     * 
+     *
      * @param {string} name - Signal name (exact match only).
      * @returns {boolean} True if listeners exist.
      */
     hasListeners(name) {
         const listeners = this[LISTENERS].get(name);
-        return listeners !== undefined && listeners.length > 0;
+        return (listeners?.length ?? 0) + (this[FAST_ONLY][name]?.length ?? 0) > 0;
     }
 
     /**
      * Gets the count of listeners for a signal.
-     * 
+     *
      * @param {string} name - Signal name (exact match only).
      * @returns {number} Number of listeners.
      */
     listenerCount(name) {
-        return this[LISTENERS].get(name)?.length ?? 0;
+        return (this[LISTENERS].get(name)?.length ?? 0) + (this[FAST_ONLY][name]?.length ?? 0);
     }
 
     /**
      * Gets all registered signal names.
-     * 
+     *
      * @returns {string[]} Array of signal names.
      */
     getSignalNames() {
-        return Array.from(this[LISTENERS].keys());
+        return [...new Set([...this[LISTENERS].keys(), ...Object.keys(this[FAST_ONLY]).filter(name => this[FAST_ONLY][name].length)])];
     }
 
     /**
      * Removes all listeners.
      */
     clear() {
+        for (const listeners of this[LISTENERS].values()) for (const entry of listeners) entry.dispose?.();
         this[LISTENERS].clear();
+        this[FAST_ONLY] = Object.create(null);
         // Reset FAST_CACHE to empty object
         for (const key in this[FAST_CACHE]) {
             delete this[FAST_CACHE][key];
@@ -564,8 +555,8 @@ export class EventEmitter {
 
     /**
      * Gets all listeners matching a signal name (including wildcards).
-     * 
-     * 
+     *
+     *
      * @param {string} name - Signal name to match.
      * @returns {Array<{signalName: string, entry: ListenerEntry}>} Matching entries.
      */
@@ -592,7 +583,8 @@ export class EventEmitter {
             exactListeners && { signalName: name, entries: exactListeners },
             globalWildcard && { signalName: '*', entries: globalWildcard },
             namespaceWildcard && { signalName: name.slice(0, colonIdx + 1) + '*', entries: namespaceWildcard }
-        ].filter(Boolean);
+        ].filter(Boolean).filter((source, index, all) =>
+            all.findIndex(candidate => candidate.signalName === source.signalName) === index);
 
         if (sources.length === 0) {
             return [];
@@ -621,8 +613,8 @@ export class EventEmitter {
 
     /**
      * Removes a listener by ID.
-     * 
-     * 
+     *
+     *
      * @param {string} name - Signal name.
      * @param {string} id - Subscription ID.
      */
@@ -630,33 +622,36 @@ export class EventEmitter {
         const listeners = this[LISTENERS].get(name);
         if (!listeners) return;
 
+        const entry = listeners.find(entry => entry.id === id);
+        entry?.dispose?.();
         const filtered = listeners.filter(entry => entry.id !== id);
-
-        if (filtered.length === 0) {
-            this[LISTENERS].delete(name);
-            delete this[FAST_CACHE][name];
-        } else {
-            this[LISTENERS].set(name, filtered);
-            this[FAST_CACHE][name] = filtered.map(e => e.handler);
-        }
+        if (filtered.length) this[LISTENERS].set(name, filtered);
+        else this[LISTENERS].delete(name);
+        this.#rebuildCache(name);
     }
+
+    /** @param {string} name */
+    #rebuildCache(name) {
+        const listeners = this[LISTENERS].get(name) ?? [];
+        const fast = this[FAST_ONLY][name] ?? [];
+        const callbacks = [...listeners.map(entry => entry.syncHandler), ...fast];
+        if (callbacks.length) this[FAST_CACHE][name] = callbacks;
+        else delete this[FAST_CACHE][name];
+    }
+
 }
 
 /**
- * Creates an ultra-fast plain object emitter that beats nanoevents.
- * 
+ * Creates a minimal synchronous plain object emitter.
+ *
  * Unlike EventEmitter class, this is a minimal plain object with:
  * - No class overhead
  * - No Symbol lookups
  * - No validation
  * - Direct property access
- * 
- * Benchmarks:
- * - on/off cycle: 45M ops/sec (vs nanoevents 38M) = 1.18x faster
- * - emit (10 listeners): 82M ops/sec (vs nanoevents 65M) = 1.26x faster
- * 
+ *
  * @returns {Object} Fast emitter with on(), emit() methods
- * 
+ *
  * @example
  * const emitter = createFastEmitter();
  * const off = emitter.on('event', (data) => console.log(data));
@@ -664,12 +659,12 @@ export class EventEmitter {
  * off(); // Remove listener
  */
 export const createFastEmitter = () => ({
-    events: {},
+    events: Object.create(null),
 
     /**
      * Subscribe to an event. Returns unbind function.
      * @param {string} event - Event name
-     * @param {EventListener} cb - Callback function
+     * @param {(data: any) => void} cb - Callback function
      * @returns {Function} Unbind function
      */
     on(event, cb) {
@@ -702,10 +697,10 @@ export const createFastEmitter = () => ({
      * @param {string} [event] - Event name (omit to clear all)
      */
     off(event) {
-        if (event) {
+        if (event !== undefined) {
             delete this.events[event];
         } else {
-            this.events = {};
+            this.events = Object.create(null);
         }
     }
 });

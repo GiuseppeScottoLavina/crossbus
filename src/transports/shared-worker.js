@@ -30,27 +30,25 @@ import { CrossBusError, ErrorCode } from '../common/errors.js';
 
 /**
  * SharedWorker-based transport for tab communication.
- * 
- * SharedWorkers persist across page refreshes and are shared between
- * all tabs/windows of the same origin. This enables:
- * - Shared state across tabs
- * - Single connection to backend (via worker)
- * - Efficient broadcast to all tabs
- * 
+ *
+ * A compatible shared worker can coordinate same-origin contexts while alive.
+ * The application supplies its script, routing, storage and backend connection.
+ * This transport does not guarantee persistence across navigation or restarts.
+ *
  * @example
  * // Create transport
  * const transport = new SharedWorkerTransport({
  *   workerUrl: '/crossbus-worker.js'
  * });
- * 
+ *
  * // Listen for messages
  * transport.onMessage((msg, ctx) => {
  *   console.log('Received:', msg);
  * });
- * 
+ *
  * // Send message (goes through shared worker to all tabs)
  * transport.send({ t: 'sig', p: { event: 'user:action' } });
- * 
+ *
  * // Cleanup
  * transport.destroy();
  */
@@ -72,7 +70,7 @@ export class SharedWorkerTransport {
 
     /**
      * Checks if SharedWorker API is available.
-     * 
+     *
      * @returns {boolean} True if SharedWorker is supported.
      */
     static isSupported() {
@@ -81,7 +79,7 @@ export class SharedWorkerTransport {
 
     /**
      * Creates a new SharedWorker transport.
-     * 
+     *
      * @param {SharedWorkerTransportOptions} [options={}] - Configuration.
      * @throws {CrossBusError} If SharedWorker is not supported.
      */
@@ -111,7 +109,7 @@ export class SharedWorkerTransport {
 
     /**
      * Sends a message through the SharedWorker.
-     * 
+     *
      * @param {Object} message - Protocol message to send.
      * @param {Transferable[]} [transfer] - Transferable objects.
      * @throws {CrossBusError} If transport is destroyed.
@@ -141,7 +139,7 @@ export class SharedWorkerTransport {
     /**
      * Registers a message handler.
      * Only one handler can be registered; subsequent calls replace previous.
-     * 
+     *
      * @param {MessageHandler} handler - Function to handle incoming messages.
      */
     onMessage(handler) {
@@ -197,7 +195,7 @@ export class SharedWorkerTransport {
 
     /**
      * Handles incoming messages from the SharedWorker.
-     * 
+     *
      * @param {MessageEvent} event
      */
     #handleMessage(event) {
@@ -219,7 +217,7 @@ export class SharedWorkerTransport {
 
     /**
      * Handles message errors.
-     * 
+     *
      * @param {MessageEvent} event
      */
     #handleError(event) {
@@ -228,7 +226,7 @@ export class SharedWorkerTransport {
 
     /**
      * Handles worker-level errors.
-     * 
+     *
      * @param {ErrorEvent} event
      */
     #handleWorkerError(event) {

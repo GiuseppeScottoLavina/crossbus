@@ -32,7 +32,7 @@ import { CrossBusError, ErrorCode } from '../common/errors.js';
 /**
  * Simple JSON Schema validator.
  * Supports a subset of JSON Schema for common validation needs.
- * 
+ *
  * @param {JSONSchema} schema - JSON Schema to validate against
  * @returns {Validator} Validator function
  */
@@ -54,6 +54,9 @@ export function createValidator(schema) {
             }
         }
 
+        if (schema.enum && !schema.enum.includes(data)) {
+            errors.push({ path: path || 'root', message: `Value must be one of: ${schema.enum.join(', ')}` });
+        }
         // Null check
         if (data === null || data === undefined) {
             if (schema.type && schema.type !== 'null') {
@@ -70,7 +73,7 @@ export function createValidator(schema) {
             // Required properties
             if (schema.required) {
                 for (const prop of schema.required) {
-                    if (!(prop in data)) {
+                    if (!Object.hasOwn(data, prop)) {
                         errors.push({
                             path: `${path}.${prop}`,
                             message: `Missing required property: ${prop}`
@@ -82,7 +85,7 @@ export function createValidator(schema) {
             // Property validation
             if (schema.properties) {
                 for (const [key, propSchema] of Object.entries(schema.properties)) {
-                    if (key in data) {
+                    if (Object.hasOwn(data, key)) {
                         const propPath = path ? `${path}.${key}` : key;
                         const propResult = createValidator(propSchema)(data[key], propPath);
                         if (!propResult.valid) {
@@ -149,6 +152,7 @@ export function createValidator(schema) {
 
         // Number validation
         if ((schema.type === 'number' || schema.type === 'integer') && typeof data === 'number') {
+            if (!Number.isFinite(data)) errors.push({ path: path || 'root', message: 'Value must be finite' });
             if (schema.minimum !== undefined && data < schema.minimum) {
                 errors.push({
                     path: path || 'root',
@@ -171,13 +175,6 @@ export function createValidator(schema) {
             }
         }
 
-        // Enum validation
-        if (schema.enum && !schema.enum.includes(data)) {
-            errors.push({
-                path: path || 'root',
-                message: `Value must be one of: ${schema.enum.join(', ')}`
-            });
-        }
 
         return {
             valid: errors.length === 0,
@@ -194,7 +191,7 @@ export function createValidator(schema) {
  */
 /**
  * Gets the JSON Schema type of a value.
- * 
+ *
  * @param {unknown} value
  * @returns {string}
  */
@@ -208,14 +205,14 @@ function getType(value) {
 /**
  * Wraps a handler with JSON Schema validation.
  * Validates the payload before calling the handler.
- * 
+ *
  * @param {JSONSchema} schema - JSON Schema to validate against
  * @param {Function} handler - Handler function to wrap
  * @returns {Function} Wrapped handler
- * 
+ *
  * @example
  * import { withSchemaValidation } from 'crossbus/plugins/schema-validation';
- * 
+ *
  * const userSchema = {
  *   type: 'object',
  *   required: ['name', 'email'],
@@ -225,7 +222,7 @@ function getType(value) {
  *     age: { type: 'integer', minimum: 0, maximum: 150 }
  *   }
  * };
- * 
+ *
  * bus.handle('createUser', withSchemaValidation(userSchema, async (payload) => {
  *   // payload is already validated!
  *   return await createUser(payload);
@@ -250,19 +247,19 @@ export function withSchemaValidation(schema, handler) {
 
 /**
  * Creates a validation hook that validates all inbound messages.
- * 
+ *
  * @param {Object<string, JSONSchema>} schemas - Map of handler name to schema
  * @returns {Function} Hook function for use with addInboundHook()
- * 
+ *
  * @example
  * import { createValidationHook } from 'crossbus/plugins/schema-validation';
- * 
+ *
  * const schemas = {
  *   createUser: userSchema,
  *   updateUser: userSchema,
  *   deleteUser: { type: 'object', required: ['id'] }
  * };
- * 
+ *
  * bus.addInboundHook(createValidationHook(schemas));
  */
 export function createValidationHook(schemas) {

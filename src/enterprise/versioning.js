@@ -17,16 +17,16 @@
 /**
  * Message versioning system for CrossBus.
  * Handles schema evolution with automatic migrations.
- * 
+ *
  * @example
  * const versioning = new MessageVersioning();
- * 
+ *
  * // Register migrations
  * versioning.registerMigration('user:updated', 1, 2, (old) => ({
  *   ...old,
  *   fullName: `${old.firstName} ${old.lastName}`
  * }));
- * 
+ *
  * // Migrate a message
  * const migrated = versioning.migrate('user:updated', oldPayload, 1, 2);
  */

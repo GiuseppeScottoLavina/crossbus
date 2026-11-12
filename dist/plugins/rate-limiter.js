@@ -1,7 +1,7 @@
 /**
  * @fileoverview Rate Limiter plugin for CrossBus.
  * Prevents message flooding with configurable rate limits.
- * 
+ *
  * @module plugins/rate-limiter
  */
 
@@ -36,22 +36,22 @@ class RateLimitError extends Error {
 
 /**
  * Rate limiter using token bucket algorithm.
- * 
+ *
  * @example
  * import { RateLimiter } from 'crossbus/plugins/rate-limiter';
- * 
+ *
  * const limiter = new RateLimiter({
  *   maxRequests: 100,
  *   windowMs: 1000 // 100 requests per second
  * });
- * 
+ *
  * // Check before sending
  * if (limiter.tryAcquire()) {
  *   await bus.emit('event', data);
  * } else {
  *   console.log('Rate limited!');
  * }
- * 
+ *
  * // Or use as hook
  * bus.addOutboundHook(limiter.createHook());
  */
@@ -76,7 +76,7 @@ class RateLimiter {
 
     /**
      * Creates a new rate limiter.
-     * 
+     *
      * @param {RateLimiterOptions} [options={}]
      */
     constructor(options = {}) {
@@ -89,7 +89,7 @@ class RateLimiter {
 
     /**
      * Attempts to acquire a token.
-     * 
+     *
      * @returns {boolean} True if request allowed, false if rate limited
      */
     tryAcquire() {
@@ -137,7 +137,7 @@ class RateLimiter {
     /**
      * Creates a per-peer rate limiter.
      * Each peer gets its own token bucket.
-     * 
+     *
      * @param {string} peerId - Peer identifier
      * @returns {RateLimiter}
      */
@@ -154,10 +154,10 @@ class RateLimiter {
 
     /**
      * Creates a hook function for automatic rate limiting.
-     * 
+     *
      * @param {{ perPeer?: boolean, throwOnLimit?: boolean }} [options={}]
      * @returns {import('../core/cross-bus.js').MessageHook} Hook function
-     * 
+     *
      * @example
      * bus.addOutboundHook(limiter.createHook({ perPeer: true }));
      */
@@ -182,7 +182,7 @@ class RateLimiter {
 
     /**
      * Cleans up per-peer limiters for disconnected peers.
-     * 
+     *
      * @param {string[]} activePeers - List of currently active peer IDs
      */
     cleanup(activePeers) {
@@ -219,11 +219,11 @@ class RateLimiter {
 
 /**
  * Helper to rate limit a CrossBus instance.
- * 
+ *
  * @param {import("../core/cross-bus.js").CrossBus} bus - CrossBus instance
  * @param {RateLimiterOptions} options - Rate limiter options
  * @returns {RateLimiter} The rate limiter (for inspection)
- * 
+ *
  * @example
  * const limiter = withRateLimiter(bus, { 
  *   maxRequests: 50, 

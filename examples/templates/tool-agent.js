@@ -210,7 +210,7 @@ export class ToolAgent {
 // ============================================
 
 /*
-import { PostMessageTransport } from 'crossbus';
+const { PostMessageTransport } = await import('crossbus');
 
 // Create tool agent
 const calculator = new ToolAgent('calculator', {

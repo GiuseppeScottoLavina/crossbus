@@ -1,313 +1,112 @@
-# CrossBus Performance Benchmarks
+# Reproducible performance measurements
 
-**Date**: 2026-01-23  
-**Runtime**: Bun 1.3.6  
-**Platform**: macOS darwin arm64 (Apple Silicon)  
-**Methodology**: 10,000 warmup iterations, 500K-1M measurement iterations
+Run after building, with other benchmark/test workloads stopped:
 
----
-
-## Executive Summary
-
-| Operation | Throughput | vs nanoevents |
-|-----------|------------|---------------|
-| **emitSync** (1 listener) | **185.93M ops/sec** | 🏆 1.08x faster |
-| **emitSync** (10KB payload) | **113.75M ops/sec** | 🏆 1.06x faster |
-| **emitSync** (10 listeners) | 66.47M ops/sec | ~99% parity |
-| **onFast+off** (subscribe/unsubscribe) | 42.48M ops/sec | ~90% parity |
-| Peer lookup | **205.9M ops/sec** | 🏆 |
-| Route unicast | **6.14M ops/sec** | 🏆 45x improved |
-| Handle lookup | **72.6M ops/sec** | 🏆 |
-
-CrossBus **beats nanoevents** on emit and large payloads while providing cross-context messaging, security, and routing features that no competitor offers.
-
-> **Note (2026-01-23)**: Removed debug logging from message routing hot paths, resulting in 45x improvement to route.unicast (136K → 6.14M ops/sec).
-
----
-
-## 1. EventEmitter Performance
-
-The core EventEmitter provides local pub/sub functionality with near-nanoevents performance.
-
-### Comparative Benchmarks (vs Competitors)
-
-| Test | CrossBus | nanoevents | EventEmitter3 | mitt |
-|------|-----------|------------|---------------|------|
-| emit (1 listener) | **185.93M** 🏆 | 172.89M | 137.38M | 21.89M |
-| emit (10 listeners) | 66.47M | **66.87M** | 31.00M | 22.47M |
-| emit (10KB payload) | **113.75M** 🏆 | 107.63M | 39.25M | 19.92M |
-| on/off cycle | 42.48M | **47.10M** | 9.95M | 33.37M |
-
-### Key Insights:
-- `emitSync()` is **1.08x faster than nanoevents** for single listener (most common case)
-- Large payload handling is **1.06x faster** than nanoevents
-- `onFast()` achieves **90% of nanoevents speed** for subscribe/unsubscribe
-- Regular `on()/off()` is slower due to feature overhead (priority, AbortSignal, etc.)
-
-### createFastEmitter() - Ultra-Fast Mode
-
-For maximum performance, use `createFastEmitter()` factory which returns a plain object emitter:
-
-| Test | createFastEmitter | nanoevents | Winner |
-|------|-------------------|------------|--------|
-| emit (10 listeners) | **62.33M** | 55.24M | 🏆 **1.13x faster** |
-| on/off cycle | 41.73M | 42.95M | ~97% parity |
-
-```javascript
-import { createFastEmitter } from 'crossbus';
-
-const emitter = createFastEmitter();
-const off = emitter.on('event', (data) => console.log(data));
-emitter.emit('event', { value: 42 });
-off(); // Remove listener
+```sh
+bun run build
+bun run bench             # Node
+bun run bench:bun         # Bun
+bun run bench:browser     # installed Chrome, headless
+bun run bench:memory      # Node --expose-gc, lifecycle/heap observations
+node tests/benchmarks/sizes.js
+bun run bench:paired     # same-process diagnostic
+bun run bench:rpc        # versioned Comlink MessageChannel comparison
+node tests/benchmarks/isolated.js --runtime node
+node tests/benchmarks/isolated.js --runtime bun
+node tests/benchmarks/isolated.js --runtime chrome
+bun run bench:report     # after collecting every runtime and refreshing sizes/memory
 ```
 
----
+The runner writes `benchmarks/verified-node.json`, `verified-bun.json`, `verified-chrome.json` and `sizes.json`. Each performance report records its runtime, platform/CPU, dependency versions, Git revision, dirty-tree state and SHA-256 hashes of the measured artifacts and workload. The primary optimization comparison uses `--paired --variant baseline` and `--paired --variant candidate` in three fresh process pairs per runtime, alternating process order; explicit `--output` filenames retain each run. Add `--browser` for fresh Chrome instances or run the same command with Bun. `bun run bench:report` verifies current hashes and regenerates the snapshot from all retained measurements. `verified-node-before-fast-removal.json` is an earlier audit run retained for context, not an equivalent before/after experiment: the workload and machine load differed. No improvement percentage is derived from it.
 
-## 2. CrossBus Core Operations
+Local dispatch tests use 0, 1, 10 and 100 listeners, a 10 KiB payload-reference workload and a subscription/removal cycle. Handlers perform observable counter/checksum updates, verified outside the timed loop. Each case calibrates its batch size, warms the engine, rotates execution order across libraries and records nine samples with median/min/max. The iteration cap means very fast cases may be shorter than the target duration. Zero-listener cases have no observable callback work and are diagnostic only. Results measure the tested APIs and semantics, not all capabilities of a library.
 
-Full CrossBus operations including hook pipeline and peer broadcast.
+CrossBus's full EventEmitter is measured through `onFast()`/`emitSync()` for raw synchronous callbacks, not its asynchronous event-envelope API. Fast and nano emitters are measured separately. EventEmitter3, mitt and nanoevents are development-only comparison dependencies; their exact versions are in each report. A 10 KiB local payload is passed by reference: it does not measure serialization, transfer or byte throughput.
 
-| Test Case | ops/sec | p50 | p95 | p99 | Notes |
-|-----------|---------|-----|-----|-----|-------|
-| signal (no peers) | 2.70M | 0.29μs | 0.50μs | 0.71μs | Baseline with hook pipeline |
-| signal (10 peers) | 539K | 1.54μs | 2.21μs | 8.50μs | ~54K ops/peer/sec |
-| handle/unhandle | 3.71M | 0.21μs | 0.33μs | 1.37μs | Handler registration fast |
+RPC tests use actual MessageChannel endpoints with structured cloning and full CrossBus request/response processing. Each payload size has 100 warmup calls and 1,000 measured sequential round trips, with payload correctness checks and p50/p95/p99 latency. Sizes describe the ASCII text field, excluding envelope overhead. Signal-routing tests await each operation and verify all send callbacks, using synchronous mock peers; these are not cross-context signal delivery measurements.
 
-### Key Insights:
-- Signal to 10 peers: **1.54μs median**, **8.50μs worst case (p99)**
-- Per-peer overhead: ~0.15μs per additional peer
-- Handler registration is lightweight at 0.27μs average
+Bundle size measurements distinguish the unminified entry actually selected by the export map from explicitly minified artifacts. gzip uses level 9. Sizes include the generated license banner and source-map reference. They are whole-file sizes, not consumer tree-shaken bundle sizes.
 
----
+These runs do not establish performance on Safari, Firefox, mobile WebViews, physical devices, network transports or every application workload. Headless Chrome results do not establish interaction/rendering performance. No independent security certification, overall completeness ranking or universal fastest-library claim is made.
 
-## 3. MessageRouter Performance
+Older JSON under `tests/benchmarks/` and `tests/perf/` is marked `historical-unverified`. Earlier harnesses had a nine-listener test labelled ten, fixed ordering, single short samples, empty callbacks or missing awaits. Their published rankings, coverage and size claims have been withdrawn. Legacy runner filenames now forward to the verified suite.
 
-Low-level routing without CrossBus overhead.
+See [AUDIT.md](AUDIT.md) for the current local validation status and outstanding qualification work.
 
-| Test Case | ops/sec | p50 | p95 | p99 | Notes |
-|-----------|---------|-----|-----|-----|-------|
-| getPeer (empty) | **205.9M** | 0.005μs | 0.01μs | 0.02μs | Object cache lookup |
-| getPeer (100 peers) | **205.9M** | 0.005μs | 0.01μs | 0.02μs | O(1) maintained |
-| route unicast | **6.14M** | 0.16μs | 0.25μs | 0.50μs | 45x improvement |
-| broadcast (100 peers) | 57.5K | 13.17μs | 28.08μs | 83.96μs | All-peer iteration |
+## Measured snapshot — 12 November 2026
 
-### Key Insights:
-- Peer lookup is **O(1)** - only 2.9% slower with 100 peers vs empty
-- Broadcast to 100 peers: **13.17μs median** (~132ns per peer)
-- p99 for broadcast is high (83.96μs) due to occasional GC pauses
+These measurements were collected from the pre-release 0.1.1 working build. Its exact candidate bundles are preserved in benchmarks/measured-0.1.1/ and checked against the original hashes. Version 0.1.2 adds the Node 18 UUID fallback and retained license/version banners; it has not been re-benchmarked. Size measurements below describe the current release build.
 
----
+Apple M1 Max, darwin arm64. Local dispatch uses raw callbacks and preallocated payloads; values below are medians of nine samples, in millions of emits per second.
 
-## 4. PendingRequests Performance
+| Runtime | CrossBus emitSync, 1 listener | nanoevents, 1 listener | CrossBus emitSync, 10 listeners | nanoevents, 10 listeners |
+|---|---:|---:|---:|---:|
+| Node v24.15.0 | 59.32 | 73.66 | 30.55 | 14.90 |
+| Bun 1.3.14 | 98.28 | 112.84 | 51.51 | 29.94 |
+| HeadlessChrome/155.0.8059.79 | 67.98 | 68.09 | 32.67 | 12.96 |
 
-Request/response tracking for RPC pattern.
+Full JSON includes 0/100 listeners, registration/removal, CrossBus fast/nano, EventEmitter3 and mitt. This is a versioned workload comparison, not a universal ranking. The local emitter algorithm was retained after trial alternatives failed to show a stable advantage.
 
-| Test Case | ops/sec | p50 | p95 | p99 | Notes |
-|-----------|---------|-----|-----|-----|-------|
-| create + resolve | 1.02M | 0.67μs | 1.42μs | 3.58μs | Full request lifecycle |
-| has() (500 pending) | 9.06M | 0.08μs | 0.08μs | 0.13μs | O(1) lookup |
+## Optimization before/after
 
-### Key Insights:
-- Full request/response cycle completes in **<1μs median**
-- Lookup performance unaffected by pending request count
-- Safe to have 500+ concurrent pending requests
+The preserved pre-change bundles are in `benchmarks/before-optimization/`. Primary comparisons use **three pairs of fresh processes per runtime**, alternating process order; each process records nine samples after warmup. All payload limits, peer checks and hook behavior remain enabled. The summary is generated in `benchmarks/optimization-summary.json`.
 
----
+| Runtime | Workload | After / before, median | Observed range across process pairs |
+|---|---|---:|---:|
+| Node v24.15.0 | pending:create+resolve | 2.27× | 2.15–2.31× |
+| Node v24.15.0 | signal:10-peers | 1.19× | 1.19–1.22× |
+| Node v24.15.0 | rpc:direct | 1.67× | 1.67–1.70× |
+| Node v24.15.0 | rpc:MessageChannel | 1.16× | 1.14–1.28× |
+| Node v24.15.0 | rpc:MessageChannel+hooks | 1.14× | 1.10–1.15× |
+| Bun 1.3.14 | pending:create+resolve | 1.80× | 1.76–1.85× |
+| Bun 1.3.14 | signal:10-peers | 1.32× | 1.26–1.34× |
+| Bun 1.3.14 | rpc:direct | 1.57× | 1.57–1.65× |
+| Bun 1.3.14 | rpc:MessageChannel | 1.19× | 1.14–1.23× |
+| Bun 1.3.14 | rpc:MessageChannel+hooks | 1.20× | 1.17–1.23× |
+| HeadlessChrome/155.0.8059.79 | pending:create+resolve | 1.27× | 1.24–1.35× |
+| HeadlessChrome/155.0.8059.79 | signal:10-peers | 1.13× | 1.06–1.16× |
+| HeadlessChrome/155.0.8059.79 | rpc:direct | 1.17× | 1.07–1.24× |
+| HeadlessChrome/155.0.8059.79 | rpc:MessageChannel | 1.09× | 1.07–1.14× |
+| HeadlessChrome/155.0.8059.79 | rpc:MessageChannel+hooks | 1.07× | 1.04–1.08× |
 
-## 5. OriginValidator Performance
+These are observed throughput ratios, not guarantees or statistical confidence intervals. `rpc:direct` uses synchronous in-memory forwarding and excludes structured cloning; MessageChannel tests use actual port delivery. The retained same-process paired diagnostic can show JIT identity bias even for identical nano code; it is not the primary improvement estimate. Unchanged emitter controls are present in the isolated-process reports.
 
-Security validation with ReDoS protection.
+## Versioned MessageChannel RPC comparison
 
-| Test Case | ops/sec | p50 | p95 | p99 | Notes |
-|-----------|---------|-----|-----|-----|-------|
-| Exact match | 8.24M | 0.08μs | 0.13μs | 0.17μs | Set.has() lookup |
-| Wildcard match | 5.74M | 0.13μs | 0.17μs | 0.29μs | Bounded regex |
-| ReDoS-resistant (200 char) | 2.30M | 0.33μs | 0.42μs | 1.58μs | Crafted input |
+CrossBus and Comlink use identical structured-cloned echo payloads, 100 warmup calls and nine batches of 1,000 verified responses, rotating library order. Both port endpoints run in one event loop; this excludes worker/iframe startup and scheduling. Comlink is measured with ordinary proxy access and with its method cached. CrossBus keeps default request/payload limits. The APIs and guarantees differ.
 
-### Key Insights:
-- Exact origin matching: **8.24M ops/sec** (practically free)
-- Wildcard: 30% slower but still 5.74M ops/sec
-- **ReDoS protection works**: 200-char crafted input still at 2.30M ops/sec (O(n) time)
+For a 1,024-byte text field, medians of batch throughput:
 
----
+| Runtime | CrossBus, calls/s | Comlink, calls/s | Comlink cached method, calls/s |
+|---|---:|---:|---:|
+| Node v24.15.0 | 100,540 | 90,701 | 94,673 |
+| Bun 1.3.14 | 78,335 | 99,095 | 101,376 |
+| HeadlessChrome/155.0.8059.79 | 70,423 | 74,627 | 79,365 |
 
-## 6. Scaling Behavior
+Comlink version: **4.4.2**. Reports include empty and 64 KiB text fields, raw samples, dependency versions and hashes. Method usage follows the [Comlink API](https://github.com/GoogleChromeLabs/comlink#api). No overall lead over every messaging library has been established.
 
-How signal broadcast scales with peer count.
+## RPC latency and bundle sizes
 
-| Peers | ops/sec | Per-Peer Throughput |
-|-------|---------|---------------------|
-| 1 | 1.46M | 1.46M ops/peer/sec |
-| 10 | 505.8K | 50.6K ops/peer/sec |
-| 50 | 130.7K | 2.6K ops/peer/sec |
-| 100 | 67.6K | 676 ops/peer/sec |
+Actual sequential MessageChannel round trips with a 1,024-byte text field:
 
-### Scaling Formula:
-```
-ops/sec ≈ 1,460,000 / (1 + 0.9 * peers)
-```
+| Runtime | p50, ms | p99, ms |
+|---|---:|---:|
+| Node v24.15.0 | 0.013 | 0.039 |
+| Bun 1.3.14 | 0.012 | 0.026 |
+| HeadlessChrome/155.0.8059.79 | below timer resolution | 0.100 |
 
-The ~90% overhead per additional peer is due to:
-1. Message envelope creation per peer
-2. sendFn invocation
-3. Sequence number tracking
-
----
+Chrome timer quantization can produce zero-duration individual samples; these do not mean zero latency. The comparative RPC benchmark uses batch timing to avoid this per-call resolution limit. Whole-file sizes below use gzip level 9:
 
-## 7. Latency Distribution
+| Artifact | Raw bytes | gzip bytes |
+|---|---:|---:|
+| `dist/crossbus.js` | 233,134 | 47,799 |
+| `dist/crossbus.min.js` | 55,271 | 16,748 |
+| `dist/crossbus.core.min.js` | 31,674 | 10,461 |
+| `dist/nano.js` | 963 | 467 |
+| `dist/nano.min.js` | 535 | 330 |
 
-### emitSync Latency Histogram
+The export map selects `crossbus.js` and `nano.js`. Minified file sizes are not default export sizes. Consumer tree-shaking size was not measured.
 
-```
-       p50    p95    p99
-        │      │      │
-        ▼      ▼      ▼
-  ────────────────────────────────────────────►
-0     0.08   0.13   0.21                    μs
-      ████████████████████
-         │
-         └── 50% of calls complete in 0.08μs
-```
-
-### emit (async) Latency Histogram
-
-```
-       p50    p95    p99
-        │      │      │
-        ▼      ▼      ▼
-  ────────────────────────────────────────────►
-0     0.33   0.58   1.75                    μs
-      ████████████████████████████
-         │
-         └── 50% of calls complete in 0.33μs
-```
-
----
-
-## 8. Comparison with Competitors (REAL BENCHMARKS)
-
-All libraries installed and tested on the same system with identical methodology:
-- **10,000 warmup** iterations, **1M measurement** iterations
-- Bun 1.3.6, Apple Silicon (darwin arm64)
-
-### Libraries Tested:
-- CrossBus EventEmitter (local build)
-- EventEmitter3 v5.0.4
-- mitt v3.0.1 (200 bytes, minimalist)
-- nanoevents v9.1.0 (tiny footprint)
-
-### emit() with 1 listener
-
-| Library | ops/sec | Relative |
-|---------|---------|----------|
-| nanoevents | **170.54M** | 1.00x |
-| **CrossBus** | **148.87M** | 0.87x |
-| EventEmitter3 | 122.61M | 0.72x |
-| mitt | 14.84M | 0.09x |
-
-### emit() with 10 listeners
-
-| Library | ops/sec | Relative |
-|---------|---------|----------|
-| nanoevents | **76.96M** | 1.00x |
-| EventEmitter3 | 26.21M | 0.34x |
-| mitt | 22.63M | 0.29x |
-| **CrossBus** | 18.87M | 0.25x |
-
-### on() + off() (subscribe/unsubscribe cycle)
-
-| Library | ops/sec | Relative |
-|---------|---------|----------|
-| nanoevents | **47.63M** | 1.00x |
-| mitt | 34.21M | 0.72x |
-| EventEmitter3 | 9.96M | 0.21x |
-| **CrossBus** | 4.04M | 0.08x |
-
-### emit() with 10KB payload
-
-| Library | ops/sec | Relative |
-|---------|---------|----------|
-| nanoevents | **108.65M** | 1.00x |
-| **CrossBus** | **53.42M** | 0.49x |
-| EventEmitter3 | 38.65M | 0.36x |
-| mitt | 18.48M | 0.17x |
-
-### Analysis:
-
-1. **nanoevents is fastest** in pure emit speed - it's optimized for this single use case
-2. **CrossBus is 2nd place** in 1-listener and large-payload scenarios
-3. **CrossBus trades raw speed for features**: cross-context communication, security, routing, hooks
-4. **CrossBus subscribe/unsubscribe is slower** due to additional bookkeeping (subscription objects, wildcards)
-
-### Feature Comparison:
-
-| Feature | CrossBus | EE3 | mitt | nanoevents |
-|---------|-----------|-----|------|------------|
-| emit performance | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
-| Cross-context | ✅ | ❌ | ❌ | ❌ |
-| Origin security | ✅ | ❌ | ❌ | ❌ |
-| RPC/Request | ✅ | ❌ | ❌ | ❌ |
-| Hub routing | ✅ | ❌ | ❌ | ❌ |
-| Wildcards | ✅ | ✅ | ✅ | ❌ |
-| Typed events | ✅ | ✅ | ✅ | ✅ |
-| Bundle size | 25KB | 3KB | 200B | 500B |
-
-**Conclusion**: CrossBus is not the fastest EventEmitter, but it's the only one that provides cross-context messaging, security, and routing. When comparing apples to apples (local events only), nanoevents wins. For full-featured cross-context communication, CrossBus is the choice.
-
-
----
-
-## 9. Memory Characteristics
-
-Approximate memory usage (estimated from object structure):
-
-| Resource | Estimated Size | Notes |
-|----------|----------------|-------|
-| CrossBus instance | ~2-4 KB | Includes router, pending, validator |
-| Per peer | ~200-400 B | Routing entry + metadata |
-| Per handler | ~100-200 B | Map entry + function reference |
-| Per listener | ~100-150 B | Entry + wrapper |
-| Per pending request | ~300-500 B | Timeout, promise, metadata |
-
-### Memory Limits (enforced):
-- `maxPeers`: 100 (default) → ~40KB max peer memory
-- `maxPendingRequests`: 1000 (default) → ~500KB max pending memory
-- `maxMessageSize`: 1MB per message
-
----
-
-## 10. Recommendations
-
-### For Maximum Throughput:
-1. Use `emitSync()` for local events
-2. Batch signals when possible
-3. Keep peer count reasonable (<50 for high-frequency signals)
-4. Use exact origins instead of wildcards
-
-### For Minimum Latency:
-1. Pre-register handlers before traffic starts
-2. Use smaller payloads (<1KB optimal)
-3. Avoid wildcard event names in hot paths
-4. Consider direct message channels for critical paths
-
-### For Memory Efficiency:
-1. Unsubscribe unused listeners
-2. Call `destroy()` when done
-3. Monitor pending request count
-4. Use `setMaxListeners()` appropriately
-
----
-
-## Benchmark Reproduction
-
-```bash
-# Run with GC exposure for memory metrics
-bun run --expose-gc benchmarks/suite.js
-
-# Results saved to benchmarks/results.json
-```
-
----
-
-*Benchmark suite: CrossBus v1.0.15*
+## Memory and pending-request lifecycle
+
+Seven measured rounds create 200 buses, each with ten peers and one unanswered request, after a warmup round. Every round cancelled all 200 requests and returned timeout resources from 200 to zero. Live cohort heap deltas ranged from 2,456,080 to 2,530,504 bytes. Post-cleanup deltas are retained in the JSON, including allocator/JIT noise; these are not exact per-object sizes or proof of universal absence of leaks.

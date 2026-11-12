@@ -267,30 +267,18 @@ describe('Security Tests', () => {
             bus.destroy();
         });
 
-        it('should handle duplicate response IDs gracefully', async () => {
-            let callCount = 0;
-            bus.handle('counter', () => { callCount++; return callCount; });
+        it('should ignore a duplicate response after the first settles its request', async () => {
+            let outgoing;
+            bus.addPeer('peer1', message => { outgoing = message; });
+            const pending = bus.request('peer1', 'counter', {}, { timeout: 1000 });
+            await Promise.resolve();
+            await bus.handleMessage({ _cb: 1, t: 'res', id: outgoing.id,
+                success: true, data: 'first' }, 'null', 'peer1');
+            await bus.handleMessage({ _cb: 1, t: 'res', id: outgoing.id,
+                success: true, data: 'duplicate' }, 'null', 'peer1');
+            expect(await pending).toBe('first');
+            expect(bus.healthCheck().pendingRequests).toBe(0);
 
-            // First response
-            await bus.handleMessage({
-                _cb: 1,
-                t: 'res',
-                id: 'same-id',
-                success: true,
-                data: 'first'
-            }, 'null', 'peer1');
-
-            // Duplicate ID (should be ignored or handled gracefully)
-            await bus.handleMessage({
-                _cb: 1,
-                t: 'res',
-                id: 'same-id',
-                success: true,
-                data: 'duplicate'
-            }, 'null', 'peer1');
-
-            // Should not crash
-            expect(true).toBe(true);
         });
     });
 

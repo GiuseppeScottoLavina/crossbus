@@ -1,1027 +1,138 @@
-# CrossBus API Reference
+# CrossBus API
 
-Complete API documentation for CrossBus.js.
+This reference describes the implemented JavaScript API. Generated declarations in `dist/` accompany every package export. Build with `bun run build`; verify consumer imports with `bun run test:types`.
 
----
+## CrossBus
 
-## Table of Contents
-
-- [CrossBus Class](#crossbus-class)
-- [Methods](#methods)
-  - [connect()](#connecttarget-options)
-  - [disconnect()](#disconnectpeerid-options)
-  - [destroy()](#destroy)
-  - [emit()](#emitname-data-dest-options)
-  - [request()](#requestname-data-dest-options)
-  - [broadcast()](#broadcastname-data-options)
-  - [on()](#onname-handler-options)
-  - [once()](#oncename-handler-options)
-  - [off()](#offname-handler)
-  - [handle()](#handlename-handler)
-  - [unhandle()](#unhandlename)
-  - [addInboundHook()](#addinboundhookhookfn-priority)
-  - [addOutboundHook()](#addoutboundhookhookfn-priority)
-  - [removeInboundHook()](#removeinboundhookhookfn)
-  - [removeOutboundHook()](#removeoutboundhookhookfn)
-  - [createDirectChannel()](#createdirectchannelpeera-peerb)
-  - [getStatus()](#getstatus)
-  - [getPeer()](#getpeerid)
-  - [getPeers()](#getpeers)
-- [Types](#types)
-- [Error Codes](#error-codes)
-- [Events](#events)
-
----
-
-## CrossBus Class
-
-### Constructor
-
-```javascript
-new CrossBus(options)
-```
-
-#### Options
-
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `id` | `string` | **required** | Unique identifier for this bus instance |
-| `allowedOrigins` | `string[]` | `[]` | Trusted origins for cross-origin messages. Empty = same-origin only. Use `['*']` to allow all (insecure) |
-| `defaultReliable` | `boolean` | `true` | Whether `emit()` waits for ACK by default |
-| `ackTimeout` | `number` | `5000` | Timeout (ms) waiting for ACK |
-| `requestTimeout` | `number` | `30000` | Timeout (ms) waiting for response |
-| `handshakeTimeout` | `number` | `10000` | Timeout (ms) for peer handshake |
-| `heartbeatInterval` | `number` | `15000` | Interval (ms) for ping. `0` = disabled |
-| `heartbeatTimeout` | `number` | `5000` | Timeout (ms) waiting for pong |
-| `autoReconnect` | `boolean` | `true` | Auto-reconnect on disconnect |
-| `reconnectInterval` | `number` | `3000` | Initial reconnect delay (ms) |
-| `maxReconnectAttempts` | `number` | `5` | Max reconnection attempts |
-| `maxPeers` | `number` | `100` | Maximum connected peers |
-| `maxPendingRequests` | `number` | `1000` | Maximum pending requests |
-| `maxQueueSize` | `number` | `100` | Max queued messages per offline peer |
-| `maxMessageSize` | `number` | `1048576` | Max message size (1MB) |
-| `plugins` | `Plugin[]` | `[]` | Optional plugins to install |
-
-#### Example
-
-```javascript
+```js
 import { CrossBus } from 'crossbus';
+const bus = CrossBus.createSecure({ peerId: 'app', allowedOrigins: ['https://trusted.example'] });
+```
 
-const bus = new CrossBus({
-  id: 'main-app',
-  allowedOrigins: ['https://widget.example.com'],
-  defaultReliable: true,
-  plugins: []
+| Constructor option | Default | Meaning |
+|---|---|---|
+| `peerId` | Generated UUID | Local peer identity label |
+| `isHub` | `false` | Orchestrator role for introspection |
+| `allowedOrigins` | `[]` | Empty means same-origin; `'*'` is rejected in strict mode |
+| `meta` | `{}` | Local metadata |
+| `capabilities` | `[]` | Capability tokens for explicit negotiation |
+| `requestTimeout` | `30000` | Default RPC timeout, milliseconds |
+| `handshakeTimeout` | `10000` | Standalone handshake utility timeout |
+| `contentType` | `'application/json'` | Serializer capability label; configure transports separately |
+| `maxPendingRequests` | `100` | Maximum simultaneous pending requests; zero disables the limit |
+| `maxPayloadSize` | `1048576` | Conservative in-memory payload estimate; zero disables the limit |
+| `strictMode` | `false` | Rejects wildcard origin patterns |
+| `debug` | `false` | Development logging |
+| `debugPrefix` | `'[CrossBus]'` | Log prefix |
+
+`createSecure(options)` requires a nonempty allowlist, rejects wildcard patterns and enables strict mode. It accepts the same resource limits. Payload accounting uses two bytes per UTF-16 code unit, binary byte lengths and per-value/reference overhead; it is not an exact serialized wire size. Limits must be nonnegative safe integers.
+
+### Connections and lifecycle
+
+| API | Behavior |
+|---|---|
+| `addPeer(peerId, sendFn, options?)` | Registers a known channel's send function; options include `origin` and `meta` |
+| `removePeer(peerId)` | Removes routing and cancels pending requests for that peer; returns boolean |
+| `addTransport(transport, {peerId, origin}?)` | Wires `send`/`onMessage`; returns an idempotent cleanup function that destroys the transport |
+| `addCleanup(fn)` | Registers synchronous resource cleanup on bus destruction; returns an unregister function |
+| `handleMessage(message, origin, peerId, replyFn?)` | Receives a message from an application-authenticated channel; returns a Promise |
+| `destroy()` | Cancels requests, executes registered cleanup, destroys attached transports, and clears handlers/listeners/hooks |
+| `peerId`, `isHub`, `peerCount`, `peers`, `isDestroyed` | Introspection properties; `peers` is an array of peer IDs |
+| `getPeer(peerId)` | Routing metadata or `undefined` |
+| `healthCheck()`, `diagnose()` | Local status and configuration diagnostics |
+
+`addPeer()` does not perform a handshake. `isHub` does not automatically forward requests between arbitrary peers. An application must bind source identities to channels and implement authorized forwarding. Window transport events supply their actual origin; originless transports use an explicit application trust label. `removePeer()` alone does not close a manually owned transport; use the cleanup returned by `addTransport()`.
+
+### Messaging
+
+```js
+const result = await bus.request('worker', 'compute', { a: 2, b: 3 }, { timeout: 5000 });
+const route = await bus.signal('task:progress', { completed: 2 });
+const replies = await bus.broadcastRequest('status', {}, { timeout: 1000, exclude: ['slow'] });
+```
+
+`request(peerId, handlerName, payload?, {timeout}?)` returns the remote handler result. Failures include missing peers, failed sends, timeouts and remote handler/security errors. Responses must match the request ID and the requested peer.
+
+`signal(name, payload?, {exclude}?)` broadcasts to registered peers, returning `{success, delivered, failed}`. This counts transport sends, not receiver acknowledgments. `broadcastRequest(handlerName, payload?, {timeout, exclude, ignoreErrors}?)` returns a Map of peer IDs to `{success:true,data}` or `{success:false,error}`. `ignoreErrors` defaults to true.
+
+`emit()` is local event dispatch. Use `signal()` for remote one-way messages and `request()` for RPC. Manage connections with `addTransport()` and its returned cleanup function.
+
+### RPC handlers
+
+```js
+const unhandle = bus.handle('save', async (payload, context) => ({ saved: payload.id }), {
+  allowedPeers: ['editor'], rateLimit: 10,
+  validatePayload: payload => payload && typeof payload.id === 'string'
 });
 ```
 
----
+`context` includes `peerId`, `requestId` and `handlerName`. A handler returns a value or Promise. `allowedPeers` limits callers by their channel-bound peer IDs. `rateLimit` is a local fixed window of calls per second per peer. `validatePayload` is a synchronous predicate. `unhandle(name)` removes a handler and its security state; `hasHandler(name)` checks registration. `handle()` returns an unregister function.
 
-## Methods
+### Hooks
 
-### connect(target, options)
+`addInboundHook(fn, priority=10)` and `addOutboundHook(fn, priority=10)` return unregister functions. Lower priority numbers run first. Hooks receive `(payload, context)` and return the transformed payload or a Promise. Context contains `type` (`signal`, `request`, `response`), `peerId`, `handlerName` and `direction`. Removal by function is available through `removeInboundHook()` and `removeOutboundHook()`.
 
-Establishes connection with a peer.
+Throwing/rejecting stops processing. Failed inbound RPC validation produces an error response without invoking the protected handler. A hook must return the payload unchanged when it only observes it. Hook work and payload accounting are part of the full messaging path.
 
-```javascript
-await bus.connect(target, options): Promise<PeerConnection>
-```
+## Local events
 
-#### Parameters
+`EventEmitter` is exported directly and inherited by CrossBus.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `target` | `HTMLIFrameElement \| Worker \| ServiceWorker \| Window \| MessagePort` | Peer to connect |
-| `options.id` | `string` | Unique peer ID |
-| `options.origin` | `string` | Expected origin (required for cross-origin) |
-| `options.timeout` | `number` | Handshake timeout override |
+| API | Behavior |
+|---|---|
+| `on(name, callback, options?)` | Subscription with `unsubscribe()` and `active`; supports `once`, `signal`, `priority`, `mode` |
+| `once(name, callback, options?)` | Removes the listener before its first callback |
+| `off(name, callback?)` | Removes specified/all callbacks and returns removal counts |
+| `emit(name, data, source?)` | Local event envelope dispatch; returns Promise of listener count |
+| `emitSync(name, data)` | Synchronous raw payload, exact name only; returns callback count |
+| `onFast(name, callback)` | Raw callback registration for `emitSync()` only; returns unbind function |
+| `offFast(name, callback)` | Removes matching callback registrations |
+| `clear()` | Removes all listeners and AbortSignal registrations |
+| `listenerCount(name)`, `hasListeners(name)`, `getSignalNames()` | Listener introspection |
+| `setMaxListeners(n)`, `getMaxListeners()` | Warning threshold; zero disables warnings |
 
-#### Returns
+`emit()` supplies `{name, data, messageId, timestamp, source}`. Modes are `'sync'` (awaited) and `'async'` (scheduled; default). Priority is descending. Patterns include exact names, `'*'` and `'namespace:*'`. `emitSync()` omits envelopes, wildcard matching and scheduling; callback exceptions propagate. Already selected listeners may still run if another listener removes them during dispatch.
 
-```typescript
-interface PeerConnection {
-  peerId: string;
-  origin: string;
-  type: 'iframe' | 'worker' | 'sw' | 'window' | 'port';
-  status: 'connected';
-  connectedAt: number;
-  disconnect(): void;
-}
-```
+A remote signal becomes `event.data = {payload: remoteData, source: peerId}`, with the received origin in `event.source.origin`. For local `emit()`, `event.data` is exactly its argument.
 
-#### Errors
+`createFastEmitter()` from `crossbus` and `createNanoEmitter()` from `crossbus/nano` provide `on(name, fn)`, `emit(name, rawPayload)` and `off(name?)`; `on()` returns an unbind function. They have no event envelopes, RPC, priority, once or wildcard semantics.
 
-- `ERR_ORIGIN_FORBIDDEN` - Origin not in allowedOrigins
-- `ERR_PEER_EXISTS` - Peer ID already exists
-- `ERR_HANDSHAKE_TIMEOUT` - Handshake timed out
-- `ERR_MAX_PEERS` - Maximum peers reached
+## Transports
 
-#### Example
+Transport classes are exported by `crossbus`. A dynamic import of that same root reuses the root module; it is not a separately bundled transport entry. `crossbus/core` supplies a core-only entry, and optional plugin subpaths are independent modules. Common operations are `send(message)`, `onMessage(callback)`, `offMessage()` and `destroy()`. A protocol envelope needs `_cb:1`, a string `id` and a message type (`type` or `t`). Availability and setup differ by transport.
 
-```javascript
-// Connect to iframe
-const iframe = document.getElementById('widget');
-const peer = await bus.connect(iframe, {
-  id: 'widget',
-  origin: 'https://widget.example.com'
-});
+| Transport | Configuration / lifecycle |
+|---|---|
+| `PostMessageTransport(target, options)` | Configure `targetOrigin`, `allowedOrigins`, optional `autoTransfer`/`contentType`; `send(message, transfer?)` supports transfer lists |
+| `MessageChannelTransport(options?)` | Creates a channel; pass `remotePort` to the other endpoint; wrap with `MessageChannelTransport.fromPort(port)` |
+| `BroadcastChannelTransport(name)` | Same-origin channel; suitable for one-way group signals; the transport binding labels the channel, not individual tab identities |
+| `SharedWorkerTransport({workerUrl,name}?)` | Requires an application SharedWorker script |
+| `ServiceWorkerTransport(options?)` | Requires an application service worker; await `ready` |
+| `WebSocketTransport(options)` | Requires a compatible backend; call `connect()` before sending; configure reconnection/heartbeat in this transport |
+| `NativeBridgeTransport(options?)` | Await `ready`; requires a native host adapter; [native API and failure behavior](../native/README.md) |
 
-// Connect to worker
-const worker = new Worker('worker.js');
-await bus.connect(worker, { id: 'calc-worker' });
+Worker transports do not implement durable persistence, an offline queue or guaranteed background delivery. Transfer-list ownership is an application decision; an ArrayBuffer is detached after transfer. Native transports use JSON and do not support browser transferables.
 
-// Connect to parent (from iframe/worker)
-await bus.connect(self.parent || self, { id: 'parent' });
-```
+## Optional plugins and utilities
 
----
+Use dynamic imports from the package subpaths:
 
-### disconnect(peerId, options?)
+| Entry | Exports / scope |
+|---|---|
+| `crossbus/plugins/retry` | `withRetry(fn, options)`, `createRetryWrapper(bus, options)`; `maxAttempts`, not `maxRetries` |
+| `crossbus/plugins/circuit-breaker` | `CircuitBreaker`, `createPeerCircuitBreaker` |
+| `crossbus/plugins/schema-validation` | `createValidator`, `withSchemaValidation(schema, handler)`, `createValidationHook` |
+| `crossbus/plugins/encryption` | `Encryption`, `withEncryption(bus, key)`; application-owned key distribution |
+| `crossbus/plugins/rate-limiter` | `RateLimiter`, `withRateLimiter` |
+| `crossbus/plugins/compression` | `Compression`, `withCompression` |
+| `crossbus/plugins/batch` | `MessageBatcher`, `createBatcher`, `withBatching`; enable receiving-side unbatching too |
+| `crossbus/enterprise` | Tracing, metrics, backpressure and message versioning; explicitly wire to application operations |
+| `crossbus/testing` | `MockTransport`, `createConnectedMocks` |
 
-Disconnects a peer.
+The schema validator supports `type`, `properties`, `required`, `items`, `enum`, numeric minimum/maximum, string length/pattern and array length. It is not a complete JSON Schema implementation; unsupported keywords are not enforcement controls.
 
-```javascript
-bus.disconnect(peerId, options?): void
-```
+`withBatching()` preserves Promise results for signals and applies inbound hooks per logical message. Signals with per-call routing options are sent immediately. Queued operations are cancelled when the bus is destroyed. `createPresence(bus, options)` wires presence signals and registers lifecycle cleanup; `PresenceManager` is also available for manual wiring.
 
-#### Parameters
+`StreamManager` takes a `(peerId,message) => Promise` send function; route incoming stream envelopes explicitly to `handleMessage(message, peerId)`. `VectorClock` and `CausalOrderer` are explicit utilities for clock-stamped messages. They do not change default CrossBus routing automatically.
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `peerId` | `string` | | Peer to disconnect |
-| `options.graceful` | `boolean` | `true` | Notify peer before disconnect |
-| `options.reason` | `string` | | Reason for disconnect |
-
-#### Example
-
-```javascript
-bus.disconnect('widget', { 
-  graceful: true, 
-  reason: 'User navigated away' 
-});
-```
-
----
-
-### destroy()
-
-Destroys the bus instance, cleaning up all resources.
-
-```javascript
-bus.destroy(): void
-```
-
-**Important**: After calling `destroy()`, all methods will throw `ERR_DESTROYED`.
-
-#### Cleanup Actions
-
-- Disconnects all peers (gracefully)
-- Clears all event listeners
-- Rejects all pending requests
-- Clears all intervals/timeouts
-- Removes all references
-
----
-
-### emit(name, data, dest?, options?)
-
-Emits a signal to a peer.
-
-```javascript
-await bus.emit(name, data, dest?, options?): Promise<EmitResult>
-```
-
-#### Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `name` | `string` | | Signal name |
-| `data` | `any` | | Payload (must be structured-cloneable) |
-| `dest` | `string` | | Target peer ID. Omit for local only |
-| `options.reliable` | `boolean` | `true` | Wait for ACK |
-| `options.timeout` | `number` | `5000` | ACK timeout |
-| `options.transfer` | `Transferable[]` | | Objects to transfer |
-| `options.autoTransfer` | `boolean` | `false` | Auto-detect transferables |
-
-#### Returns
-
-```typescript
-interface EmitResult {
-  success: boolean;
-  messageId: string;
-  timestamp: number;
-  delivery: 'local' | 'sent' | 'acked' | 'queued' | 'timeout' | 'failed';
-  peerId?: string;
-  error?: string;
-}
-```
-
-#### Errors
-
-- `ERR_PEER_NOT_FOUND` - Unknown peer
-- `ERR_PEER_DISCONNECTED` - Peer is offline
-- `ERR_ACK_TIMEOUT` - ACK not received
-- `ERR_CLONE_ERROR` - Data not cloneable
-- `ERR_TRANSFER_ERROR` - Transfer failed
-
-#### Examples
-
-```javascript
-// Reliable (default) - waits for ACK
-const result = await bus.emit('config:update', { theme: 'dark' }, 'widget');
-console.log(result.delivery); // 'acked'
-
-// Fire-and-forget - no ACK
-await bus.emit('log:event', data, 'logger', { reliable: false });
-
-// With transferable
-const buffer = new ArrayBuffer(1024);
-await bus.emit('data:chunk', buffer, 'worker', { transfer: [buffer] });
-
-// Local only (no dest)
-await bus.emit('internal:event', data);
-```
-
----
-
-### emitSync(name, data)
-
-**Ultra-fast synchronous emit** for performance-critical paths.
-
-```javascript
-bus.emitSync(name, data): number
-```
-
-Unlike `emit()`, this method:
-- Is synchronous (no async/await overhead)
-- Passes data directly to handlers (no event envelope)
-- Skips messageId, timestamp generation
-- Exact match only (no wildcards)
-
-**Performance:** ~170M ops/sec
-
-#### Parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `string` | Signal name (exact match only) |
-| `data` | `any` | Payload to pass directly to handlers |
-
-#### Returns
-
-`number` - Count of listeners invoked.
-
-#### Example
-
-```javascript
-// Ultra-fast for hot paths (~170M ops/sec)
-const count = bus.emitSync('tick', { x: 100, y: 200 });
-console.log(`Notified ${count} listeners`);
-```
-
----
-
-### setMaxListeners(n)
-
-Sets the maximum number of listeners before a memory leak warning is emitted.
-
-```javascript
-bus.setMaxListeners(n): this
-```
-
-#### Parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `n` | `number` | Max listeners (0 = unlimited) |
-
-#### Example
-
-```javascript
-// Increase limit for high-listener scenarios
-bus.setMaxListeners(50);
-```
-
----
-
-### getMaxListeners()
-
-Returns the current max listeners setting.
-
-```javascript
-bus.getMaxListeners(): number
-```
-
----
-
-### addInboundHook(hookFn, priority?)
-
-Registers a hook to transform incoming message payloads.
-
-```javascript
-bus.addInboundHook(hookFn, priority?): () => boolean
-```
-
-#### Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `hookFn` | `MessageHook` | | Hook function `(payload, context) => payload` |
-| `priority` | `number` | `10` | Execution order (lower = first) |
-
-#### Hook Context
-
-```typescript
-interface HookContext {
-  type: 'signal' | 'request' | 'response';
-  direction: 'inbound' | 'outbound';
-  peerId?: string;
-  handlerName?: string;
-}
-```
-
-#### Returns
-
-Unsubscribe function that returns `true` if hook was removed.
-
-#### Example
-
-```javascript
-// Decryption hook
-const unsubscribe = bus.addInboundHook(async (payload, ctx) => {
-  return await decrypt(payload);
-});
-
-// Logging hook (no modification)
-bus.addInboundHook((payload, ctx) => {
-  console.log(`[${ctx.direction}] ${ctx.type}:`, payload);
-  return payload;
-}, 5); // priority 5 runs before default 10
-
-// Remove hook
-unsubscribe();
-```
-
----
-
-### addOutboundHook(hookFn, priority?)
-
-Registers a hook to transform outgoing message payloads.
-
-```javascript
-bus.addOutboundHook(hookFn, priority?): () => boolean
-```
-
-Same signature as `addInboundHook`. Outbound hooks run on:
-- `signal()` payloads before broadcast
-- `request()` payloads before sending
-- Response payloads before returning to requester
-
-#### Example
-
-```javascript
-// Encryption pipeline
-bus.addOutboundHook(async (payload) => await compress(payload), 10);
-bus.addOutboundHook(async (payload) => await encrypt(payload), 20);
-// Runs: compress (10) → encrypt (20)
-
-// Symmetric crypto: encrypt outbound, decrypt inbound
-bus.addOutboundHook(encrypt);
-bus.addInboundHook(decrypt);
-```
-
----
-
-### removeInboundHook(hookFn)
-
-Removes a previously registered inbound hook.
-
-```javascript
-bus.removeInboundHook(hookFn): boolean
-```
-
-Returns `true` if hook was found and removed.
-
----
-
-### removeOutboundHook(hookFn)
-
-Removes a previously registered outbound hook.
-
-```javascript
-bus.removeOutboundHook(hookFn): boolean
-```
-
-Returns `true` if hook was found and removed.
-
----
-
-### request(name, data, dest, options?)
-
-Sends request and waits for response.
-
-```javascript
-await bus.request(name, data, dest, options?): Promise<any>
-```
-
-#### Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `name` | `string` | | Request name |
-| `data` | `any` | | Request payload |
-| `dest` | `string` | **required** | Target peer ID |
-| `options.timeout` | `number` | `30000` | Response timeout |
-| `options.transfer` | `Transferable[]` | | Objects to transfer |
-
-#### Returns
-
-Response data from the handler.
-
-#### Errors
-
-- `ERR_PEER_NOT_FOUND` - Unknown peer
-- `ERR_NO_HANDLER` - No handler registered
-- `ERR_HANDLER_ERROR` - Handler threw exception
-- `ERR_RESPONSE_TIMEOUT` - No response received
-
-#### Example
-
-```javascript
-// Request user data
-const user = await bus.request('user:get', { id: 42 }, 'api-worker');
-console.log(user.name);
-
-// With timeout
-try {
-  const result = await bus.request('slow:operation', {}, 'worker', {
-    timeout: 60000
-  });
-} catch (err) {
-  if (err.code === 'ERR_RESPONSE_TIMEOUT') {
-    console.log('Operation took too long');
-  }
-}
-```
-
----
-
-### broadcast(name, data, options?)
-
-Broadcasts signal to all connected peers.
-
-```javascript
-await bus.broadcast(name, data, options?): Promise<BroadcastResult>
-```
-
-#### Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `name` | `string` | | Signal name |
-| `data` | `any` | | Payload |
-| `options.includeSelf` | `boolean` | `true` | Trigger local listeners |
-| `options.exclude` | `string[]` | `[]` | Peers to exclude |
-| `options.reliable` | `boolean` | `true` | Wait for ACKs |
-| `options.timeout` | `number` | `5000` | Timeout per peer |
-
-#### Returns
-
-```typescript
-interface BroadcastResult {
-  success: boolean;
-  messageId: string;
-  timestamp: number;
-  totalPeers: number;
-  sentCount: number;
-  ackedCount: number;
-  failedCount: number;
-  details: Array<{
-    peerId: string;
-    status: 'acked' | 'sent' | 'failed' | 'excluded';
-    error?: string;
-  }>;
-}
-```
-
-#### Example
-
-```javascript
-// Broadcast to all
-const result = await bus.broadcast('app:refresh', { version: '2.0' });
-console.log(`Notified ${result.ackedCount}/${result.totalPeers} peers`);
-
-// Exclude specific peer
-await bus.broadcast('sync', data, { exclude: ['slow-peer'] });
-
-// Don't trigger local listeners
-await bus.broadcast('remote:only', data, { includeSelf: false });
-```
-
----
-
-### on(name, handler, options?)
-
-Registers a signal listener.
-
-```javascript
-bus.on(name, handler, options?): Subscription
-```
-
-#### Parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `string` | Signal name. Supports wildcards: `*`, `user:*` |
-| `handler` | `Function` | `(event) => void \| Promise<void>` |
-| `options.once` | `boolean` | Auto-remove after first call |
-| `options.signal` | `AbortSignal` | Abort controller signal |
-| `options.priority` | `number` | Execution order (higher = first) |
-
-#### Handler Event
-
-```typescript
-interface SignalEvent {
-  name: string;           // Signal name
-  data: any;              // Payload
-  messageId: string;      // Unique message ID
-  timestamp: number;      // When emitted
-  source: {
-    peerId: string;       // Sender ID ('self' if local)
-    origin: string;       // Sender origin
-    type: 'local' | 'iframe' | 'worker' | 'sw' | 'window';
-  };
-}
-```
-
-#### Returns
-
-```typescript
-interface Subscription {
-  id: string;
-  signalName: string;
-  active: boolean;
-  unsubscribe(): void;
-}
-```
-
-#### Examples
-
-```javascript
-// Basic listener
-bus.on('user:login', (event) => {
-  console.log(`User ${event.data.userId} from ${event.source.peerId}`);
-});
-
-// Wildcard
-bus.on('user:*', (event) => {
-  console.log('User event:', event.name);
-});
-
-// Global (all signals)
-bus.on('*', (event) => {
-  console.log('Any signal:', event.name);
-});
-
-// With AbortController
-const controller = new AbortController();
-bus.on('data', handler, { signal: controller.signal });
-controller.abort(); // Removes listener
-
-// One-time
-bus.on('init', handler, { once: true });
-```
-
----
-
-### once(name, handler, options?)
-
-Registers a one-time listener. Alias for `on(name, handler, { once: true })`.
-
----
-
-### off(name, handler?)
-
-Removes listeners.
-
-```javascript
-bus.off(name, handler?): RemoveResult
-```
-
-#### Returns
-
-```typescript
-interface RemoveResult {
-  success: boolean;
-  removedCount: number;
-  remainingCount: number;
-}
-```
-
-#### Examples
-
-```javascript
-// Remove specific handler
-bus.off('event', myHandler);
-
-// Remove ALL listeners for signal
-bus.off('event');
-```
-
----
-
-### handle(name, handler)
-
-Registers a request handler.
-
-```javascript
-bus.handle(name, handler): void
-```
-
-The handler receives the same event as `on()` and **must return a value** (or Promise) that becomes the response.
-
-#### Example
-
-```javascript
-// Sync handler
-bus.handle('user:get', (event) => {
-  return users.find(u => u.id === event.data.id);
-});
-
-// Async handler
-bus.handle('db:query', async (event) => {
-  const result = await database.query(event.data.sql);
-  return result.rows;
-});
-
-// Error handling
-bus.handle('risky:operation', (event) => {
-  if (!event.data.valid) {
-    throw new Error('Invalid input');
-    // Requester receives ERR_HANDLER_ERROR
-  }
-  return processData(event.data);
-});
-```
-
----
-
-### unhandle(name)
-
-Removes a request handler.
-
-```javascript
-bus.unhandle(name): boolean
-```
-
-Returns `true` if handler was removed.
-
----
-
-### createDirectChannel(peerA, peerB)
-
-Creates a direct MessageChannel between two peers (bypasses hub routing).
-
-```javascript
-await bus.createDirectChannel(peerA, peerB): Promise<DirectChannel>
-```
-
-**Hub mode only**. Throw `ERR_NOT_SUPPORTED` in peer mode.
-
-#### Returns
-
-```typescript
-interface DirectChannel {
-  id: string;
-  peerA: string;
-  peerB: string;
-  active: boolean;
-  close(): void;
-  on(event: 'close', handler: (reason: string) => void): void;
-}
-```
-
-#### Example
-
-```javascript
-// Create direct channel between widget and worker
-const channel = await hub.createDirectChannel('widget', 'worker');
-
-// Now widget ↔ worker communicate directly
-// Messages don't pass through hub
-
-// Close when done
-channel.close();
-```
-
----
-
-### getStatus()
-
-Returns complete bus status.
-
-```javascript
-bus.getStatus(): BusStatus
-```
-
-#### Returns
-
-```typescript
-interface BusStatus {
-  id: string;
-  destroyed: boolean;
-  peers: Record<string, PeerInfo>;
-  channels: DirectChannel[];
-  stats: {
-    messagesIn: number;
-    messagesOut: number;
-    bytesIn: number;
-    bytesOut: number;
-  };
-}
-```
-
----
-
-### getPeer(id)
-
-Returns peer info by ID.
-
-```javascript
-bus.getPeer(id): PeerInfo | undefined
-```
-
----
-
-### getPeers()
-
-Returns all connected peers.
-
-```javascript
-bus.getPeers(): PeerInfo[]
-```
-
----
-
-## Types
-
-### PeerInfo
-
-```typescript
-interface PeerInfo {
-  id: string;
-  type: 'iframe' | 'worker' | 'sw' | 'window' | 'port';
-  origin: string;
-  status: 'connecting' | 'connected' | 'disconnected' | 'reconnecting' | 'failed';
-  connectedAt: number;
-  lastSeen: number;
-  reconnectAttempts: number;
-}
-```
-
----
-
-## Error Codes
-
-| Code | Retryable | Description |
-|------|-----------|-------------|
-| `ERR_HANDSHAKE_TIMEOUT` | ✅ | Handshake timed out |
-| `ERR_HANDSHAKE_REJECTED` | ❌ | Peer rejected connection |
-| `ERR_ORIGIN_FORBIDDEN` | ❌ | Origin not allowed |
-| `ERR_PEER_EXISTS` | ❌ | Peer ID already exists |
-| `ERR_PEER_NOT_FOUND` | ❌ | Unknown peer |
-| `ERR_PEER_DISCONNECTED` | ✅ | Peer is offline |
-| `ERR_RECONNECT_FAILED` | ❌ | Max reconnects reached |
-| `ERR_ACK_TIMEOUT` | ✅ | ACK not received |
-| `ERR_RESPONSE_TIMEOUT` | ✅ | Response not received |
-| `ERR_NO_HANDLER` | ❌ | No request handler |
-| `ERR_HANDLER_ERROR` | ❌ | Handler threw exception |
-| `ERR_CLONE_ERROR` | ❌ | Data not cloneable |
-| `ERR_TRANSFER_ERROR` | ❌ | Transfer failed |
-| `ERR_MESSAGE_TOO_LARGE` | ❌ | Message exceeds maximum size |
-| `ERR_DESTROYED` | ❌ | Bus was destroyed |
-| `ERR_QUEUE_FULL` | ❌ | Message queue is full |
-| `ERR_INVALID_MESSAGE` | ❌ | Invalid message format |
-| `ERR_VERSION_MISMATCH` | ❌ | Protocol version mismatch |
-| `ERR_UNREACHABLE` | ✅ | Destination peer is unreachable |
-| `ERR_TTL_EXCEEDED` | ❌ | Message TTL exceeded (possible routing loop) |
-| `ERR_NO_ROUTE` | ❌ | No route to destination |
-| `ERR_HANDLER_TIMEOUT` | ✅ | Handler did not respond within timeout |
-| `ERR_CHANNEL_FAILED` | ✅ | Failed to create direct channel |
-| `ERR_CHANNEL_CLOSED` | ❌ | Channel was closed unexpectedly |
-| `ERR_MAX_PEERS` | ❌ | Maximum number of peers reached |
-| `ERR_MAX_PENDING` | ❌ | Maximum pending requests reached |
-
-### Error Handling Best Practices
-
-```javascript
-import { CrossBusError, isRetryable, ErrorCode } from 'crossbus';
-
-try {
-  const result = await bus.request('widget', 'getData', { id: 5 });
-} catch (error) {
-  if (error instanceof CrossBusError) {
-    console.log('Code:', error.code);        // 'ERR_RESPONSE_TIMEOUT'
-    console.log('Message:', error.message);  // 'Response not received within timeout'
-    console.log('Details:', error.details);  // { requestId, targetPeer, handlerName, timeout }
-    console.log('Retryable:', error.retryable); // true
-    console.log('Timestamp:', error.timestamp); // 1737534000000
-    
-    // Check if worth retrying
-    if (isRetryable(error)) {
-      // Retry logic here
-    }
-    
-    // Handle specific errors
-    switch (error.code) {
-      case ErrorCode.PEER_NOT_FOUND:
-        console.log('Peer does not exist');
-        break;
-      case ErrorCode.RESPONSE_TIMEOUT:
-        console.log('Request timed out, consider increasing timeout');
-        break;
-      case ErrorCode.MAX_PENDING:
-        console.log('Too many pending requests, slow down');
-        break;
-    }
-  }
-}
-```
-
-### CrossBusError Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `code` | `ErrorCode` | Error code constant (e.g., `'ERR_PEER_NOT_FOUND'`) |
-| `message` | `string` | Human-readable error message |
-| `details` | `object` | Additional context (varies by error) |
-| `retryable` | `boolean` | Whether the operation can be retried |
-| `cause` | `Error?` | Original error that caused this error |
-| `timestamp` | `number` | When error occurred (ms since epoch) |
-
----
-
-## Events
-
-Listen to lifecycle events:
-
-```javascript
-bus.on('peer:connected', ({ peerId, type, origin }) => {});
-bus.on('peer:disconnected', ({ peerId, reason, graceful }) => {});
-bus.on('peer:reconnecting', ({ peerId, attempt, maxAttempts }) => {});
-bus.on('peer:failed', ({ peerId, error }) => {});
-bus.on('error', ({ code, message, details }) => {});
-```
-
----
-
-## NativeBridgeTransport
-
-Transport for Android/iOS WebView communication.
-
-```javascript
-import { NativeBridgeTransport } from 'crossbus';
-
-const transport = new NativeBridgeTransport({
-  androidInterface: 'CrossBus',   // Android bridge name
-  iosHandler: 'crossbus',         // iOS handler name
-  initTimeout: 5000,               // Wait for bridge (ms)
-  heartbeatInterval: 30000         // Heartbeat every 30s
-});
-
-await transport.ready;
-console.log(transport.bridgeType); // 'android' | 'ios' | 'none'
-
-transport.onMessage((msg, { bridgeType }) => {
-  console.log(`From ${bridgeType}:`, msg);
-});
-
-transport.send({ type: 'hello', data: 123 });
-transport.destroy();
-```
-
-### Static Methods
-
-| Method | Returns | Description |
-|--------|---------|-------------|
-| `detectBridge()` | `'android' \| 'ios' \| 'none'` | Detects available bridge |
-| `isSupported()` | `boolean` | True if any bridge available |
-
----
-
-## StreamManager
-
-For transferring large payloads in chunks.
-
-```javascript
-import { StreamManager, WritableSignalStream, ReadableSignalStream } from 'crossbus';
-
-const streams = new StreamManager((peerId, msg) => bus.send(peerId, msg));
-
-// Send stream
-const stream = streams.createStream('upload', 'peer-1', {
-  chunkSize: 64000,
-  meta: { filename: 'data.json' }
-});
-
-await stream.write(data1);
-await stream.write(data2);
-await stream.end({ checksum: '...' });
-
-// Receive streams
-streams.onStream('upload', async (stream) => {
-  console.log('Receiving:', stream.meta.filename);
-  
-  // Option 1: Iterate chunks
-  for await (const chunk of stream) {
-    await processChunk(chunk);
-  }
-  
-  // Option 2: Collect all
-  const data = await stream.collect();
-});
-
-// Handle incoming stream messages
-bus.on('stream', (msg, ctx) => {
-  streams.handleMessage(msg, ctx.peerId);
-});
-```
-
-### WritableSignalStream
-
-| Method | Description |
-|--------|-------------|
-| `open(meta?)` | Opens stream (auto-called on first write) |
-| `write(data)` | Writes data chunk (string, ArrayBuffer, object) |
-| `end(meta?)` | Ends stream with optional final metadata |
-| `abort(reason?)` | Aborts stream with error |
-
-### ReadableSignalStream
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `streamId` | `string` | Stream identifier |
-| `name` | `string` | Stream name/type |
-| `meta` | `object` | Stream metadata |
-| `ended` | `boolean` | Whether stream ended |
-
-| Method | Returns | Description |
-|--------|---------|-------------|
-| `[Symbol.asyncIterator]()` | `AsyncIterator` | Iterate chunks |
-| `collect()` | `Promise<Uint8Array \| string>` | Collect all data |
-
----
-
-## PresenceManager
-
-Real-time online peer tracking with heartbeat.
-
-```javascript
-import { PresenceManager, createPresence } from 'crossbus';
-
-// With CrossBus integration
-const presence = createPresence(bus, {
-  heartbeatInterval: 15000,   // Heartbeat every 15s
-  timeout: 45000              // Offline after 45s silence
-});
-
-// Track joins/leaves
-presence.on('join', ({ peerId, meta }) => console.log(`${peerId} online`));
-presence.on('leave', ({ peerId }) => console.log(`${peerId} offline`));
-presence.on('update', ({ peerId, peer }) => console.log(`${peerId} updated`));
-
-// Query presence
-const online = presence.getOnlinePeers();  // ['peer-1', 'peer-2']
-presence.isOnline('peer-1');               // true
-const peer = presence.getPeer('peer-1');   // { peerId, status, lastSeen, meta }
-
-// Set own status
-presence.setStatus('away', { reason: 'brb' });
-presence.setMeta({ avatar: 'url' });
-
-// Cleanup
-presence.destroy();
-```
-
-### Methods
-
-| Method | Returns | Description |
-|--------|---------|-------------|
-| `start()` | `void` | Start heartbeat |
-| `stop()` | `void` | Stop heartbeat, announce leave |
-| `setStatus(status, meta?)` | `void` | Update own status |
-| `setMeta(meta)` | `void` | Update own metadata |
-| `getOnlinePeers()` | `string[]` | List of online peer IDs |
-| `getAllPeers()` | `PeerPresence[]` | All peer presences |
-| `getPeer(id)` | `PeerPresence?` | Get specific peer |
-| `isOnline(id)` | `boolean` | Check if peer online |
-| `handleMessage(msg, peerId)` | `void` | Handle presence message |
-| `destroy()` | `void` | Clean up resources |
-
-### Events
-
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `join` | `{ peerId, meta }` | Peer came online |
-| `leave` | `{ peerId }` | Peer went offline |
-| `update` | `{ peerId, peer }` | Peer presence updated |
+Refer to [architecture](ARCHITECTURE.md), [integration patterns](ADVANCED.md), [security](../SECURITY.md), [native adapters](../native/README.md) and [benchmarks](BENCHMARKS.md) for boundaries and verification.

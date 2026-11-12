@@ -11,7 +11,8 @@
  * - Real-time collaboration
  */
 
-import { CrossBus, BroadcastChannelTransport } from 'crossbus';
+import { CrossBus } from 'crossbus';
+const { BroadcastChannelTransport } = await import('crossbus');
 
 // ============================================
 // SETUP
@@ -61,7 +62,7 @@ function updateState(updates) {
 
 // Listen for state updates from other tabs
 bus.on('state:sync', (event) => {
-    const { fromTab, updates, timestamp } = event.data;
+    const { fromTab, updates, timestamp } = event.data.payload;
 
     // Ignore our own updates
     if (fromTab === tabId) return;
@@ -109,7 +110,7 @@ function logout() {
 }
 
 bus.on('auth:logout', (event) => {
-    if (event.data.tabId !== tabId) {
+    if (event.data.payload.tabId !== tabId) {
         state.user = null;
         console.log(`[${tabId}] Logged out due to logout in another tab`);
         renderState();
@@ -123,8 +124,8 @@ function setTheme(theme) {
 }
 
 bus.on('state:sync', (event) => {
-    if (event.data.updates.theme) {
-        document.documentElement.dataset.theme = event.data.updates.theme;
+    if (event.data.payload.updates.theme) {
+        document.documentElement.dataset.theme = event.data.payload.updates.theme;
     }
 });
 
@@ -138,10 +139,10 @@ function requestStateFromOtherTabs() {
 }
 
 bus.on('state:request', (event) => {
-    if (event.data.fromTab !== tabId) {
+    if (event.data.payload.fromTab !== tabId) {
         // Respond with our current state
         bus.signal('state:response', {
-            toTab: event.data.fromTab,
+            toTab: event.data.payload.fromTab,
             state,
             fromTab: tabId,
         });
@@ -149,12 +150,12 @@ bus.on('state:request', (event) => {
 });
 
 bus.on('state:response', (event) => {
-    if (event.data.toTab === tabId) {
+    if (event.data.payload.toTab === tabId) {
         // Use received state if it's newer
-        if (!state.lastSyncedAt || event.data.state.lastSyncedAt > state.lastSyncedAt) {
-            state = event.data.state;
+        if (!state.lastSyncedAt || event.data.payload.state.lastSyncedAt > state.lastSyncedAt) {
+            state = event.data.payload.state;
             localStorage.setItem('app-state', JSON.stringify(state));
-            console.log(`[${tabId}] Initialized state from ${event.data.fromTab}`);
+            console.log(`[${tabId}] Initialized state from ${event.data.payload.fromTab}`);
             renderState();
         }
     }

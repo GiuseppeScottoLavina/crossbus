@@ -32,7 +32,7 @@ serializers.set(JSONSerializer.contentType, JSONSerializer);
 /**
  * Gets a serializer by content type.
  * Defaults to JSON if not found.
- * 
+ *
  * @param {string} contentType 
  * @returns {Serializer}
  */
@@ -43,7 +43,7 @@ export function getSerializer(contentType) {
 /**
  * Returns the preferred content type for the given payload.
  * Always returns JSON for maximum compatibility with native bridges.
- * 
+ *
  * @param {*} payload 
  * @returns {string} Content-Type preferred
  */

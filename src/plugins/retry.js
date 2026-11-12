@@ -4,7 +4,7 @@
  * @module plugins/retry
  */
 
-import { CrossBusError, ErrorCode, isRetryable } from '../common/errors.js';
+import { isRetryable } from '../common/errors.js';
 import { sleep } from '../common/utils.js';
 
 /**
@@ -33,11 +33,11 @@ export const DEFAULT_RETRY_OPTIONS = {
 
 /**
  * Calculates delay for a specific attempt using exponential backoff.
- * 
+ *
  * @param {number} attempt - Current attempt number (0-indexed).
  * @param {RetryOptions} options - Retry options.
  * @returns {number} Delay in ms.
- * 
+ *
  * @example
  * getDelay(0, { baseDelay: 100, factor: 2 }); // 100
  * getDelay(1, { baseDelay: 100, factor: 2 }); // 200
@@ -66,12 +66,12 @@ export function getDelay(attempt, options) {
 
 /**
  * Wraps a function with retry logic.
- * 
+ *
  * @template T
  * @param {() => Promise<T>} fn - Function to retry.
  * @param {RetryOptions} [options={}] - Retry options.
  * @returns {Promise<T>}
- * 
+ *
  * @example
  * const result = await withRetry(
  *   () => bus.request('widget', 'getData'),
@@ -122,16 +122,16 @@ export async function withRetry(fn, options = {}) {
 
 /**
  * Creates a retry wrapper for CrossBus requests.
- * 
+ *
  * @param {import("../core/cross-bus.js").CrossBus} bus - CrossBus instance.
  * @param {RetryOptions} [defaultOptions={}] - Default options for all retries.
  * @returns {Object} Retry-wrapped methods.
- * 
+ *
  * @example
  * const retry = createRetryWrapper(bus, { maxAttempts: 3 });
- * 
+ *
  * const result = await retry.request('widget', 'getData', { id: 5 });
- * 
+ *
  * const responses = await retry.broadcastRequest('getStatus');
  */
 export function createRetryWrapper(bus, defaultOptions = {}) {
@@ -140,7 +140,7 @@ export function createRetryWrapper(bus, defaultOptions = {}) {
     return {
         /**
          * Request with retry.
-         * 
+         *
          * @param {string} peerId - Target peer ID.
          * @param {string} handlerName - Handler name.
          * @param {*} [payload] - Request payload.
@@ -158,7 +158,7 @@ export function createRetryWrapper(bus, defaultOptions = {}) {
         /**
          * Broadcast request with retry (per-peer).
          * Note: Each peer request is retried independently.
-         * 
+         *
          * @param {string} handlerName - Handler name.
          * @param {*} [payload] - Request payload.
          * @param {Object} [broadcastOptions] - Broadcast and retry options.

@@ -4,7 +4,8 @@
  * @module core/peer-registry
  */
 
-import { PeerStatus, PeerType } from './message-types.js';
+/** @typedef {import('./message-types.js').PeerType} PeerType */
+import { PeerStatus } from './message-types.js';
 
 /** @type {symbol} Private storage for peers map */
 const PEERS = Symbol('peers');
@@ -43,10 +44,10 @@ const HANDLERS = Symbol('handlers');
 
 /**
  * Registry for managing connected peers.
- * 
+ *
  * @example
  * const registry = new PeerRegistry({ maxQueueSize: 50 });
- * 
+ *
  * // Add a peer
  * registry.add({
  *   id: 'widget-iframe',
@@ -54,10 +55,10 @@ const HANDLERS = Symbol('handlers');
  *   origin: 'https://widget.example.com',
  *   target: iframeElement.contentWindow
  * });
- * 
+ *
  * // Get peer
  * const peer = registry.get('widget-iframe');
- * 
+ *
  * // Update status
  * registry.updateStatus('widget-iframe', 'connected');
  */
@@ -67,7 +68,7 @@ export class PeerRegistry {
 
     /**
      * Creates a new PeerRegistry.
-     * 
+     *
      * @param {PeerRegistryConfig} [config={}] - Configuration options.
      */
     constructor(config = {}) {
@@ -90,7 +91,7 @@ export class PeerRegistry {
 
     /**
      * Adds a new peer to the registry.
-     * 
+     *
      * @param {Object} options - Peer options.
      * @param {string} options.id - Unique peer ID.
      * @param {PeerType} options.type - Peer type.
@@ -99,7 +100,7 @@ export class PeerRegistry {
      * @param {MessagePort|null} [options.port] - Optional MessagePort.
      * @returns {PeerInfo} The added peer info.
      * @throws {Error} If peer with same ID already exists.
-     * 
+     *
      * @example
      * const peer = registry.add({
      *   id: 'my-worker',
@@ -135,7 +136,7 @@ export class PeerRegistry {
 
     /**
      * Gets a peer by ID.
-     * 
+     *
      * @param {string} id - Peer ID.
      * @returns {PeerInfo|undefined} Peer info or undefined if not found.
      */
@@ -145,7 +146,7 @@ export class PeerRegistry {
 
     /**
      * Checks if a peer exists.
-     * 
+     *
      * @param {string} id - Peer ID.
      * @returns {boolean} True if peer exists.
      */
@@ -155,7 +156,7 @@ export class PeerRegistry {
 
     /**
      * Removes a peer from the registry.
-     * 
+     *
      * @param {string} id - Peer ID.
      * @returns {boolean} True if peer was removed.
      */
@@ -173,7 +174,7 @@ export class PeerRegistry {
 
     /**
      * Updates a peer's connection status.
-     * 
+     *
      * @param {string} id - Peer ID.
      * @param {PeerStatus} status - New status.
      * @returns {boolean} True if updated.
@@ -196,7 +197,7 @@ export class PeerRegistry {
 
     /**
      * Updates a peer's last seen timestamp.
-     * 
+     *
      * @param {string} id - Peer ID.
      * @returns {boolean} True if updated.
      */
@@ -210,7 +211,7 @@ export class PeerRegistry {
 
     /**
      * Gets all connected peers.
-     * 
+     *
      * @returns {PeerInfo[]} Array of connected peers.
      */
     getConnected() {
@@ -220,7 +221,7 @@ export class PeerRegistry {
 
     /**
      * Gets all peers.
-     * 
+     *
      * @returns {PeerInfo[]} Array of all peers.
      */
     getAll() {
@@ -229,7 +230,7 @@ export class PeerRegistry {
 
     /**
      * Gets peer IDs.
-     * 
+     *
      * @returns {string[]} Array of peer IDs.
      */
     getIds() {
@@ -238,7 +239,7 @@ export class PeerRegistry {
 
     /**
      * Gets the count of peers by status.
-     * 
+     *
      * @returns {Object} Counts by status.
      */
     getCounts() {
@@ -262,7 +263,7 @@ export class PeerRegistry {
 
     /**
      * Queues a message for an offline peer.
-     * 
+     *
      * @param {string} peerId - Target peer ID.
      * @param {Object} message - Message to queue.
      * @returns {boolean} True if queued, false if queue is full.
@@ -287,7 +288,7 @@ export class PeerRegistry {
 
     /**
      * Gets queued messages for a peer.
-     * 
+     *
      * @param {string} peerId - Peer ID.
      * @returns {QueuedMessage[]} Queued messages.
      */
@@ -297,7 +298,7 @@ export class PeerRegistry {
 
     /**
      * Clears queued messages for a peer.
-     * 
+     *
      * @param {string} peerId - Peer ID.
      * @returns {number} Number of cleared messages.
      */
@@ -312,7 +313,7 @@ export class PeerRegistry {
 
     /**
      * Drains the message queue for a peer (returns and clears).
-     * 
+     *
      * @param {string} peerId - Peer ID.
      * @returns {QueuedMessage[]} Drained messages.
      */
@@ -329,7 +330,7 @@ export class PeerRegistry {
 
     /**
      * Registers an event handler.
-     * 
+     *
      * @param {'add'|'remove'|'statusChange'} event - Event name.
      * @param {EventListener} handler - Event handler.
      * @returns {Function} Unsubscribe function.
@@ -345,8 +346,8 @@ export class PeerRegistry {
 
     /**
      * Emits an event.
-     * 
-     * 
+     *
+     *
      * @param {string} event - Event name.
      * @param {*} data - Event data.
      */
@@ -365,7 +366,7 @@ export class PeerRegistry {
 
     /**
      * Finds stale peers (no activity for staleTimeout).
-     * 
+     *
      * @returns {PeerInfo[]} Array of stale peers.
      */
     findStale() {

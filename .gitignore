@@ -46,3 +46,7 @@ bun.lockb
 # Agent-specific (local development)
 .agent/
 reports/
+
+# Local release archives (uploaded as GitHub release assets)
+artifacts/
+*.tgz

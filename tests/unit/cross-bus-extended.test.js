@@ -24,9 +24,20 @@ describe('CrossBus Extended', () => {
     // ═══════════════════════════════════════════════════════════
 
     describe('broadcastRequest()', () => {
-        it.skip('should broadcast to all peers and collect responses', async () => {
-            // Skip: Full E2E broadcast request scenario requires actual transport
-            // integration where peer handlers respond. This is covered in E2E tests.
+        it('should broadcast to all peers and collect responses', async () => {
+            hub.destroy();
+            hub = new CrossBus({ isHub: true, peerId: 'hub', allowedOrigins: ['*'] });
+            const peers = ['a', 'b'].map(peerId => new CrossBus({ peerId, allowedOrigins: ['*'] }));
+            try {
+                for (const peer of peers) {
+                    peer.handle('status', () => peer.peerId);
+                    hub.addPeer(peer.peerId, msg => peer.handleMessage(msg, '*', 'hub'));
+                    peer.addPeer('hub', msg => hub.handleMessage(msg, '*', peer.peerId));
+                }
+                const results = await hub.broadcastRequest('status');
+                expect(results.get('a')).toEqual({ success: true, data: 'a' });
+                expect(results.get('b')).toEqual({ success: true, data: 'b' });
+            } finally { for (const peer of peers) peer.destroy(); }
         });
 
         it('should exclude specified peers', async () => {
@@ -47,6 +58,7 @@ describe('CrossBus Extended', () => {
 
             // peer-2 should not be in sentTo
             expect(sentTo).not.toContain('peer-2');
+            await promise;
         });
 
         it('should ignore errors by default', async () => {
@@ -79,9 +91,10 @@ describe('CrossBus Extended', () => {
             ).rejects.toThrow();
         });
 
-        it.skip('should cancel pending request on send failure', async () => {
-            // Skip: Send failures are caught internally by router. The request
-            // times out instead of failing fast. This is expected behavior.
+        it('should cancel pending request on send failure', async () => {
+            hub.addPeer('broken', () => { throw new Error('disconnected'); });
+            await expect(hub.request('broken', 'test')).rejects.toMatchObject({ code: ErrorCode.SEND_FAILED });
+            expect(hub.healthCheck().pendingRequests).toBe(0);
         });
     });
 
@@ -93,11 +106,8 @@ describe('CrossBus Extended', () => {
         it('should apply inbound hooks in priority order', async () => {
             const order = [];
 
-            hub.addInboundHook((p) => { order.push('low'); return p; }, 20);
-            hub.addInboundHook((p) => { order.push('high'); return p; }, 5);
-
-            // Simulate message handling with valid allowedOrigin
-            hub = new CrossBus({ isHub: true, peerId: 'hub' });
+            hub.destroy();
+            hub = new CrossBus({ isHub: true, peerId: 'hub', allowedOrigins: ['null'] });
             hub.addInboundHook((p) => { order.push('low'); return p; }, 20);
             hub.addInboundHook((p) => { order.push('high'); return p; }, 5);
 
@@ -108,8 +118,8 @@ describe('CrossBus Extended', () => {
                 payload: { name: 'test', data: { content: 'value' } }
             }, 'null', 'peer-1');
 
-            // Hooks are applied - order depends on internal implementation
-            expect(order.length).toBeGreaterThanOrEqual(0);
+            // Lower hook priority values execute first.
+            expect(order).toEqual(['high', 'low']);
         });
 
         it('should apply outbound hooks', async () => {

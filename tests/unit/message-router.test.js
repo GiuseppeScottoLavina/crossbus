@@ -243,3 +243,17 @@ describe('MessageRouter', () => {
         });
     });
 });
+
+describe('Protocol broadcast passthrough', () => {
+    it('preserves a protocol envelope instead of nesting it inside another message', () => {
+        const router = new MessageRouter();
+        const first = mock(), second = mock();
+        router.addPeer('first', first);
+        router.addPeer('second', second);
+        const message = Object.freeze({ _cb: 1, id: 'standard-signal', type: 'sig', payload: { name: 'tick', data: 7 } });
+        expect(router.broadcast(message).delivered).toBe(2);
+        expect(first.mock.calls[0][0]).toBe(message);
+        expect(second.mock.calls[0][0]).toBe(message);
+        router.clearPeers();
+    });
+});

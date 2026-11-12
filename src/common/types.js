@@ -126,7 +126,7 @@ export const Defaults = Object.freeze({
 
 /**
  * Checks if an object is a valid CrossBus message.
- * 
+ *
  * @param {*} obj - Object to check.
  * @returns {boolean} True if valid protocol message.
  */
@@ -153,7 +153,7 @@ export const TransferableTypes = [
 
 /**
  * Checks if a value is transferable.
- * 
+ *
  * @param {*} value - Value to check.
  * @returns {boolean} True if transferable.
  */
@@ -170,28 +170,21 @@ export function isTransferable(value) {
 
 /**
  * Recursively finds all transferable objects in a value.
- * 
+ *
  * @param {*} value - Value to search.
  * @param {Set<Transferable>} [found] - Set to collect transferables.
  * @returns {Transferable[]} Array of transferables found.
  */
-export function findTransferables(value, found = new Set()) {
+export function findTransferables(value, found = new Set(), seen = new Set()) {
     if (value === null || value === undefined) return Array.from(found);
-
     if (isTransferable(value)) {
         found.add(value);
         return Array.from(found);
     }
-
-    if (Array.isArray(value)) {
-        for (const item of value) {
-            findTransferables(item, found);
-        }
-    } else if (typeof value === 'object') {
-        for (const key of Object.keys(value)) {
-            findTransferables(value[key], found);
-        }
-    }
-
+    if (typeof value !== 'object' || seen.has(value)) return Array.from(found);
+    seen.add(value);
+    const values = value instanceof Map ? [...value.keys(), ...value.values()]
+        : value instanceof Set ? value.values() : Object.values(value);
+    for (const item of values) findTransferables(item, found, seen);
     return Array.from(found);
 }

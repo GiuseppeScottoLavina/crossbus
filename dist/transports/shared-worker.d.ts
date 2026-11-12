@@ -15,11 +15,9 @@
 /**
  * SharedWorker-based transport for tab communication.
  *
- * SharedWorkers persist across page refreshes and are shared between
- * all tabs/windows of the same origin. This enables:
- * - Shared state across tabs
- * - Single connection to backend (via worker)
- * - Efficient broadcast to all tabs
+ * A compatible shared worker can coordinate same-origin contexts while alive.
+ * The application supplies its script, routing, storage and backend connection.
+ * This transport does not guarantee persistence across navigation or restarts.
  *
  * @example
  * // Create transport

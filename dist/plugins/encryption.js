@@ -1,7 +1,7 @@
 /**
  * @fileoverview Encryption plugin for CrossBus.
  * Provides AES-GCM encryption for message payloads using Web Crypto API.
- * 
+ *
  * @module plugins/encryption
  */
 
@@ -20,19 +20,19 @@
 /**
  * Encryption utilities for CrossBus messages.
  * Uses AES-256-GCM for authenticated encryption.
- * 
+ *
  * @example
  * import { Encryption } from 'crossbus/plugins/encryption';
- * 
+ *
  * // Generate or derive a key
  * const key = await Encryption.generateKey();
  * // or: const key = await Encryption.deriveKey('password', 'salt');
- * 
+ *
  * // Use with CrossBus hooks
  * const { encryptHook, decryptHook } = Encryption.createEncryptedHooks(key);
  * bus.addOutboundHook(encryptHook);
  * bus.addInboundHook(decryptHook);
- * 
+ *
  * // Now all messages are automatically encrypted!
  */
 class Encryption {
@@ -42,7 +42,7 @@ class Encryption {
 
     /**
      * Generates a new random AES-256 key.
-     * 
+     *
      * @returns {Promise<CryptoKey>} Generated key
      */
     static async generateKey() {
@@ -58,7 +58,7 @@ class Encryption {
 
     /**
      * Derives a key from a password using PBKDF2.
-     * 
+     *
      * @param {string} password - User password
      * @param {string} salt - Salt for key derivation (should be unique per user/session)
      * @param {number} [iterations=100000] - PBKDF2 iterations
@@ -96,7 +96,7 @@ class Encryption {
 
     /**
      * Exports a CryptoKey to base64 string for storage.
-     * 
+     *
      * @param {CryptoKey} key - Key to export
      * @returns {Promise<string>} Base64-encoded key
      */
@@ -107,7 +107,7 @@ class Encryption {
 
     /**
      * Imports a key from base64 string.
-     * 
+     *
      * @param {string} keyStr - Base64-encoded key
      * @returns {Promise<CryptoKey>} Imported key
      */
@@ -127,7 +127,7 @@ class Encryption {
 
     /**
      * Encrypts a payload.
-     * 
+     *
      * @param {any} payload - Data to encrypt (will be JSON serialized)
      * @param {CryptoKey} key - Encryption key
      * @returns {Promise<EncryptedPayload>} Encrypted payload
@@ -164,7 +164,7 @@ class Encryption {
 
     /**
      * Decrypts an encrypted payload.
-     * 
+     *
      * @param {EncryptedPayload} encrypted - Encrypted payload
      * @param {CryptoKey} key - Decryption key
      * @param {Object} [options={}] - Decryption options
@@ -213,10 +213,10 @@ class Encryption {
 
     /**
      * Creates hook functions for automatic encryption/decryption.
-     * 
+     *
      * @param {CryptoKey} key - Encryption key
      * @returns {{ encryptHook: import('../core/cross-bus.js').MessageHook, decryptHook: import('../core/cross-bus.js').MessageHook }}
-     * 
+     *
      * @example
      * const { encryptHook, decryptHook } = Encryption.createEncryptedHooks(key);
      * bus.addOutboundHook(encryptHook);
@@ -263,11 +263,11 @@ class Encryption {
 
 /**
  * Helper to create an encrypted CrossBus instance.
- * 
+ *
  * @param {import("../core/cross-bus.js").CrossBus} bus - CrossBus instance
  * @param {CryptoKey} key - Encryption key
  * @returns {import("../core/cross-bus.js").CrossBus} Same bus with encryption hooks installed
- * 
+ *
  * @example
  * const bus = new CrossBus({ peerId: 'secure-agent' });
  * const key = await Encryption.deriveKey('password', 'salt');

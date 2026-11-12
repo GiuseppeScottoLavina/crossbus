@@ -1,9 +1,9 @@
 {
     "name": "CrossBus",
-    "version": "0.1.0",
-    "description": "Cross-context messaging library for browsers - iframes, workers, tabs, and AI agents. Zero dependencies, ~170M ops/sec.",
+    "version": "0.1.2",
+    "description": "Cross-context signals and RPC for browser applications. No runtime npm dependencies.",
     "homepage": "https://github.com/giuseppescottolavina/crossbus",
-    "documentation": "https://crossbus.dev/docs",
+    "documentation": "https://giuseppescottolavina.github.io/crossbus/",
     "capabilities": [
         "messaging",
         "rpc",
@@ -17,37 +17,37 @@
         {
             "name": "PostMessageTransport",
             "description": "Communication between iframes and parent windows",
-            "useCase": "iframe ↔ parent"
+            "useCase": "iframe \u2194 parent"
         },
         {
             "name": "BroadcastChannelTransport",
             "description": "Sync state across browser tabs",
-            "useCase": "tab ↔ tab"
+            "useCase": "tab \u2194 tab"
         },
         {
             "name": "WebSocketTransport",
             "description": "Real-time server communication",
-            "useCase": "browser ↔ server"
+            "useCase": "browser \u2194 server"
         },
         {
             "name": "SharedWorkerTransport",
             "description": "Single shared worker instance across tabs",
-            "useCase": "multiple tabs ↔ shared worker"
+            "useCase": "multiple tabs \u2194 shared worker"
         },
         {
             "name": "ServiceWorkerTransport",
-            "description": "Background sync and offline support",
-            "useCase": "page ↔ service worker"
+            "description": "Communication with an application-provided service worker",
+            "useCase": "page \u2194 service worker"
         },
         {
             "name": "NativeBridgeTransport",
             "description": "iOS/Android WebView communication",
-            "useCase": "webview ↔ native app"
+            "useCase": "webview \u2194 native app"
         },
         {
             "name": "MessageChannelTransport",
             "description": "Direct MessageChannel port communication",
-            "useCase": "worker ↔ main thread"
+            "useCase": "worker \u2194 main thread"
         }
     ],
     "tools": [
@@ -205,5 +205,7 @@
     "aiGuide": "./docs/AI-GUIDE.md",
     "geminiMd": "./GEMINI.md",
     "license": "Apache-2.0",
-    "lastUpdated": "2026-01-25"
+    "lastUpdated": "2026-11-12",
+    "kind": "library-metadata",
+    "qualification": "Browser transport tests and native compilation are separate from physical iOS/Android runtime qualification. See docs/AUDIT.md."
 }

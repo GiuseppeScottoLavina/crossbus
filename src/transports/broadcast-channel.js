@@ -31,31 +31,31 @@ import { getSerializer, JSONSerializer } from '../common/serialization.js';
 
 /**
  * BroadcastChannel-based transport for same-origin communication.
- * 
+ *
  * Perfect for:
  * - Multiple tabs of the same app
  * - Communication without opening connections
  * - Pub/sub pattern across contexts
- * 
+ *
  * Limitations:
  * - Same-origin only (no cross-origin)
  * - No guaranteed delivery order
  * - No acknowledgments (fire-and-forget)
- * 
+ *
  * @example
  * // Create transport
  * const transport = new BroadcastChannelTransport({
  *   channelName: 'myapp:events'
  * });
- * 
+ *
  * // Listen for messages
  * transport.onMessage((msg, ctx) => {
  *   console.log('Received:', msg);
  * });
- * 
+ *
  * // Send message (to all other tabs)
  * transport.send({ type: 'notification', payload: { text: 'Hello!' } });
- * 
+ *
  * // Cleanup
  * transport.destroy();
  */
@@ -80,7 +80,7 @@ export class BroadcastChannelTransport {
 
     /**
      * Checks if BroadcastChannel API is available.
-     * 
+     *
      * @returns {boolean} True if BroadcastChannel is supported.
      */
     static isSupported() {
@@ -89,11 +89,12 @@ export class BroadcastChannelTransport {
 
     /**
      * Creates a new BroadcastChannel transport.
-     * 
-     * @param {BroadcastChannelTransportOptions} [options={}] - Configuration.
+     *
+     * @param {BroadcastChannelTransportOptions|string} [options={}] - Configuration.
      * @throws {CrossBusError} If BroadcastChannel is not supported.
      */
     constructor(options = {}) {
+        if (typeof options === 'string') options = { channelName: options };
         if (!BroadcastChannelTransport.isSupported()) {
             throw CrossBusError.from(ErrorCode.UNSUPPORTED, {
                 api: 'BroadcastChannel'
@@ -112,10 +113,10 @@ export class BroadcastChannelTransport {
 
     /**
      * Sends a message to all other tabs/windows.
-     * 
+     *
      * @param {Object} message - Protocol message to send.
      * @throws {CrossBusError} If transport is destroyed.
-     * 
+     *
      * @example
      * transport.send({
      *   t: 'broadcast',
@@ -131,7 +132,9 @@ export class BroadcastChannelTransport {
         }
 
         // Ensure message has protocol marker
-        const envelope = {
+        // Protocol builders already supply the marker. These transports clone
+        // synchronously, so an extra top-level object copy is unnecessary.
+        const envelope = message[PROTOCOL_MARKER] === PROTOCOL_VERSION ? message : {
             [PROTOCOL_MARKER]: PROTOCOL_VERSION,
             ...message
         };
@@ -147,7 +150,7 @@ export class BroadcastChannelTransport {
     /**
      * Registers a message handler.
      * Only one handler can be registered; subsequent calls replace previous.
-     * 
+     *
      * @param {MessageHandler} handler - Function to handle incoming messages.
      */
     onMessage(handler) {
@@ -201,7 +204,7 @@ export class BroadcastChannelTransport {
 
     /**
      * Handles incoming message events.
-     * 
+     *
      * @param {MessageEvent} event
      */
     #handleMessage(event) {
@@ -235,7 +238,7 @@ export class BroadcastChannelTransport {
 
     /**
      * Handles message errors (e.g., deserialization failures).
-     * 
+     *
      * @param {MessageEvent} event
      */
     #handleError(event) {

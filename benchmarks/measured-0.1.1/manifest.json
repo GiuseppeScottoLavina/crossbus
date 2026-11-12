@@ -1,0 +1,42 @@
+{
+  "version": "0.1.1",
+  "description": "Exact candidate artifacts measured before release preparation. Original result hashes are retained.",
+  "files": [
+    {
+      "file": "dist/crossbus.js",
+      "sha256": "d8954f264e94c7bcaa2ab1c23bcd5a64606aae129bb45b37407b74629ec50693"
+    },
+    {
+      "file": "dist/crossbus.min.js",
+      "sha256": "4c0aede7d94d6304d2ab71bbe2410c2a7e045ad3e32b7dc20a5b6923b00aa80d"
+    },
+    {
+      "file": "dist/crossbus.core.js",
+      "sha256": "98cc9f75e605861ad014ad68297896e8a221cbfc0bacbc3cfb7ff108d2499928"
+    },
+    {
+      "file": "dist/crossbus.core.min.js",
+      "sha256": "c37815caa3b6240f26f35e8bd3bd591a930a2ae1c4d2fa75d005b8b472697310"
+    },
+    {
+      "file": "dist/nano.js",
+      "sha256": "44bb3ec8f792c6380ac135bebfba9b10fdd3ce742a6f88fc9067039af8e3d480"
+    },
+    {
+      "file": "dist/nano.min.js",
+      "sha256": "924adab86ef7f5e8a66bbad0eefe87ffef93acd7a034b0c48233c2e581f11889"
+    },
+    {
+      "file": "dist/plugins/retry.js",
+      "sha256": "fb99e79ad02933ee1d5265461913eb199bf72b174b9d89a689a9c5ce332c0a4c"
+    },
+    {
+      "file": "dist/plugins/circuit-breaker.js",
+      "sha256": "8bbf2c7c7debf77da015b44eb3028bd86aa8f59a1a5e01acc605546499576483"
+    },
+    {
+      "file": "dist/plugins/schema-validation.js",
+      "sha256": "6b571fb0f3ed4fa59220b4b2cf5467fba96b67793c754ddf04fcfc9ef416dc05"
+    }
+  ]
+}

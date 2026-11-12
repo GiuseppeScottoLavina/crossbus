@@ -6,13 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CrossBus — Unified Messaging for Browser Applications</title>
     <meta name="description"
-        content="Zero dependencies. Fast. Secure by default. Cross-context messaging library for iframes, workers, tabs, and AI-powered apps.">
+        content="No runtime dependencies. Configurable origin validation. Cross-context messaging library for iframes, workers, tabs, and AI-powered apps.">
     <link rel="icon" type="image/png" href="favicon.png">
 
     <!-- Open Graph -->
     <meta property="og:title" content="CrossBus — Stop Wrestling with postMessage">
     <meta property="og:description"
-        content="Simple RPC for iframes, workers, tabs. Designed for AI-powered apps. ~170M ops/sec. Zero dependencies. Secure by default.">
+        content="Simple RPC for iframes, workers, tabs. Designed for AI-powered apps. No runtime npm dependencies. Explicit origin controls.">
     <meta property="og:type" content="website">
 
     <!-- Fonts -->
@@ -542,7 +542,7 @@
             <div class="hero-content">
                 <div class="badge">
                     <span class="badge-dot"></span>
-                    v0.1.0 — Cross-Context Messaging for Browsers
+                    v0.1.2 — Cross-Context Messaging for Browsers
                 </div>
 
                 <h1>
@@ -552,7 +552,7 @@
 
                 <p class="hero-subtitle">
                     Simple RPC for iframes, workers, tabs, and AI-powered apps.
-                    Zero dependencies. Fast. Secure by default.
+                    No runtime dependencies. Configurable origin validation.
                 </p>
 
                 <div class="hero-ctas">
@@ -563,20 +563,20 @@
 
                 <div class="stats">
                     <div class="stat">
-                        <div class="stat-value">~170M</div>
-                        <div class="stat-label">ops/second</div>
+                        <div class="stat-value">Measured</div>
+                        <div class="stat-label">see benchmarks</div>
                     </div>
                     <div class="stat">
                         <div class="stat-value">0</div>
                         <div class="stat-label">dependencies</div>
                     </div>
                     <div class="stat">
-                        <div class="stat-value">1074</div>
-                        <div class="stat-label">tests passing</div>
+                        <div class="stat-value">Tested</div>
+                        <div class="stat-label">see local audit</div>
                     </div>
                     <div class="stat">
-                        <div class="stat-value">15KB</div>
-                        <div class="stat-label">gzipped</div>
+                        <div class="stat-value">Modular</div>
+                        <div class="stat-label">see build sizes</div>
                     </div>
                 </div>
             </div>
@@ -600,7 +600,7 @@
                 <div class="feature-card">
                     <div class="feature-icon">⚡</div>
                     <h3>Fast</h3>
-                    <p>~170M ops/sec emitSync. Competitive with nanoevents on emit workloads. Zero runtime
+                    <p>Synchronous local events and cross-context RPC, with reproducible benchmarks. Zero runtime
                         overhead.</p>
                 </div>
                 <div class="feature-card">
@@ -700,71 +700,13 @@ agent.<span class="function">addTransport</span>(
         <div class="container">
             <h2 class="section-title">Why developers choose CrossBus</h2>
             <p class="section-subtitle">
-                Security defaults, agent docs, and features other messaging libraries don't offer.
+                Signals, RPC, optional plugins and native WebView adapters.
             </p>
 
-            <table class="comparison-table">
-                <thead>
-                    <tr>
-                        <th>Feature</th>
-                        <th>CrossBus</th>
-                        <th>Comlink</th>
-                        <th>Penpal</th>
-                        <th>Post-Robot</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>llms.txt + agent.json</td>
-                        <td><span class="check">✓</span></td>
-                        <td><span class="cross">✗</span></td>
-                        <td><span class="cross">✗</span></td>
-                        <td><span class="cross">✗</span></td>
-                    </tr>
-                    <tr>
-                        <td>createSecure() factory</td>
-                        <td><span class="check">✓</span></td>
-                        <td><span class="cross">✗</span></td>
-                        <td><span class="cross">✗</span></td>
-                        <td><span class="cross">✗</span></td>
-                    </tr>
-                    <tr>
-                        <td>Handler rate limiting</td>
-                        <td><span class="check">✓</span></td>
-                        <td><span class="cross">✗</span></td>
-                        <td><span class="cross">✗</span></td>
-                        <td><span class="cross">✗</span></td>
-                    </tr>
-                    <tr>
-                        <td>Schema validation</td>
-                        <td><span class="check">✓</span></td>
-                        <td><span class="cross">✗</span></td>
-                        <td><span class="cross">✗</span></td>
-                        <td><span class="cross">✗</span></td>
-                    </tr>
-                    <tr>
-                        <td>7 transport types</td>
-                        <td><span class="check">✓</span></td>
-                        <td><span class="cross">✗</span></td>
-                        <td><span class="cross">✗</span></td>
-                        <td><span class="cross">✗</span></td>
-                    </tr>
-                    <tr>
-                        <td>WebSocket + auto-reconnect</td>
-                        <td><span class="check">✓</span></td>
-                        <td><span class="cross">✗</span></td>
-                        <td><span class="cross">✗</span></td>
-                        <td><span class="cross">✗</span></td>
-                    </tr>
-                    <tr>
-                        <td>healthCheck() + diagnose()</td>
-                        <td><span class="check">✓</span></td>
-                        <td><span class="cross">✗</span></td>
-                        <td><span class="cross">✗</span></td>
-                        <td><span class="cross">✗</span></td>
-                    </tr>
-                </tbody>
-            </table>
+            <p>Review the <a href="doc.html?file=ARCHITECTURE.md">architecture</a>,
+                <a href="doc.html?file=BENCHMARKS.md">benchmark methodology and results</a>,
+                and <a href="https://github.com/giuseppescottolavina/crossbus/tree/main/native">native adapter sources</a>.
+                No independent security rating or universal performance ranking is claimed.</p>
         </div>
     </section>
 

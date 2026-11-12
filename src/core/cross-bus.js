@@ -5,10 +5,11 @@
  */
 
 import { EventEmitter } from './event-emitter.js';
-import { MessageType, PeerStatus } from '../common/types.js';
+import { MessageType } from '../common/types.js';
+/** @typedef {import('../common/types.js').PeerStatus} PeerStatus */
 import { createSignalMessage, createRequestMessage, createResponseMessage } from './message-types.js';
 import { CrossBusError, ErrorCode } from '../common/errors.js';
-import { uuid } from '../common/utils.js';
+import { uuid, assertPayloadSize } from '../common/utils.js';
 import { MessageRouter } from '../router/message-router.js';
 import { PendingRequests } from '../router/pending-requests.js';
 import { Handshake } from '../security/handshake.js';
@@ -50,7 +51,6 @@ import { OriginValidator } from '../security/origin-validator.js';
 /**
  * @typedef {Object} RequestOptions
  * @property {number} [timeout] - Request timeout in ms.
- * @property {*} [defaultValue] - Value to return on timeout instead of throwing.
  */
 
 /**
@@ -89,38 +89,20 @@ import { OriginValidator } from '../security/origin-validator.js';
  */
 
 /**
- * CrossBus - Zero-leak, high-performance cross-context messaging.
- * 
- * Features:
- * - Hub/Mesh routing
- * - Request/Response pattern
- * - Broadcast to all peers
- * - ACK-based reliability
- * - Origin validation
- * - Resource lifecycle management
- * 
+ * CrossBus coordinates channel-bound peers, signals and request/response.
+ * Configure transport origin/source validation and an explicit bus allowlist.
+ * addTransport() wires an existing endpoint; it does not negotiate a connection
+ * or automatically forward requests to other peers. signal() sends remotely;
+ * inherited emit() dispatches locally.
+ *
  * @example
- * // Hub (main page)
- * const hub = new CrossBus({ isHub: true });
- * 
- * // Connect iframe
- * hub.connect(iframe.contentWindow, {
- *   targetOrigin: 'https://widget.example.com'
+ * const bus = CrossBus.createSecure({
+ *   peerId: 'app', allowedOrigins: ['https://widget.example.com']
  * });
- * 
- * // Register handler
- * hub.handle('getData', async (payload, ctx) => {
- *   return { items: await fetchItems() };
- * });
- * 
- * // Emit signal
- * hub.emit('user:login', { userId: 123 });
- * 
- * // Request/Response
- * const result = await hub.request('widget-1', 'getStatus');
- * 
- * // Cleanup
- * hub.destroy();
+ * bus.handle('getData', ({ id }) => ({ id, status: 'ready' }));
+ * // Attach an initialized transport with bus.addTransport(...).
+ * const result = await bus.request('widget', 'getStatus');
+ * bus.destroy();
  */
 export class CrossBus extends EventEmitter {
     /** @type {string} */
@@ -189,9 +171,12 @@ export class CrossBus extends EventEmitter {
     /** @type {boolean} */
     #destroyed = false;
 
+    /** @type {Set<Function>} */
+    #cleanups = new Set();
+
     /**
      * Creates a new CrossBus instance.
-     * 
+     *
      * @param {CrossBusOptions} [options={}]
      */
     constructor(options = {}) {
@@ -200,13 +185,20 @@ export class CrossBus extends EventEmitter {
         this.#peerId = options.peerId ?? uuid();
         this.#isHub = options.isHub ?? false;
         this.#meta = options.meta ?? {};
-        this.#capabilities = options.capabilities ?? [];
+        this.#capabilities = [...(options.capabilities ?? [])];
         this.#requestTimeout = options.requestTimeout ?? 30000;
 
+        if (options.strictMode && options.allowedOrigins?.some(origin => origin.includes('*'))) {
+            throw new Error('strictMode: wildcard origins are not allowed');
+        }
+        for (const limit of [options.maxPayloadSize, options.maxPendingRequests]) {
+            if (limit !== undefined && (!Number.isSafeInteger(limit) || limit < 0)) throw new RangeError('Resource limits must be nonnegative safe integers');
+        }
         // Initialize components
         this.#router = new MessageRouter();
         this.#pendingRequests = new PendingRequests({
-            defaultTimeout: this.#requestTimeout
+            defaultTimeout: this.#requestTimeout,
+            maxPending: options.maxPendingRequests ?? 100
         });
         this.#handshake = new Handshake({
             peerId: this.#peerId,
@@ -282,7 +274,7 @@ export class CrossBus extends EventEmitter {
 
     /**
      * Gets peer info by ID.
-     * 
+     *
      * @param {string} peerId
      * @returns {PeerInfo|undefined}
      */
@@ -296,13 +288,13 @@ export class CrossBus extends EventEmitter {
 
     /**
      * Sends a signal to all connected peers.
-     * 
+     *
      * @param {string} signalName - Signal name (e.g., 'user:login').
      * @param {*} [payload] - Signal payload.
      * @param {Object} [options={}] - Send options.
      * @param {string[]} [options.exclude] - Peer IDs to exclude.
      * @returns {Promise<{ delivered: number, failed: string[] }>}
-     *  
+     *
      * @example
      * bus.signal('user:login', { userId: 123 });
      */
@@ -310,11 +302,9 @@ export class CrossBus extends EventEmitter {
         this.#assertNotDestroyed();
 
         // Apply outbound hooks
-        const transformedPayload = await this.#runHooks(
-            this.#outboundHooks,
-            payload,
-            { type: 'signal', direction: 'outbound' }
-        );
+        const transformedPayload = this.#outboundHooks.length
+            ? await this.#runHooks(this.#outboundHooks, payload, { type: 'signal', direction: 'outbound' })
+            : this.#checkedPayload(payload);
 
         const message = createSignalMessage(
             signalName,
@@ -322,7 +312,7 @@ export class CrossBus extends EventEmitter {
             this.#peerId
         );
 
-        const result = await this.#router.broadcast(message, options);
+        const result = this.#router.broadcast(message, options);
 
         this.#log('out', `SIGNAL "${signalName}" to ${result.delivered} peers`);
 
@@ -331,38 +321,50 @@ export class CrossBus extends EventEmitter {
 
     /**
      * Sends a request to a specific peer and waits for response.
-     * 
+     *
      * @param {string} peerId - Target peer ID.
      * @param {string} handlerName - Handler to invoke.
      * @param {*} [payload] - Request payload.
      * @param {RequestOptions} [options={}]
      * @returns {Promise<*>} Handler response.
-     * 
+     *
      * @example
      * const data = await bus.request('widget-1', 'getData', { id: 5 });
      */
-    async request(peerId, handlerName, payload, options = {}) {
-        this.#assertNotDestroyed();
-
-        this.#log('out', `REQUEST "${handlerName}" to ${peerId}`);
-
-        const peer = this.#router.getPeer(peerId);
-        if (!peer) {
-            throw CrossBusError.from(ErrorCode.PEER_NOT_FOUND, { peerId });
+    request(peerId, handlerName, payload, options = {}) {
+        try {
+            this.#assertNotDestroyed();
+            this.#log('out', `REQUEST "${handlerName}" to ${peerId}`);
+            if (!this.#router.getPeer(peerId)) {
+                throw CrossBusError.from(ErrorCode.PEER_NOT_FOUND, { peerId });
+            }
+            // Return the owned pending promise directly on the common path.
+            // Asynchronous hooks retain their ordering and rejection semantics.
+            if (this.#outboundHooks.length) {
+                return this.#runHooks(this.#outboundHooks, payload,
+                    { type: 'request', peerId, handlerName, direction: 'outbound' })
+                    .then(transformed => this.#sendRequest(peerId, handlerName, transformed, options));
+            }
+            return this.#sendRequest(peerId, handlerName, this.#checkedPayload(payload), options);
+        } catch (error) {
+            // The public API always returns a Promise, including validation,
+            // lifecycle and missing-peer failures.
+            return Promise.reject(error);
         }
+    }
 
-        // Create pending request
+    /**
+     * Starts tracking only after outbound validation/hooks have succeeded.
+     * @param {string} peerId
+     * @param {string} handlerName
+     * @param {*} transformedPayload
+     * @param {RequestOptions} options
+     * @returns {Promise<*>}
+     */
+    #sendRequest(peerId, handlerName, transformedPayload, options) {
+        this.#assertNotDestroyed();
         const { requestId, promise } = this.#pendingRequests.create(
-            peerId,
-            handlerName,
-            { timeout: options.timeout ?? this.#requestTimeout }
-        );
-
-        // Apply outbound hooks
-        const transformedPayload = await this.#runHooks(
-            this.#outboundHooks,
-            payload,
-            { type: 'request', peerId, handlerName, direction: 'outbound' }
+            peerId, handlerName, { timeout: options.timeout ?? this.#requestTimeout }
         );
 
         // Build request message
@@ -378,8 +380,7 @@ export class CrossBus extends EventEmitter {
         const result = this.#router.route({ target: peerId, payload: message });
 
         if (!result.success) {
-            this.#pendingRequests.cancel(requestId);
-            throw CrossBusError.from(ErrorCode.SEND_FAILED, { peerId });
+            this.#pendingRequests.reject(requestId, CrossBusError.from(ErrorCode.SEND_FAILED, { peerId }));
         }
 
         return promise;
@@ -387,12 +388,12 @@ export class CrossBus extends EventEmitter {
 
     /**
      * Broadcasts a request to all peers and collects responses.
-     * 
+     *
      * @param {string} handlerName - Handler to invoke on all peers.
      * @param {*} [payload] - Request payload.
      * @param {BroadcastRequestOptions} [options={}]
      * @returns {Promise<Map<string, *>>} Map of peerId -> response.
-     * 
+     *
      * @example
      * const responses = await bus.broadcastRequest('getStatus');
      * for (const [peerId, status] of responses) {
@@ -437,18 +438,18 @@ export class CrossBus extends EventEmitter {
 
     /**
      * Registers a request handler.
-     * 
+     *
      * @param {string} handlerName - Handler name.
      * @param {RequestHandler} handler - Handler function.
      * @param {HandlerOptions} [options={}] - Security options.
      * @returns {Function} Unregister function.
-     * 
+     *
      * @example
      * // Basic handler
      * const unhandle = bus.handle('getData', async (payload, ctx) => {
      *   return await fetchData(payload.id);
      * });
-     * 
+     *
      * // Secure handler with restrictions
      * bus.handle('sensitiveData', async (payload) => { ... }, {
      *   allowedPeers: ['trusted-agent'],  // Only these peers can call
@@ -457,6 +458,8 @@ export class CrossBus extends EventEmitter {
      * });
      */
     handle(handlerName, handler, options = {}) {
+        this.#assertNotDestroyed();
+        if (typeof handlerName !== 'string' || typeof handler !== 'function') throw new TypeError('Handler name and function required');
         if (this.#handlers.has(handlerName)) {
             throw CrossBusError.from(ErrorCode.HANDLER_EXISTS, { handlerName });
         }
@@ -468,25 +471,26 @@ export class CrossBus extends EventEmitter {
 
         this.#handlers.set(handlerName, handler);
 
-        return () => {
-            this.#handlers.delete(handlerName);
-            this.#handlerOptions.delete(handlerName);
-        };
+        return () => this.unhandle(handlerName);
     }
 
     /**
      * Removes a handler.
-     * 
+     *
      * @param {string} handlerName
      * @returns {boolean} True if handler was removed.
      */
     unhandle(handlerName) {
+        this.#handlerOptions.delete(handlerName);
+        for (const key of this.#rateLimitCounters.keys()) {
+            if (JSON.parse(key)[0] === handlerName) this.#rateLimitCounters.delete(key);
+        }
         return this.#handlers.delete(handlerName);
     }
 
     /**
      * Checks if a handler is registered.
-     * 
+     *
      * @param {string} handlerName
      * @returns {boolean}
      */
@@ -500,11 +504,11 @@ export class CrossBus extends EventEmitter {
 
     /**
      * Adds an inbound hook to transform incoming payloads.
-     * 
+     *
      * @param {MessageHook} hookFn - Hook function.
      * @param {number} [priority=10] - Execution priority (lower = first).
      * @returns {Function} Unregister function.
-     * 
+     *
      * @example
      * // Decrypt incoming messages
      * const unhook = bus.addInboundHook(async (payload, ctx) => {
@@ -525,11 +529,11 @@ export class CrossBus extends EventEmitter {
 
     /**
      * Adds an outbound hook to transform outgoing payloads.
-     * 
+     *
      * @param {MessageHook} hookFn - Hook function.
      * @param {number} [priority=10] - Execution priority (lower = first).
      * @returns {Function} Unregister function.
-     * 
+     *
      * @example
      * // Encrypt outgoing messages
      * const unhook = bus.addOutboundHook(async (payload, ctx) => {
@@ -550,7 +554,7 @@ export class CrossBus extends EventEmitter {
 
     /**
      * Removes an inbound hook.
-     * 
+     *
      * @param {MessageHook} hookFn
      * @returns {boolean} True if removed.
      */
@@ -565,7 +569,7 @@ export class CrossBus extends EventEmitter {
 
     /**
      * Removes an outbound hook.
-     * 
+     *
      * @param {MessageHook} hookFn
      * @returns {boolean} True if removed.
      */
@@ -585,9 +589,9 @@ export class CrossBus extends EventEmitter {
     /**
      * Adds a peer with a send function.
      * Used for hub mode when managing connections manually.
-     * 
+     *
      * @param {string} peerId - Peer identifier.
-     * @param {EventListener} sendFn - Function to send messages.
+     * @param {(message: any) => void} sendFn - Function to send messages.
      * @param {Object} [options={}] - Additional options.
      */
     addPeer(peerId, sendFn, options = {}) {
@@ -597,7 +601,7 @@ export class CrossBus extends EventEmitter {
 
     /**
      * Removes a peer.
-     * 
+     *
      * @param {string} peerId
      * @returns {boolean}
      */
@@ -609,20 +613,20 @@ export class CrossBus extends EventEmitter {
     /**
      * Adds a transport and automatically wires up message handling.
      * This is the recommended way to connect transports for AI agents.
-     * 
+     *
      * @param {Object} transport - Transport instance with send() and onMessage() methods.
      * @param {Object} [options={}] - Additional options.
      * @param {string} [options.peerId] - Override peer ID (defaults to transport's peerId or auto-generated).
      * @param {string} [options.origin='*'] - Origin for message validation.
      * @returns {Function} Cleanup function to remove the transport.
-     * 
+     *
      * @example
      * // Simple usage
      * const cleanup = bus.addTransport(new PostMessageTransport(iframe.contentWindow));
-     * 
+     *
      * // With options
      * const cleanup = bus.addTransport(transport, { peerId: 'my-agent' });
-     * 
+     *
      * // Cleanup when done
      * cleanup();
      */
@@ -636,31 +640,42 @@ export class CrossBus extends EventEmitter {
         const peerId = options.peerId || transport.peerId || `transport-${uuid()}`;
         const origin = options.origin || '*';
 
-        // Wire up inbound: transport -> CrossBus
+        this.addPeer(peerId, (message) => transport.send(message), options);
         if (typeof transport.onMessage === 'function') {
-            transport.onMessage((message) => {
-                this.handleMessage(message, origin, peerId);
+            transport.onMessage((message, source) => {
+                // Window transports provide the actual event origin. Explicit
+                // origin is the trust label for originless channels/native hosts.
+                const actualOrigin = source?.origin || origin;
+                this.handleMessage(message, actualOrigin, peerId)
+                    .catch(error => console.error('[CrossBus] Incoming message rejected:', error));
             });
         }
-
-        // Wire up outbound: CrossBus -> transport
-        this.addPeer(peerId, (message) => {
-            transport.send(message);
-        }, options);
-
-        // Return cleanup function
-        return () => {
+        const cleanup = () => {
+            if (!this.#cleanups.delete(cleanup)) return;
+            transport.offMessage?.();
             this.removePeer(peerId);
-            if (typeof transport.destroy === 'function') {
-                transport.destroy();
-            }
+            transport.destroy?.();
         };
+        this.#cleanups.add(cleanup);
+        return cleanup;
+    }
+
+    /**
+     * Registers synchronous resource cleanup for bus destruction.
+     * @param {Function} cleanup
+     * @returns {() => boolean} Removes the registration without running it.
+     */
+    addCleanup(cleanup) {
+        this.#assertNotDestroyed();
+        if (typeof cleanup !== 'function') throw new TypeError('Cleanup must be a function');
+        this.#cleanups.add(cleanup);
+        return () => this.#cleanups.delete(cleanup);
     }
 
     /**
      * Handles an incoming message.
      * Call this when receiving a message from any transport.
-     * 
+     *
      * @param {Object} message - The received message.
      * @param {string} origin - Origin of the message.
      * @param {string} [peerId] - Source peer ID if known.
@@ -675,7 +690,7 @@ export class CrossBus extends EventEmitter {
             return;
         }
 
-        // Apply inbound hooks to payload
+        if (!message || typeof message !== 'object') return;
         // Apply inbound hooks to payload
         // Support both standard 'payload'/'data' and legacy 'p'
         const rawPayload = message.payload ?? message.data ?? message.p;
@@ -708,7 +723,7 @@ export class CrossBus extends EventEmitter {
             dataContent = innerMsg.payload.data ?? innerMsg.data;
         }
 
-        if (dataContent !== undefined) {
+        {
             const hookContext = {
                 type: msgType === MessageType.SIGNAL ? 'signal' :
                     msgType === MessageType.REQUEST ? 'request' : 'response',
@@ -717,7 +732,20 @@ export class CrossBus extends EventEmitter {
                 direction: 'inbound'
             };
             // Run hooks
-            dataContent = await this.#runHooks(this.#inboundHooks, dataContent, hookContext);
+            try {
+                dataContent = this.#inboundHooks.length
+                    ? await this.#runHooks(this.#inboundHooks, dataContent, hookContext)
+                    : this.#checkedPayload(dataContent);
+            } catch (/** @type {any} */ error) {
+                if (msgType !== MessageType.REQUEST) throw error;
+                const response = createResponseMessage(message.id, null, this.#peerId, false, {
+                    code: error.code ?? ErrorCode.INVALID_PAYLOAD,
+                    message: error.message ?? 'Inbound hook rejected request'
+                });
+                if (replyFn) replyFn(response);
+                else if (peerId) this.#router.route({ target: peerId, payload: response });
+                return;
+            }
         }
 
         switch (msgType) {
@@ -727,7 +755,7 @@ export class CrossBus extends EventEmitter {
                     console.warn('[CrossBus] Invalid signal name type');
                     return;
                 }
-                await this.#handleSignal(handlerOrName, dataContent, peerId);
+                await this.#handleSignal(handlerOrName, dataContent, peerId, origin);
                 break;
 
             case MessageType.REQUEST:
@@ -753,7 +781,7 @@ export class CrossBus extends EventEmitter {
                 }
 
                 // If legacy response structure inside payload?
-                this.#handleResponse(message.payload?.requestId ?? message.id, success, dataContent, error);
+                this.#handleResponse(message.payload?.requestId ?? message.id, success, dataContent, error, peerId);
                 break;
             }
 
@@ -780,6 +808,14 @@ export class CrossBus extends EventEmitter {
 
         this.#destroyed = true;
 
+        for (const cleanup of this.#cleanups) {
+            try { cleanup(); } catch (error) { console.error('[CrossBus] Cleanup failed:', error); }
+        }
+        this.#cleanups.clear();
+        this.#inboundHooks = [];
+        this.#outboundHooks = [];
+        this.#handlerOptions.clear();
+        this.#rateLimitCounters.clear();
         // Cancel all pending requests
         this.#pendingRequests.cancelAll();
 
@@ -809,18 +845,18 @@ export class CrossBus extends EventEmitter {
 
     /**
      * Handles incoming signal.
-     * 
+     *
      */
-    async #handleSignal(name, data, peerId) {
+    async #handleSignal(name, data, peerId, origin) {
         await this.emit(name, {
             payload: data,
             source: peerId
-        });
+        }, { peerId, origin });
     }
 
     /**
      * Handles incoming request.
-     * 
+     *
      */
     async #handleRequest(requestId, handlerName, data, peerId, replyFn) {
         const handler = this.#handlers.get(handlerName);
@@ -861,11 +897,9 @@ export class CrossBus extends EventEmitter {
                     });
 
                     // Apply outbound hooks to response
-                    const transformedResult = await this.#runHooks(
-                        this.#outboundHooks,
-                        result,
-                        { type: 'response', peerId, handlerName: handlerName, direction: 'outbound' }
-                    );
+                    const transformedResult = this.#outboundHooks.length
+                        ? await this.#runHooks(this.#outboundHooks, result, { type: 'response', peerId, handlerName, direction: 'outbound' })
+                        : this.#checkedPayload(result);
 
                     response = createResponseMessage(
                         requestId,
@@ -898,9 +932,11 @@ export class CrossBus extends EventEmitter {
 
     /**
      * Handles incoming response.
-     * 
+     *
      */
-    #handleResponse(requestId, success, data, error) {
+    #handleResponse(requestId, success, data, error, peerId) {
+        const pending = this.#pendingRequests.get(requestId);
+        if (!pending || pending.targetPeer !== peerId) return;
         this.#pendingRequests.resolve(requestId, {
             requestId,
             success,
@@ -911,7 +947,7 @@ export class CrossBus extends EventEmitter {
 
     /**
      * Asserts the bus is not destroyed.
-     * 
+     *
      */
     #assertNotDestroyed() {
         if (this.#destroyed) {
@@ -923,18 +959,21 @@ export class CrossBus extends EventEmitter {
 
     /**
      * Runs a chain of hooks on a payload.
-     * 
+     *
      */
+    /** @param {*} payload */
+    #checkedPayload(payload) {
+        assertPayloadSize(payload, this.#maxPayloadSize);
+        return payload;
+    }
+
     async #runHooks(hooks, payload, context) {
         let current = payload;
+        if (hooks.length) assertPayloadSize(current, this.#maxPayloadSize);
         for (const { fn } of hooks) {
-            try {
-                current = await fn(current, context);
-            } catch (error) {
-                console.error('[CrossBus] Hook error:', error);
-                // Continue with unmodified payload on error
-            }
+            current = await fn(current, context);
         }
+        assertPayloadSize(current, this.#maxPayloadSize);
         return current;
     }
 
@@ -1013,7 +1052,7 @@ export class CrossBus extends EventEmitter {
 
         // Check rate limit
         if (options.rateLimit) {
-            const limitKey = `${handlerName}:${peerId}`;
+            const limitKey = JSON.stringify([handlerName, peerId]);
             if (!this.#checkRateLimit(limitKey, options.rateLimit)) {
                 return {
                     allowed: false,
@@ -1141,9 +1180,9 @@ export class CrossBus extends EventEmitter {
     /**
      * Returns the health status of the CrossBus instance.
      * Useful for monitoring and diagnostics.
-     * 
+     *
      * @returns {Object} Health status object
-     * 
+     *
      * @example
      * const health = bus.healthCheck();
      * // {
@@ -1205,17 +1244,17 @@ export class CrossBus extends EventEmitter {
     /**
      * Creates a pre-configured secure CrossBus instance.
      * Recommended for production use by AI agents.
-     * 
+     *
      * Enforces:
      * - strictMode (no wildcard origins)
      * - 1MB max payload size
      * - 100 max pending requests
      * - 30s request timeout
-     * 
+     *
      * @param {CrossBusOptions} options - Configuration options
      * @returns {CrossBus} Configured instance
      * @throws {Error} If allowedOrigins contains '*' or is missing
-     * 
+     *
      * @example
      * // For production use
      * const hub = CrossBus.createSecure({
@@ -1232,7 +1271,7 @@ export class CrossBus extends EventEmitter {
             );
         }
 
-        if (options.allowedOrigins.includes('*')) {
+        if (options.allowedOrigins.some(origin => origin.includes('*'))) {
             throw new Error(
                 'createSecure() does not allow wildcard origins. ' +
                 'Specify exact origins: allowedOrigins: ["https://example.com"]'
@@ -1240,11 +1279,11 @@ export class CrossBus extends EventEmitter {
         }
 
         return new CrossBus({
-            strictMode: true,
             maxPayloadSize: 1024 * 1024,
             maxPendingRequests: 100,
             requestTimeout: 30000,
-            ...options
+            ...options,
+            strictMode: true
         });
     }
 
@@ -1255,9 +1294,9 @@ export class CrossBus extends EventEmitter {
     /**
      * Performs diagnostics and returns troubleshooting suggestions.
      * Designed to help AI agents identify and fix common issues.
-     * 
+     *
      * @returns {Object} Diagnostic report with issues and suggestions
-     * 
+     *
      * @example
      * const report = bus.diagnose();
      * if (report.issues.length > 0) {
