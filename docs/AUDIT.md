@@ -17,7 +17,7 @@ This audit records local validation for the 0.1.2 release candidate. Publication
 
 ## Validation
 
-The final local complete suite passed **1,093 tests across 64 files**, with **zero failures and zero skips**: 974 unit tests, 15 packaged export/interoperability tests, 89 Chrome E2E tests, 12 browser integration tests and 3 documentation tests. Checks cover source behavior and actual ESM, CommonJS and minified MessageChannel request/response. Consumer TypeScript checks, lint, source type checking and build also passed.
+For the 0.1.2 release, the final local complete suite passed **1,093 tests across 64 files**, with **zero failures and zero skips**: 974 unit tests, 15 packaged export/interoperability tests, 89 Chrome E2E tests, 12 browser integration tests and 3 documentation tests. Checks cover source behavior and actual ESM, CommonJS and minified MessageChannel request/response. Consumer TypeScript checks, lint, source type checking and build also passed.
 
 The source-only LCOV report measured **4,322 / 4,519 executable lines (95.64%)**. `bun run test:coverage` now enforces an aggregate 90% source-line minimum. The old Vitest config is unused by the Bun scripts; its branch target was not an active gate. Bun's current LCOV output here has no branch counters, so branch coverage is **not verified**. The measured line ratio does not imply complete security or behavior coverage.
 
@@ -31,7 +31,7 @@ See [BENCHMARKS.md](BENCHMARKS.md) and the JSON artifacts in `benchmarks/` for r
 
 ## Outstanding qualification
 
-Physical iOS/Android WebView tests, navigation/teardown checks on those devices, Safari/Firefox qualification remain pending. Local package qualification covers Node 18.20.8 and 24.15.0; intermediate versions are covered by the configured CI matrix only when its jobs pass. Native sources are not published CocoaPods/Maven packages and do not include an application-level native RPC handler registry or pending-request manager. JSON Schema support is a subset; full standards compliance is not claimed.
+Physical iOS/Android WebView tests, navigation/teardown checks on those devices, Safari/Firefox qualification remain pending. Local package qualification covers Node 18.20.8 and 24.15.0; the [release CI matrix](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43196537107) also passed on Node 18, 20, 22 and 24. Native sources are not published CocoaPods/Maven packages and do not include an application-level native RPC handler registry or pending-request manager. JSON Schema support is a subset; full standards compliance is not claimed.
 
 Shared/service worker persistence, offline message delivery, automatic mesh routing, distributed locks and turnkey AI-framework adapters are not provided by merely enabling a transport or importing utilities. They need application design or additional implementation. No workload-independent performance or completeness leadership has been established.
 
@@ -39,7 +39,7 @@ Shared/service worker persistence, offline message delivery, automatic mesh rout
 
 Before this release was prepared, the actual GitHub README was read via the authenticated GitHub API on 12 November 2026. Its blob SHA was `e6266d3fd2a5e7ecef36d99fc8533cd662cd9001`; it still contained the older A+ badge and throughput claims. That observation describes the pre-release remote state. Publication of this revision must be verified against the release commit; editing a local README alone does not establish a live GitHub update.
 
-The README's iframe modules now live in `examples/quickstart/`; documentation tests assert that its code blocks match those files and run their request/response exchange across two distinct origins on cold and warm page loads. A ready signal avoids sending before the parent's transport is installed. Relative Markdown links/images are checked against the checkout, and stale API/support claims in generated JSDoc were corrected.
+The release's README iframe test substituted local domains and generated its own HTML. That verified the messaging exchange but did not establish that the shipped example was independently runnable. The documentation follow-up adds a complete local server, both HTML/import maps, and a Node RPC module. The revised test executes those actual files across two origins and checks the README's exact Node example. An explicit widget/parent ready exchange avoids relying on iframe load events to imply asynchronous module readiness. Relative Markdown links/images are checked against the checkout, and stale API/support claims in generated JSDoc were corrected.
 
 The follow-up performance changes keep the protocol and resource limits: pending requests use one authoritative Map and one owned Promise/timeout; settlement clears timers synchronously. Calls without hooks skip the redundant asynchronous hook layer while retaining payload checks. RPC returns its tracked Promise directly and still returns rejected Promises for immediate errors. Payload accounting avoids per-message closure/key-array allocation; synchronous transports reuse existing marked protocol envelopes. Empty local emissions avoid unused event metadata.
 

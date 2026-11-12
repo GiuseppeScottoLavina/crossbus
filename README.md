@@ -1,114 +1,148 @@
-<p align="center"><img src="docs/logo-400.png" alt="CrossBus" width="120" height="120"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/GiuseppeScottoLavina/crossbus/master/docs/logo-400.png" alt="CrossBus" width="120" height="120"></p>
 
 # CrossBus
 
-Messaging and request/response for browser windows, iframes, workers, tabs and native WebViews. No runtime npm dependencies. ESM, CommonJS and generated TypeScript declarations are included.
+Signals and request/response messaging for browser windows, iframes, workers, tabs and native WebViews. The npm package has no runtime dependencies and includes ESM, CommonJS and TypeScript declarations.
 
-[API](docs/API.md) · [Architecture](docs/ARCHITECTURE.md) · [Benchmarks](docs/BENCHMARKS.md) · [Native bridges](native/README.md) · [Security](SECURITY.md) · [Releasing](docs/RELEASING.md)
+[API](docs/API.md) · [Getting started](docs/GETTING_STARTED.md) · [Benchmarks](docs/BENCHMARKS.md) · [Native bridges](native/README.md) · [Security](SECURITY.md)
+
+## Run your first request
+
+Prerequisite: Node.js 18 or newer. Create a project and install the published package:
 
 ```sh
+mkdir crossbus-demo
+cd crossbus-demo
+npm init -y
 npm install crossbus
 ```
 
-The iframe example below waits until both endpoints are ready. The app is served at `https://app.example.com` and the widget at `https://widget.example.com`. Use a bundler or an import map to resolve the `crossbus` package in browser modules.
-
-In the app page, load this module:
+Save the following as `rpc.mjs`. It connects two endpoints through a real MessageChannel in one Node process; it does not open a browser or contact a remote service.
 
 ```js
 import { CrossBus } from 'crossbus';
-const { PostMessageTransport } = await import('crossbus');
+const { MessageChannelTransport } = await import('crossbus');
 
-const widgetOrigin = 'https://widget.example.com';
-const hub = CrossBus.createSecure({
-  peerId: 'hub', isHub: true, allowedOrigins: [widgetOrigin]
+// Two endpoints connected by a real MessageChannel in this process.
+// "channel" is this transport's origin label, not a website address.
+const client = CrossBus.createSecure({ peerId: 'client', allowedOrigins: ['channel'] });
+const service = CrossBus.createSecure({ peerId: 'service', allowedOrigins: ['channel'] });
+const channel = new MessageChannelTransport();
+client.addTransport(channel, { peerId: 'service', origin: 'channel' });
+service.addTransport(MessageChannelTransport.fromPort(channel.remotePort), {
+  peerId: 'client', origin: 'channel'
 });
-hub.handle('getData', ({ id }) => ({ id, status: 'ready' }));
+service.handle('sum', ({ a, b }) => a + b);
 
-const iframe = document.createElement('iframe');
-// Install the load callback before starting navigation. The widget installs its
-// transport and ready handler before its load event can reach the parent.
-iframe.addEventListener('load', async () => {
-  hub.addTransport(new PostMessageTransport(iframe.contentWindow, {
-    targetOrigin: widgetOrigin, allowedOrigins: [widgetOrigin]
-  }), { peerId: 'widget' });
-  await hub.signal('hub:ready');
-}, { once: true });
-iframe.src = `${widgetOrigin}/widget.html`;
-document.body.append(iframe);
-
-// On teardown, close every attached transport:
-// hub.destroy();
+try {
+  console.log(await client.request('service', 'sum', { a: 2, b: 3 })); // 5
+} finally {
+  client.destroy();
+  service.destroy();
+}
 ```
 
-The widget's HTML contains `<output id="result"></output>` and loads this module. Its ready listener is installed before the parent receives the iframe load event:
+Run it:
 
-```js
-import { CrossBus } from 'crossbus';
-const { PostMessageTransport } = await import('crossbus');
-
-const appOrigin = 'https://app.example.com';
-const widget = CrossBus.createSecure({ peerId: 'widget', allowedOrigins: [appOrigin] });
-widget.addTransport(new PostMessageTransport(window.parent, {
-  targetOrigin: appOrigin, allowedOrigins: [appOrigin]
-}), { peerId: 'hub' });
-
-// Wait for the parent endpoint before sending the first request. Keep module
-// evaluation non-blocking so the iframe's load event can reach the parent.
-widget.once('hub:ready', async () => {
-  const data = await widget.request('hub', 'getData', { id: 123 });
-  document.querySelector('#result').textContent = JSON.stringify(data);
-}, { mode: 'sync' });
+```sh
+node rpc.mjs
 ```
 
-These modules are also shipped in [examples/quickstart/](examples/quickstart/) and exercised across two origins by `bun run test:docs`.
+Expected output: `5`. The same file is maintained in [examples/quickstart/rpc.mjs](examples/quickstart/rpc.mjs).
 
-`signal(name, payload)` sends a one-way message. `request(peer, handler, payload)` waits for a response or timeout. Register handlers with `handle()` and local event listeners with `on()`. A remote signal arrives as `event.data.payload`, with the peer ID in `event.data.source`. The function returned by `addTransport()` removes that transport; `bus.destroy()` closes all attached transports.
+## Run the browser iframe demo
 
-| Transport | Scope |
+This complete example starts an app at `http://127.0.0.1:8780` and a widget at `http://127.0.0.1:8781`. These are local addresses served by the command below. The two ports create distinct browser origins.
+
+With Node.js 18+ and Git installed, run:
+
+```sh
+git clone https://github.com/GiuseppeScottoLavina/crossbus.git
+cd crossbus
+node examples/quickstart/server.js
+```
+
+Open **http://127.0.0.1:8780/** in a browser. The iframe should display:
+
+```json
+{"id":123,"status":"ready"}
+```
+
+Both ports must be available. Stop the servers with Ctrl+C. This demo serves the repository's committed distribution, so no dependency install or build is required. Both HTML files include the import map that resolves `crossbus` to the served bundle.
+
+The [parent module](examples/quickstart/hub.js) installs its transport before navigating the iframe. The [widget module](examples/quickstart/widget.js) registers its listener, announces `widget:ready` and waits for `hub:ready` before making its request. Both use exact origins supplied by the local server. `bun run test:docs` starts this same server and loads these same HTML and JavaScript files, without rewriting their URLs or generating replacement pages.
+
+For your own deployment, configure each endpoint's actual origin and serve the modules with your application's bundler or import map. The local demo's ports are not deployment requirements.
+
+## Messaging API
+
+| Operation | API |
 |---|---|
-| PostMessageTransport | Windows, iframes and workers |
-| MessageChannelTransport | A pair of MessagePorts |
-| BroadcastChannelTransport | Same-origin contexts |
-| SharedWorkerTransport | A shared worker supplied by the application |
-| ServiceWorkerTransport | A service worker supplied by the application |
-| WebSocketTransport | A compatible application server |
-| NativeBridgeTransport | iOS WKWebView / Android WebView, using the [native adapters](native/README.md) |
+| Register an RPC handler | `bus.handle(name, handler)` |
+| Call a peer and wait for its response | `await bus.request(peerId, name, payload)` |
+| Send a one-way signal | `await bus.signal(name, payload)` |
+| Listen for a signal | `bus.on(name, event => event.data.payload)` |
+| Attach a known peer's transport | `bus.addTransport(transport, { peerId, origin })` |
+| Close transports and cancel pending requests | `bus.destroy()` |
 
-Workers and service workers need application-side message routing. Their existence does not provide durable storage, an offline queue or background delivery guarantees. Native adapters are source integrations, not published CocoaPods or Maven packages.
+Remote signal listeners receive the payload at `event.data.payload` and the sender at `event.data.source`. Local event listeners registered with `on()` and invoked with `emit()` receive their data at `event.data`. `signal()` counts accepted sends; it does not acknowledge delivery. See [API details](docs/API.md) for options, errors and cleanup.
 
-Optional [plugins](docs/API.md) include retry, circuit breaker, encryption, compression, rate limiting, batching and a **subset** of JSON Schema validation. Load them dynamically:
+## Transports and prerequisites
+
+| Transport | Connects | Application prerequisite |
+|---|---|---|
+| PostMessageTransport | Windows, iframes and workers | A known target and explicit origins |
+| MessageChannelTransport | Two MessagePorts | Transfer a port when connecting separate contexts |
+| BroadcastChannelTransport | Same-origin contexts | A shared channel name and application routing |
+| SharedWorkerTransport | Tabs and a shared worker | A worker script with message routing |
+| ServiceWorkerTransport | Pages and a service worker | A registered worker with message routing |
+| WebSocketTransport | Browser and server | A compatible server |
+| NativeBridgeTransport | JavaScript and a native WebView host | The [Swift or Java source adapter](native/README.md) integrated into your app |
+
+SharedWorker and ServiceWorker transports do not implement persistent storage or an offline message queue. The iOS/Android adapters are source integrations; CocoaPods/Maven packages and physical-device runtime qualification are not provided.
+
+## Optional features
+
+Plugin subpaths provide retry, circuit breaker, encryption, compression, rate limiting, batching and a documented subset of JSON Schema validation. For example, on the `service` endpoint above, before destroying it:
 
 ```js
 const { withSchemaValidation } = await import('crossbus/plugins/schema-validation');
-hub.handle('save', withSchemaValidation({
+service.handle('save', withSchemaValidation({
   type: 'object', required: ['id'], properties: { id: { type: 'string' } }
 }, payload => ({ saved: payload.id })));
 ```
 
-For local synchronous events, `crossbus/nano` exposes `createNanoEmitter()`. The main export includes `EventEmitter.emitSync()` and `createFastEmitter()`. These pass payload references within one JavaScript context; their throughput is separate from cross-context RPC.
+Load optional plugins dynamically. `crossbus/core` is a separate core entry point. Dynamically importing `crossbus` itself loads the root module, including its exported transports; consumer bundlers may tree-shake unused exports.
 
-`createSecure()` requires explicit origins and rejects wildcard patterns. Handler options include `allowedPeers`, `rateLimit` and `validatePayload`. The payload budget estimates in-memory data size; it is not an exact serialized wire limit. Hook failures reject processing. Peer IDs rely on the transport's trusted endpoint binding; manually calling `handleMessage()` requires supplying an identity established by the caller. See [security boundaries](SECURITY.md).
+For local synchronous events, `crossbus/nano` provides `createNanoEmitter()`. The main module also exports `EventEmitter.emitSync()` and `createFastEmitter()`. Their local callback throughput does not measure serialization or cross-context RPC.
 
-To verify this checkout:
+`createSecure()` requires explicit origins and rejects wildcard patterns. Handler options include `allowedPeers`, `rateLimit` and `validatePayload`. Payload limits estimate in-memory size. Hook failures reject processing. Peer authorization depends on the transport's trusted endpoint binding. See [security boundaries](SECURITY.md) before integrating untrusted contexts.
+
+## Verification and performance evidence
+
+The [0.1.2 release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.2) was checked on 12 November 2026:
+
+| Check | Evidence and scope |
+|---|---|
+| Published npm archive | [Registry metadata](https://registry.npmjs.org/crossbus/0.1.2); its SHA-256 matches the release's `SHA256SUMS` |
+| Package consumers | [Passing CI](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43196537107): Node 18/20/22/24, all 12 exports, declarations, ESM/CommonJS and minified MessageChannel RPC |
+| Source and browser behavior | 1,093 local tests passed with zero failures/skips; lint, type checking, build and Chrome integration also passed in that release's CI |
+| Source line coverage | 95.64% (4,322/4,519) for that release; [methodology and limits](docs/AUDIT.md) |
+| Native adapters | Swift iOS and Java Android compilation passed locally; device runtime tests remain pending |
+| Performance | [Repeated Node/Bun/Chrome measurements](docs/BENCHMARKS.md), with raw samples and exact measured bundles; these measurements predate the final 0.1.2 compatibility/banner changes |
+
+The current iframe demo has its own [executable documentation tests](tests/docs/readme.test.js). Historical release counts above do not describe every later revision. These are project checks, not an independent security certification. Safari/Firefox and physical mobile WebViews remain unqualified. The measurements do not establish that CrossBus is the fastest or most complete library in every workload.
+
+To check the current repository, use Node 24 and Bun for development:
 
 ```sh
-bun install
-bun run lint
-bun run typecheck
-bun run build
-bun run test                     # unit + packaged export tests; build first
-bun run test:e2e                  # local HTTP servers + installed Chrome
-bun run test:integration
-bun run test:docs                 # exact README modules, two origins in Chrome
-bun run bench                    # Node, repeated samples + real MessageChannel RPC
-bun run bench:bun
-bun run bench:browser             # same workloads in headless Chrome
-bun run bench:memory              # Node heap observations and timeout cleanup
-node tests/benchmarks/sizes.js
+npm ci --legacy-peer-deps
+bun run release:check
+bun run test:all
+# On a Mac configured with the required native SDKs:
+bun run test:native
 ```
 
-Benchmark artifacts include runtime, CPU, dependency versions, code hashes, raw samples and callback correctness checks. See [current measurements and limits](docs/BENCHMARKS.md). No claim of being the fastest or most complete messaging library has been established. Published documentation does not imply independent security certification, production deployment or physical mobile-device qualification.
-
-For bundle planning, `crossbus/core` is a core-only entry and plugin subpaths are separate modules. The root ESM contains all its exported transports; importing that same root dynamically does not fetch a smaller transport-only file. Consumer bundlers may tree-shake unused exports.
+Browser tests need Chrome; set `CHROME_PATH` to an installed executable if needed. See [development setup](docs/DEVELOPMENT.md), [benchmark reproduction](docs/BENCHMARKS.md) and [release procedure](docs/RELEASING.md).
 
 Licensed under [Apache-2.0](LICENSE).

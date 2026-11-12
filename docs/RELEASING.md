@@ -1,6 +1,6 @@
 # Releasing CrossBus
 
-The prepared release is **0.1.2**. Publishing a GitHub release and publishing to npm are separate operations.
+Version **0.1.2** is [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.2). The steps below record its release procedure; use a new version for a future release. Publishing a GitHub release and publishing to npm are separate operations.
 
 ## Validate and pack
 
@@ -23,7 +23,7 @@ Install the archive in a separate directory and copy `tests/package/consumer-smo
 
 ## Publish the prepared archive to npm
 
-First verify that the GitHub release's commit and CI results are the intended ones, compare the downloaded archive with the release's `SHA256SUMS`, and check that `npm view crossbus version` still permits publishing 0.1.2. Then, with the package owner's npm credentials:
+For a future release, update the version and archive names below first. Verify that the GitHub release's commit and CI results are the intended ones, compare the downloaded archive with the release's `SHA256SUMS`, and confirm that the chosen new version is absent from `npm view crossbus versions --json`. Version 0.1.2 is already published and cannot be overwritten. Then, with the package owner's npm credentials:
 
 ```sh
 npm publish ./artifacts/crossbus-0.1.2.tgz --access public --registry=https://registry.npmjs.org/

@@ -1,65 +1,49 @@
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
-import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { fileURLToPath } from 'node:url';
 import { launchBrowser, closeBrowser } from '../e2e/puppeteer-helper.js';
+import { startQuickstart } from '../../examples/quickstart/server.js';
 
 const root = new URL('../../', import.meta.url);
-let browser, userDataDir, app, widget;
-const sources = {};
-function server(role) {
-    return createServer(async (req, res) => {
-        try {
-            const path = new URL(req.url, 'http://local').pathname;
-            if (path === '/' || path === '/widget.html') {
-                res.setHeader('Content-Type', 'text/html');
-                res.end(`<!doctype html><html lang="en"><output id="result"></output><script type="importmap">{"imports":{"crossbus":"/dist/crossbus.js"}}</script><script type="module" src="/${role}.js"></script></html>`);
-            } else if (path === `/${role}.js`) {
-                res.setHeader('Content-Type', 'application/javascript'); res.end(sources[role]);
-            } else if (path === '/dist/crossbus.js') {
-                res.setHeader('Content-Type', 'application/javascript'); res.end(await readFile(new URL(`.${path}`, root)));
-            } else { res.writeHead(404); res.end(); }
-        } catch (error) { res.writeHead(500); res.end(String(error)); }
-    });
-}
+let browser, userDataDir, demo;
 
-describe('README iframe example', () => {
+describe('README executable examples', () => {
     beforeAll(async () => {
-        app = server('hub'); widget = server('widget');
-        await Promise.all([new Promise(resolve => app.listen(0, '127.0.0.1', resolve)), new Promise(resolve => widget.listen(0, '127.0.0.1', resolve))]);
-        const origins = { app: `http://127.0.0.1:${app.address().port}`, widget: `http://127.0.0.1:${widget.address().port}` };
-        for (const role of ['hub', 'widget']) {
-            sources[role] = (await readFile(new URL(`examples/quickstart/${role}.js`, root), 'utf8'))
-                .replaceAll('https://widget.example.com', origins.widget).replaceAll('https://app.example.com', origins.app);
-        }
+        demo = await startQuickstart({ appPort: 0, widgetPort: 0 });
         ({ browser, userDataDir } = await launchBrowser('readme'));
     }, 15000);
     afterAll(async () => {
         await closeBrowser(browser, userDataDir);
-        await Promise.all([app, widget].filter(Boolean).map(server => new Promise(resolve => server.close(resolve))));
+        await demo?.close();
     });
-    it('keeps the README modules identical to the executable example', async () => {
+    it('runs the exact README RPC module in Node without a bundler', async () => {
         const readme = await readFile(new URL('README.md', root), 'utf8');
-        const blocks = [...readme.matchAll(/```js\n([\s\S]*?)\n```/g)];
-        expect(blocks[0][1].trim()).toBe((await readFile(new URL('examples/quickstart/hub.js', root), 'utf8')).trim());
-        expect(blocks[1][1].trim()).toBe((await readFile(new URL('examples/quickstart/widget.js', root), 'utf8')).trim());
+        const block = readme.match(/```js\n([\s\S]*?)\n```/)[1];
+        expect(block.trim()).toBe((await readFile(new URL('examples/quickstart/rpc.mjs', root), 'utf8')).trim());
+        const { stdout, stderr } = await promisify(execFile)('node', [fileURLToPath(new URL('examples/quickstart/rpc.mjs', root))], { timeout: 5000 });
+        expect(stdout.trim()).toBe('5');
+        expect(stderr).toBe('');
     });
-    it('completes RPC across different origins on cold and warm page loads', async () => {
+    it('loads the shipped HTML/modules and completes cross-origin RPC on repeated loads', async () => {
         const page = await browser.newPage();
         const errors = [];
+        const failed = [];
         page.on('pageerror', error => errors.push(error.message));
+        page.on('requestfailed', request => failed.push(request.url()));
         try {
             for (let run = 0; run < 3; run++) {
-                await page.goto(`http://127.0.0.1:${app.address().port}/`);
-                await page.waitForFunction(() => {
-                    const frame = document.querySelector('iframe');
-                    return frame !== null;
-                });
+                await page.goto(demo.app);
+                await page.waitForSelector('iframe');
                 const frame = await (await page.$('iframe')).contentFrame();
                 await frame.waitForFunction(() => document.querySelector('#result')?.textContent.includes('ready'));
                 expect(JSON.parse(await frame.$eval('#result', element => element.textContent))).toEqual({ id: 123, status: 'ready' });
-                expect(new URL(frame.url()).port).not.toBe(String(app.address().port));
+                expect(new URL(frame.url()).origin).toBe(demo.widget);
+                expect(demo.app).not.toBe(demo.widget);
             }
             expect(errors).toEqual([]);
+            expect(failed).toEqual([]);
         } finally { await page.close(); }
     }, 15000);
 });
