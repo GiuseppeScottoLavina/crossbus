@@ -136,11 +136,12 @@ export class PendingRequests {
      *
      * @param {string} requestId - Request ID to resolve.
      * @param {ResponseData} response - Response data.
+     * @param {string} [targetPeer] - If supplied, require the response's bound peer.
      * @returns {boolean} True if request was found and resolved.
      */
-    resolve(requestId, response) {
+    resolve(requestId, response, targetPeer) {
         const pending = this.#pending.get(requestId);
-        if (!pending) return false;
+        if (!pending || (targetPeer !== undefined && pending.targetPeer !== targetPeer)) return false;
 
         clearTimeout(pending.timer);
         // Remove the settled request

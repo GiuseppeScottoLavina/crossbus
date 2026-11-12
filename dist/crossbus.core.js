@@ -1,4 +1,4 @@
-/*! CrossBus v0.1.2 | Apache-2.0 */
+/*! CrossBus v0.1.3 | Apache-2.0 */
 /**
  * @fileoverview Centralized error handling for CrossBus.
  * @module common/errors
@@ -447,36 +447,62 @@ function assertPayloadSize(payload, limit) {
         if (size > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
         return;
     }
-    measurePayload(payload, limit, new Set(), 0);
+    measurePayload(payload, limit);
 }
 
 /**
- * Accumulates the same conservative budget without allocating a closure or
- * key array per message. The seen set still bounds traversal of cyclic graphs.
- * @param {*} value
+ * Iterative graph traversal. Flat objects need neither a work list nor a seen
+ * set; nested graphs allocate them lazily and cannot exhaust the JS call stack.
+ * Every reference is charged, while each object's contents are charged once.
+ * Binary views account for their complete backing storage, as structured clone
+ * copies that storage even when the view covers only a small slice.
+ * @param {object} root
  * @param {number} limit
- * @param {Set<object>} seen
- * @param {number} bytes
- * @returns {number}
  */
-function measurePayload(value, limit, seen, bytes) {
-    bytes += 8 + (typeof value === 'string' ? value.length * 2 : 0);
-    if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
-    if (value === null || typeof value !== 'object' || seen.has(value)) return bytes;
-    seen.add(value);
-    if (value instanceof ArrayBuffer || ArrayBuffer.isView(value)) bytes += value.byteLength;
-    else if (typeof Blob !== 'undefined' && value instanceof Blob) bytes += value.size;
-    else if (value instanceof Map) for (const [key, item] of value) {
-        bytes = measurePayload(key, limit, seen, bytes);
-        bytes = measurePayload(item, limit, seen, bytes);
+function measurePayload(root, limit) {
+    let bytes = 8;
+    let value = root;
+    /** @type {Set<object>|null} */
+    let seen = null;
+    /** @type {object[]|null} */
+    let pending = null;
+    while (true) {
+        if (value instanceof ArrayBuffer || (typeof SharedArrayBuffer !== 'undefined' && value instanceof SharedArrayBuffer)) bytes += value.byteLength;
+        else if (ArrayBuffer.isView(value)) bytes += value.buffer.byteLength;
+        else if (typeof Blob !== 'undefined' && value instanceof Blob) bytes += value.size;
+        else if (value instanceof Map) {
+            for (const entry of value) for (const item of entry) {
+                bytes += 8 + (typeof item === 'string' ? item.length * 2 : 0);
+                if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+                if (item !== null && typeof item === 'object') {
+                    if (!seen || !pending) { seen = new Set([root]); pending = []; }
+                    if (!seen.has(item)) { seen.add(item); pending.push(item); }
+                }
+            }
+        } else if (value instanceof Set) {
+            for (const item of value) {
+                bytes += 8 + (typeof item === 'string' ? item.length * 2 : 0);
+                if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+                if (item !== null && typeof item === 'object') {
+                    if (!seen || !pending) { seen = new Set([root]); pending = []; }
+                    if (!seen.has(item)) { seen.add(item); pending.push(item); }
+                }
+            }
+        } else for (const key in value) if (Object.hasOwn(value, key)) {
+            bytes += 8 + key.length * 2;
+            if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+            const item = value[key];
+            bytes += 8 + (typeof item === 'string' ? item.length * 2 : 0);
+            if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+            if (item !== null && typeof item === 'object') {
+                if (!seen || !pending) { seen = new Set([root]); pending = []; }
+                if (!seen.has(item)) { seen.add(item); pending.push(item); }
+            }
+        }
+        if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+        if (!pending?.length) return;
+        value = pending.pop();
     }
-    else if (value instanceof Set) for (const item of value) bytes = measurePayload(item, limit, seen, bytes);
-    else for (const key in value) if (Object.hasOwn(value, key)) {
-        bytes = measurePayload(key, limit, seen, bytes);
-        bytes = measurePayload(value[key], limit, seen, bytes);
-    }
-    if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
-    return bytes;
 }
 
 /**
@@ -1194,36 +1220,30 @@ const PeerStatus = Object.freeze({
     FAILED: 'failed'
 });
 
-// PROTOCOL_PREFIX and PROTOCOL_VERSION are imported from common/types.js
+/** Shared immutable empty metadata for internally constructed envelopes. */
+const EMPTY_MESSAGE_META = Object.freeze({});
 
+const EMPTY_META = EMPTY_MESSAGE_META;
 /**
- * Creates a protocol message envelope.
- *
- * @param {MessageType} type - Message type.
- * @param {Object} payload - Message payload.
- * @param {Object} [meta={}] - Additional metadata.
- * @param {string|null} [id=null] - Optional custom message ID.
- * @returns {ProtocolMessage} Frozen message object.
- *
- * @typedef {Object} ProtocolMessage
- * @property {number} _cb - Protocol marker version (compact wire format).
- * @property {number} version - Protocol version.
- * @property {string} id - Unique message ID (UUID v4).
- * @property {MessageType} type - Message type.
- * @property {number} timestamp - Unix timestamp (ms).
- * @property {Object} payload - Message payload.
- * @property {Object} meta - Additional metadata.
+ * Builds an envelope from a payload owned by the caller. Public createMessage
+ * still copies caller-owned payload/meta objects before freezing them.
+ * @param {MessageType} type
+ * @param {Object} payload
+ * @param {Object} meta
+ * @param {string|null} id
+ * @returns {ProtocolMessage}
  */
-function createMessage(type, payload, meta = {}, id = null) {
-  return Object.freeze({
+function envelope(type, payload, meta, id) {
+  const message = Object.freeze({
     [PROTOCOL_MARKER]: PROTOCOL_VERSION,
     version: PROTOCOL_VERSION,
     id: id || uuid(),
     type,
     timestamp: Date.now(),
-    payload: Object.freeze({ ...payload }),
-    meta: Object.freeze({ ...meta })
+    payload: Object.freeze(payload),
+    meta
   });
+  return message;
 }
 
 /**
@@ -1236,12 +1256,12 @@ function createMessage(type, payload, meta = {}, id = null) {
  * @returns {ProtocolMessage} Signal message.
  */
 function createSignalMessage(name, data, sourcePeerId, destPeerId = null) {
-  return createMessage(MessageType.SIGNAL, {
+  return envelope(MessageType.SIGNAL, {
     name,
     data,
     source: sourcePeerId,
     dest: destPeerId
-  });
+  }, EMPTY_META, null);
 }
 
 /**
@@ -1255,12 +1275,12 @@ function createSignalMessage(name, data, sourcePeerId, destPeerId = null) {
  * @returns {ProtocolMessage} Request message.
  */
 function createRequestMessage(name, data, sourcePeerId, destPeerId, id = null) {
-  return createMessage(MessageType.REQUEST, {
+  return envelope(MessageType.REQUEST, {
     name,
     data,
     source: sourcePeerId,
     dest: destPeerId
-  }, {}, id);
+  }, EMPTY_META, id);
 }
 
 /**
@@ -1274,13 +1294,13 @@ function createRequestMessage(name, data, sourcePeerId, destPeerId, id = null) {
  * @returns {ProtocolMessage} Response message.
  */
 function createResponseMessage(requestId, data, sourcePeerId, success = true, error = null) {
-  return createMessage(MessageType.RESPONSE, {
+  return envelope(MessageType.RESPONSE, {
     requestId,
     data,
     source: sourcePeerId,
     success,
     error
-  });
+  }, EMPTY_META, null);
 }
 
 /**
@@ -1476,7 +1496,7 @@ class MessageRouter extends EventEmitter {
     route(message, options = {}) {
         const { target, payload } = message;
 
-        if (target) {
+        if (target !== undefined && target !== null) {
             // Unicast to specific peer
             return this.#routeUnicast(target, payload);
         } else {
@@ -1774,11 +1794,12 @@ class PendingRequests {
      *
      * @param {string} requestId - Request ID to resolve.
      * @param {ResponseData} response - Response data.
+     * @param {string} [targetPeer] - If supplied, require the response's bound peer.
      * @returns {boolean} True if request was found and resolved.
      */
-    resolve(requestId, response) {
+    resolve(requestId, response, targetPeer) {
         const pending = this.#pending.get(requestId);
-        if (!pending) return false;
+        if (!pending || (targetPeer !== undefined && pending.targetPeer !== targetPeer)) return false;
 
         clearTimeout(pending.timer);
         // Remove the settled request
@@ -2371,7 +2392,7 @@ class OriginValidator {
 
         // Empty/no allowed origins = same-origin only
         if (this.#exactOrigins.size === 0 && this.#patterns.length === 0) {
-            return origin === this.#selfOrigin;
+            return typeof this.#selfOrigin === 'string' && origin === this.#selfOrigin;
         }
 
         // Check exact match first (fast path)
@@ -2499,6 +2520,9 @@ class OriginValidator {
  * @module core/cross-bus
  */
 
+
+// A completed dispatch has no asynchronous work or per-message rejection chain.
+const MESSAGE_HANDLED = Promise.resolve();
 
 /**
  * @typedef {Object} CrossBusOptions
@@ -2643,6 +2667,9 @@ class CrossBus extends EventEmitter {
 
     /** @type {Map<string, HandlerOptions>} */
     #handlerOptions = new Map();
+
+    /** @type {Map<string, Function>} Owns each handler registration cleanup. */
+    #handlerUnregister = new Map();
 
     /** @type {boolean} */
     #debug = false;
@@ -2799,7 +2826,7 @@ class CrossBus extends EventEmitter {
 
         const result = this.#router.broadcast(message, options);
 
-        this.#log('out', `SIGNAL "${signalName}" to ${result.delivered} peers`);
+        if (this.#debug) this.#log('out', `SIGNAL "${signalName}" to ${result.delivered} peers`);
 
         return result;
     }
@@ -2819,7 +2846,7 @@ class CrossBus extends EventEmitter {
     request(peerId, handlerName, payload, options = {}) {
         try {
             this.#assertNotDestroyed();
-            this.#log('out', `REQUEST "${handlerName}" to ${peerId}`);
+            if (this.#debug) this.#log('out', `REQUEST "${handlerName}" to ${peerId}`);
             if (!this.#router.getPeer(peerId)) {
                 throw CrossBusError.from(ErrorCode.PEER_NOT_FOUND, { peerId });
             }
@@ -2956,7 +2983,10 @@ class CrossBus extends EventEmitter {
 
         this.#handlers.set(handlerName, handler);
 
-        return () => this.unhandle(handlerName);
+        const unregister = () => this.#handlerUnregister.get(handlerName) === unregister
+            ? this.unhandle(handlerName) : false;
+        this.#handlerUnregister.set(handlerName, unregister);
+        return unregister;
     }
 
     /**
@@ -2966,6 +2996,7 @@ class CrossBus extends EventEmitter {
      * @returns {boolean} True if handler was removed.
      */
     unhandle(handlerName) {
+        this.#handlerUnregister.delete(handlerName);
         this.#handlerOptions.delete(handlerName);
         for (const key of this.#rateLimitCounters.keys()) {
             if (JSON.parse(key)[0] === handlerName) this.#rateLimitCounters.delete(key);
@@ -3122,8 +3153,8 @@ class CrossBus extends EventEmitter {
             throw new TypeError('Transport must have a send() method');
         }
 
-        const peerId = options.peerId || transport.peerId || `transport-${uuid()}`;
-        const origin = options.origin || '*';
+        const peerId = options.peerId ?? transport.peerId ?? `transport-${uuid()}`;
+        const origin = options.origin ?? '*';
 
         this.addPeer(peerId, (message) => transport.send(message), options);
         if (typeof transport.onMessage === 'function') {
@@ -3131,8 +3162,8 @@ class CrossBus extends EventEmitter {
                 // Window transports provide the actual event origin. Explicit
                 // origin is the trust label for originless channels/native hosts.
                 const actualOrigin = source?.origin || origin;
-                this.handleMessage(message, actualOrigin, peerId)
-                    .catch(error => console.error('[CrossBus] Incoming message rejected:', error));
+                const pending = this.handleMessage(message, actualOrigin, peerId);
+                if (pending !== MESSAGE_HANDLED) pending.catch(error => console.error('[CrossBus] Incoming message rejected:', error));
             });
         }
         const cleanup = () => {
@@ -3166,16 +3197,21 @@ class CrossBus extends EventEmitter {
      * @param {string} [peerId] - Source peer ID if known.
      * @param {Function} [replyFn] - Function to reply to the sender.
      */
-    async handleMessage(message, origin, peerId, replyFn) {
-        if (this.#destroyed) return;
+    handleMessage(message, origin, peerId, replyFn) {
+        try { return this.#receiveMessage(message, origin, peerId, replyFn); }
+        catch (error) { return Promise.reject(error); }
+    }
+
+    #receiveMessage(message, origin, peerId, replyFn) {
+        if (this.#destroyed) return MESSAGE_HANDLED;
 
         // Validate origin
         if (!this.#originValidator.isAllowed(origin)) {
             console.warn(`[CrossBus] Blocked message from unauthorized origin: ${origin}`);
-            return;
+            return MESSAGE_HANDLED;
         }
 
-        if (!message || typeof message !== 'object') return;
+        if (!message || typeof message !== 'object') return MESSAGE_HANDLED;
         // Apply inbound hooks to payload
         // Support both standard 'payload'/'data' and legacy 'p'
         const rawPayload = message.payload ?? message.data ?? message.p;
@@ -3208,52 +3244,53 @@ class CrossBus extends EventEmitter {
             dataContent = innerMsg.payload.data ?? innerMsg.data;
         }
 
-        {
-            const hookContext = {
-                type: msgType === MessageType.SIGNAL ? 'signal' :
+        if (this.#inboundHooks.length) {
+            return this.#runHooks(this.#inboundHooks, dataContent, {
+                type: msgType === MessageType.SIGNAL || msgType === MessageType.BROADCAST ? 'signal' :
                     msgType === MessageType.REQUEST ? 'request' : 'response',
-                peerId,
-                handlerName: handlerOrName,
-                direction: 'inbound'
-            };
-            // Run hooks
-            try {
-                dataContent = this.#inboundHooks.length
-                    ? await this.#runHooks(this.#inboundHooks, dataContent, hookContext)
-                    : this.#checkedPayload(dataContent);
-            } catch (/** @type {any} */ error) {
-                if (msgType !== MessageType.REQUEST) throw error;
-                const response = createResponseMessage(message.id, null, this.#peerId, false, {
-                    code: error.code ?? ErrorCode.INVALID_PAYLOAD,
-                    message: error.message ?? 'Inbound hook rejected request'
-                });
-                if (replyFn) replyFn(response);
-                else if (peerId) this.#router.route({ target: peerId, payload: response });
-                return;
-            }
+                peerId, handlerName: handlerOrName, direction: 'inbound'
+            }).then(
+                data => this.#dispatchMessage(message, msgType, handlerOrName, data, origin, peerId, replyFn),
+                error => this.#rejectInbound(message, msgType, error, peerId, replyFn)
+            );
         }
+        try { dataContent = this.#checkedPayload(dataContent); }
+        catch (error) { return this.#rejectInbound(message, msgType, error, peerId, replyFn); }
+        return this.#dispatchMessage(message, msgType, handlerOrName, dataContent, origin, peerId, replyFn);
+    }
 
+    #rejectInbound(message, msgType, error, peerId, replyFn) {
+        if (msgType !== MessageType.REQUEST) return Promise.reject(error);
+        const response = createResponseMessage(message.id, null, this.#peerId, false, {
+            code: error.code ?? ErrorCode.INVALID_PAYLOAD,
+            message: error.message ?? 'Inbound hook rejected request'
+        });
+        if (replyFn) replyFn(response);
+        else if (peerId !== undefined && peerId !== null) this.#router.route({ target: peerId, payload: response });
+        return MESSAGE_HANDLED;
+    }
+
+    #dispatchMessage(message, msgType, handlerOrName, dataContent, origin, peerId, replyFn) {
+        if (this.#destroyed) return MESSAGE_HANDLED;
         switch (msgType) {
             case MessageType.BROADCAST:  // Broadcast has same structure as signal
             case MessageType.SIGNAL:
                 if (typeof handlerOrName !== 'string') {
                     console.warn('[CrossBus] Invalid signal name type');
-                    return;
+                    return MESSAGE_HANDLED;
                 }
-                await this.#handleSignal(handlerOrName, dataContent, peerId, origin);
-                break;
+                return this.#handleSignal(handlerOrName, dataContent, peerId, origin);
 
             case MessageType.REQUEST:
                 if (typeof handlerOrName !== 'string') {
                     console.warn('[CrossBus] Invalid handler name type');
-                    return;
+                    return MESSAGE_HANDLED;
                 }
                 // Pass normalized ID
                 // const reqId = message.id ?? (message.payload ? message.payload.id : undefined);
                 // Wait, 'id' is top level in ProtocolMessage AND legacy.
 
-                await this.#handleRequest(message.id, handlerOrName, dataContent, peerId, replyFn);
-                break;
+                return this.#handleRequest(message.id, handlerOrName, dataContent, peerId, replyFn);
 
             case MessageType.RESPONSE: {
                 let success = message.success;
@@ -3279,6 +3316,7 @@ class CrossBus extends EventEmitter {
             default:
                 console.warn(`[CrossBus] Unknown message type: ${msgType}`);
         }
+        return MESSAGE_HANDLED;
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -3300,6 +3338,7 @@ class CrossBus extends EventEmitter {
         this.#inboundHooks = [];
         this.#outboundHooks = [];
         this.#handlerOptions.clear();
+        this.#handlerUnregister.clear();
         this.#rateLimitCounters.clear();
         // Cancel all pending requests
         this.#pendingRequests.cancelAll();
@@ -3310,10 +3349,9 @@ class CrossBus extends EventEmitter {
         // Clear peers
         this.#router.clearPeers();
 
-        // Clear event listeners
-        this.clear();
-
+        // Select destruction listeners before retiring their subscriptions.
         this.emit('destroyed', {});
+        this.clear();
     }
 
     /**
@@ -3362,7 +3400,7 @@ class CrossBus extends EventEmitter {
         } else {
             // Check handler security (allowedPeers, rateLimit, validatePayload)
             const securityCheck = this.#checkHandlerSecurity(handlerName, peerId, data);
-            if (!securityCheck.allowed) {
+            if (securityCheck && !securityCheck.allowed) {
                 response = createResponseMessage(
                     requestId,
                     null,
@@ -3410,7 +3448,7 @@ class CrossBus extends EventEmitter {
         // Send response
         if (replyFn) {
             replyFn(response);
-        } else if (peerId) {
+        } else if (peerId !== undefined && peerId !== null) {
             this.#router.route({ target: peerId, payload: response });
         }
     }
@@ -3420,14 +3458,13 @@ class CrossBus extends EventEmitter {
      *
      */
     #handleResponse(requestId, success, data, error, peerId) {
-        const pending = this.#pendingRequests.get(requestId);
-        if (!pending || pending.targetPeer !== peerId) return;
+        if (peerId === undefined) return;
         this.#pendingRequests.resolve(requestId, {
             requestId,
             success,
             data,
             error
-        });
+        }, peerId);
     }
 
     /**
@@ -3482,7 +3519,7 @@ class CrossBus extends EventEmitter {
         if (!options.allowedOrigins || options.allowedOrigins.length === 0) {
             console.warn(
                 '[CrossBus Security] ⚠️ No allowedOrigins specified.\n' +
-                'This bus will REJECT all incoming messages from transports.\n' +
+                'Browser messages default to the same origin; other transports need explicit origin labels.\n' +
                 'To receive messages, specify allowed origins:\n' +
                 '  allowedOrigins: ["https://trusted-domain.com"]\n' +
                 'For development only: allowedOrigins: ["*"]'
@@ -3515,12 +3552,12 @@ class CrossBus extends EventEmitter {
      * @param {string} handlerName
      * @param {string} peerId
      * @param {*} payload
-     * @returns {{ allowed: boolean, error?: CrossBusError }}
+     * @returns {{ allowed: boolean, error?: CrossBusError } | null}
      */
     #checkHandlerSecurity(handlerName, peerId, payload) {
         const options = this.#handlerOptions.get(handlerName);
         if (!options) {
-            return { allowed: true };
+            return null;
         }
 
         // Check peer allowlist

@@ -1,7 +1,6 @@
 /**
  * @typedef {Object} StreamOptions
- * @property {number} [chunkSize=64000] - Size of each chunk in bytes.
- * @property {number} [timeout=30000] - Timeout for stream operations in ms.
+ * @property {number} [chunkSize=64000] - Positive integer: raw bytes per binary chunk, UTF-16 code units per string chunk.
  */
 /**
  * @typedef {Object} StreamMeta
@@ -203,6 +202,8 @@ export class StreamManager {
      * @param {string} peerId - Source peer ID.
      */
     handleMessage(message: any, peerId: string): void;
+    /** Cancels readers and releases handlers. Application owners must call this on teardown. */
+    destroy(): void;
     /**
      * Gets count of active streams.
      * @returns {number}
@@ -212,13 +213,9 @@ export class StreamManager {
 }
 export type StreamOptions = {
     /**
-     * - Size of each chunk in bytes.
+     * - Positive integer: raw bytes per binary chunk, UTF-16 code units per string chunk.
      */
     chunkSize?: number | undefined;
-    /**
-     * - Timeout for stream operations in ms.
-     */
-    timeout?: number | undefined;
 };
 export type StreamMeta = {
     /**

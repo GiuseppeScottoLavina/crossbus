@@ -10,7 +10,7 @@
  * @typedef {Object} ProtocolMessage
  * @property {number} _cb - Protocol marker version (compact wire format).
  * @property {number} version - Protocol version.
- * @property {string} id - Unique message ID (UUID v4).
+ * @property {string} id - Opaque message identifier; not an authentication token.
  * @property {MessageType} type - Message type.
  * @property {number} timestamp - Unix timestamp (ms).
  * @property {Object} payload - Message payload.
@@ -175,7 +175,7 @@ export type ProtocolMessage = {
      */
     version: number;
     /**
-     * - Unique message ID (UUID v4).
+     * - Opaque message identifier; not an authentication token.
      */
     id: string;
     /**

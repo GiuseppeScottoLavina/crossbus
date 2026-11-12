@@ -257,3 +257,16 @@ describe('Protocol broadcast passthrough', () => {
         router.clearPeers();
     });
 });
+
+it('never treats an explicitly empty target as a broadcast', () => {
+    const router = new MessageRouter();
+    let intended = 0, unrelated = 0;
+    router.addPeer('', () => { intended++; });
+    router.addPeer('unrelated', () => { unrelated++; });
+    expect(router.route({ target: '', payload: { value: 7 } }).success).toBe(true);
+    expect(intended).toBe(1);
+    expect(unrelated).toBe(0);
+    router.removePeer('');
+    expect(router.route({ target: '', payload: { value: 7 } }).success).toBe(false);
+    expect(unrelated).toBe(0);
+});

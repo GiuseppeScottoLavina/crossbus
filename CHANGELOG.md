@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - Unreleased
+
+- Reduce owned message-record, synchronous inbound-dispatch, debug and pending-request lookup overhead while retaining validation, timeout and peer checks.
+- Add opt-in compact MessageChannel encoding for compatible 0.1.3+ receivers; standard encoding remains the default for 0.1.2 interoperability.
+- Correct deep/cyclic payload accounting and charge typed views for their complete backing storage, including SharedArrayBuffer.
+- Fix binary stream chunk boundaries and empty binary streams; validate chunk sizes, bind streams to their source peer and add explicit manager destruction.
+- Fix empty routing targets, obsolete handler cleanup, missing-origin acceptance outside browsers, destruction event delivery and presence cleanup.
+- Settle WebSocket connection failures/early closure, share concurrent connection attempts, honor subprotocols, add listener removal and bound offline queues with serialized snapshots.
+- Replace simulated documentation playground behavior with actual CrossBus, module Workers and iframe transports. Ship the exact documentation bundle and a pinned local Markdown parser with its license; validate Markdown document routes and error rendering.
+- Add source-reviewed Comlink/birpc/Penpal and emitter comparisons with correctness checks, frozen bundles and repeated isolated Node/Bun/Chrome/Worker measurements; see the competitor study for results and tradeoffs.
+- Clean generated distribution files before building, synchronize documentation assets and validate packaged Markdown links and mixed-version MessageChannel interoperability.
+
+WebSocket offline queues now default to at most 1,000 messages (`maxQueueSize: 0` opts out). Missing transport origins outside browser windows must be explicitly configured. Stream managers can be destroyed explicitly; streams still have no built-in deadline or backpressure. Compact encoding is not negotiated with older peers and must be selected deliberately.
+
 ## [0.1.2] - 2026-11-12
 
 - Support core messaging on Node 18 without requiring global Web Crypto.

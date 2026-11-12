@@ -23,10 +23,10 @@ Initialization timeout rejects `ready` with `ERR_NOT_CONNECTED`. Destroying duri
 
 ## iOS (Swift / WKWebView)
 
-Add the Swift source to the app target. On the main actor, install before navigation and retain the bridge:
+Add the Swift source to the app target. These are integration fragments: `appURL` is the HTTPS URL served by your application, and `appOrigin` is its exact scheme/host/port without a path. The library does not host an application for you. On the main actor, install before navigation and retain the bridge:
 
 ```swift
-let bridge = CrossBusBridge(webView: webView, allowedOrigins: ["https://app.example.com"])
+let bridge = CrossBusBridge(webView: webView, allowedOrigins: [appOrigin])
 bridge.onMessage = { [weak bridge] message in
     guard message["type"] as? String == "req",
           let payload = message["payload"] as? [String: Any] else { return }
@@ -38,7 +38,7 @@ bridge.onMessage = { [weak bridge] message in
         }
     } catch { /* Report through the app's error path. */ }
 }
-webView.load(URLRequest(url: URL(string: "https://app.example.com")!))
+webView.load(URLRequest(url: appURL))
 // On teardown, on the main actor:
 // bridge.close()
 ```
@@ -49,11 +49,13 @@ The user content controller retains its script handler; calling `close()` releas
 
 Add `CrossBusBridge.java` to package `io.crossbus` in the app. Enable JavaScript in the app's WebView configuration. Use AndroidX WebKit (compiled here against 1.14.0); the installed WebView must support `WEB_MESSAGE_LISTENER`, checked at construction. No fallback exposes an unrestricted `addJavascriptInterface`.
 
+Here `appURL` and `appOrigin` are application configuration strings, as described above.
+
 ```java
 // build.gradle: implementation("androidx.webkit:webkit:1.14.0")
 webView.getSettings().setJavaScriptEnabled(true);
 CrossBusBridge bridge = new CrossBusBridge(webView,
-    new java.util.HashSet<>(java.util.Arrays.asList("https://app.example.com")));
+    new java.util.HashSet<>(java.util.Arrays.asList(appOrigin)));
 bridge.setListener(message -> {
     if (!"req".equals(message.optString("type"))) return;
     org.json.JSONObject payload = message.getJSONObject("payload");
@@ -64,7 +66,7 @@ bridge.setListener(message -> {
             .put("code", "ERR_NO_HANDLER").put("message", "Unknown handler"));
     }
 });
-webView.loadUrl("https://app.example.com");
+webView.loadUrl(appURL);
 // On teardown, on the UI thread: bridge.close();
 ```
 

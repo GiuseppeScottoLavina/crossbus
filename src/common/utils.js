@@ -199,34 +199,60 @@ export function assertPayloadSize(payload, limit) {
         if (size > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
         return;
     }
-    measurePayload(payload, limit, new Set(), 0);
+    measurePayload(payload, limit);
 }
 
 /**
- * Accumulates the same conservative budget without allocating a closure or
- * key array per message. The seen set still bounds traversal of cyclic graphs.
- * @param {*} value
+ * Iterative graph traversal. Flat objects need neither a work list nor a seen
+ * set; nested graphs allocate them lazily and cannot exhaust the JS call stack.
+ * Every reference is charged, while each object's contents are charged once.
+ * Binary views account for their complete backing storage, as structured clone
+ * copies that storage even when the view covers only a small slice.
+ * @param {object} root
  * @param {number} limit
- * @param {Set<object>} seen
- * @param {number} bytes
- * @returns {number}
  */
-function measurePayload(value, limit, seen, bytes) {
-    bytes += 8 + (typeof value === 'string' ? value.length * 2 : 0);
-    if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
-    if (value === null || typeof value !== 'object' || seen.has(value)) return bytes;
-    seen.add(value);
-    if (value instanceof ArrayBuffer || ArrayBuffer.isView(value)) bytes += value.byteLength;
-    else if (typeof Blob !== 'undefined' && value instanceof Blob) bytes += value.size;
-    else if (value instanceof Map) for (const [key, item] of value) {
-        bytes = measurePayload(key, limit, seen, bytes);
-        bytes = measurePayload(item, limit, seen, bytes);
+function measurePayload(root, limit) {
+    let bytes = 8;
+    let value = root;
+    /** @type {Set<object>|null} */
+    let seen = null;
+    /** @type {object[]|null} */
+    let pending = null;
+    while (true) {
+        if (value instanceof ArrayBuffer || (typeof SharedArrayBuffer !== 'undefined' && value instanceof SharedArrayBuffer)) bytes += value.byteLength;
+        else if (ArrayBuffer.isView(value)) bytes += value.buffer.byteLength;
+        else if (typeof Blob !== 'undefined' && value instanceof Blob) bytes += value.size;
+        else if (value instanceof Map) {
+            for (const entry of value) for (const item of entry) {
+                bytes += 8 + (typeof item === 'string' ? item.length * 2 : 0);
+                if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+                if (item !== null && typeof item === 'object') {
+                    if (!seen || !pending) { seen = new Set([root]); pending = []; }
+                    if (!seen.has(item)) { seen.add(item); pending.push(item); }
+                }
+            }
+        } else if (value instanceof Set) {
+            for (const item of value) {
+                bytes += 8 + (typeof item === 'string' ? item.length * 2 : 0);
+                if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+                if (item !== null && typeof item === 'object') {
+                    if (!seen || !pending) { seen = new Set([root]); pending = []; }
+                    if (!seen.has(item)) { seen.add(item); pending.push(item); }
+                }
+            }
+        } else for (const key in value) if (Object.hasOwn(value, key)) {
+            bytes += 8 + key.length * 2;
+            if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+            const item = value[key];
+            bytes += 8 + (typeof item === 'string' ? item.length * 2 : 0);
+            if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+            if (item !== null && typeof item === 'object') {
+                if (!seen || !pending) { seen = new Set([root]); pending = []; }
+                if (!seen.has(item)) { seen.add(item); pending.push(item); }
+            }
+        }
+        if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
+        if (!pending?.length) return;
+        value = pending.pop();
     }
-    else if (value instanceof Set) for (const item of value) bytes = measurePayload(item, limit, seen, bytes);
-    else for (const key in value) if (Object.hasOwn(value, key)) {
-        bytes = measurePayload(key, limit, seen, bytes);
-        bytes = measurePayload(value[key], limit, seen, bytes);
-    }
-    if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
-    return bytes;
 }

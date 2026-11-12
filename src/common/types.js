@@ -188,3 +188,6 @@ export function findTransferables(value, found = new Set(), seen = new Set()) {
     for (const item of values) findTransferables(item, found, seen);
     return Array.from(found);
 }
+
+/** Shared immutable empty metadata for internally constructed envelopes. */
+export const EMPTY_MESSAGE_META = Object.freeze({});

@@ -9,8 +9,7 @@ import { uuid } from '../common/utils.js';
 
 /**
  * @typedef {Object} StreamOptions
- * @property {number} [chunkSize=64000] - Size of each chunk in bytes.
- * @property {number} [timeout=30000] - Timeout for stream operations in ms.
+ * @property {number} [chunkSize=64000] - Positive integer: raw bytes per binary chunk, UTF-16 code units per string chunk.
  */
 
 /**
@@ -76,6 +75,7 @@ export class WritableSignalStream {
         this.#name = name;
         this.#sendFn = sendFn;
         this.#chunkSize = options.chunkSize ?? 64000;
+        if (!Number.isSafeInteger(this.#chunkSize) || this.#chunkSize <= 0) throw new RangeError('chunkSize must be a positive safe integer');
         this.#meta = options.meta ?? {};
     }
 
@@ -128,51 +128,20 @@ export class WritableSignalStream {
             await this.open();
         }
 
-        // Convert data to sendable format
-        let payload;
-        let isBase64 = false;
-
-        if (data instanceof ArrayBuffer) {
-            payload = this.#arrayBufferToBase64(new Uint8Array(data));
-            isBase64 = true;
-        } else if (data instanceof Uint8Array) {
-            payload = this.#arrayBufferToBase64(data);
-            isBase64 = true;
+        // Encode each raw binary chunk independently. Splitting a single base64
+        // string at arbitrary character offsets corrupts its 4-character groups.
+        if (data instanceof ArrayBuffer || data instanceof Uint8Array) {
+            const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
+            for (let offset = 0; offset < bytes.length || offset === 0; offset += this.#chunkSize) {
+                await this.#send({ st: 'data', seq: this.#seq++,
+                    d: this.#arrayBufferToBase64(bytes.subarray(offset, offset + this.#chunkSize)), b64: true });
+            }
         } else if (typeof data === 'string') {
-            // String data - chunk if needed
-            const chunks = this.#chunkString(data, this.#chunkSize);
-            for (const chunk of chunks) {
-                await this.#send({
-                    st: 'data',
-                    seq: this.#seq++,
-                    d: chunk,
-                    b64: false
-                });
-            }
-            return;
-        } else {
-            // Object - serialize to JSON
-            payload = JSON.stringify(data);
-        }
-
-        // Send (chunk if binary)
-        if (isBase64) {
-            const chunks = this.#chunkString(payload, this.#chunkSize);
-            for (const chunk of chunks) {
-                await this.#send({
-                    st: 'data',
-                    seq: this.#seq++,
-                    d: chunk,
-                    b64: true
-                });
+            for (let offset = 0; offset < data.length; offset += this.#chunkSize) {
+                await this.#send({ st: 'data', seq: this.#seq++, d: data.slice(offset, offset + this.#chunkSize), b64: false });
             }
         } else {
-            await this.#send({
-                st: 'data',
-                seq: this.#seq++,
-                d: payload,
-                b64: false
-            });
+            await this.#send({ st: 'data', seq: this.#seq++, d: JSON.stringify(data), b64: false });
         }
     }
 
@@ -228,21 +197,6 @@ export class WritableSignalStream {
     }
 
     /**
-     * Chunks a string into smaller pieces.
-     *
-     * @param {string} str - String to chunk.
-     * @param {number} size - Chunk size.
-     * @returns {string[]}
-     */
-    #chunkString(str, size) {
-        const chunks = [];
-        for (let i = 0; i < str.length; i += size) {
-            chunks.push(str.slice(i, i + size));
-        }
-        return chunks;
-    }
-
-    /**
      * Converts Uint8Array to base64.
      *
      * @param {Uint8Array} bytes 
@@ -279,6 +233,8 @@ export class ReadableSignalStream {
 
     /** @type {Array<any>} */
     #buffer = [];
+
+    #readIndex = 0;
 
     /** @type {Function|null} */
     #resolveNext = null;
@@ -405,9 +361,18 @@ export class ReadableSignalStream {
     async *[Symbol.asyncIterator]() {
         while (true) {
             // Return buffered data first
-            while (this.#buffer.length > 0) {
-                yield this.#buffer.shift();
+            while (this.#readIndex < this.#buffer.length) {
+                const chunk = this.#buffer[this.#readIndex];
+                this.#buffer[this.#readIndex++] = undefined;
+                // Compact only after substantial progress, not on every chunk.
+                if (this.#readIndex >= 1024 && this.#readIndex * 2 >= this.#buffer.length) {
+                    this.#buffer = this.#buffer.slice(this.#readIndex);
+                    this.#readIndex = 0;
+                }
+                yield chunk;
             }
+            this.#buffer.length = 0;
+            this.#readIndex = 0;
 
             // Check for end/error
             if (this.#ended) {
@@ -492,11 +457,13 @@ export class ReadableSignalStream {
  * });
  */
 export class StreamManager {
-    /** @type {Map<string, ReadableSignalStream>} */
+    /** @type {Map<string, { peerId: string, stream: ReadableSignalStream }>} */
     #activeStreams = new Map();
 
-    /** @type {Map<string, Function>} */
+    /** @type {Map<string, {handler: Function}>} */
     #streamHandlers = new Map();
+
+    #destroyed = false;
 
     /** @type {Function} */
     #sendFn;
@@ -519,6 +486,7 @@ export class StreamManager {
      * @returns {WritableSignalStream}
      */
     createStream(name, peerId, options = {}) {
+        if (this.#destroyed) throw new Error('Stream manager destroyed');
         const sendFn = async (message) => {
             await this.#sendFn(peerId, message);
         };
@@ -534,8 +502,10 @@ export class StreamManager {
      * @returns {Function} Unregister function.
      */
     onStream(name, handler) {
-        this.#streamHandlers.set(name, handler);
-        return () => this.#streamHandlers.delete(name);
+        if (this.#destroyed) throw new Error('Stream manager destroyed');
+        const registration = { handler };
+        this.#streamHandlers.set(name, registration);
+        return () => this.#streamHandlers.get(name) === registration && this.#streamHandlers.delete(name);
     }
 
     /**
@@ -546,10 +516,12 @@ export class StreamManager {
      * @param {string} peerId - Source peer ID.
      */
     handleMessage(message, peerId) {
-        if (message.t !== 'stream') return;
+        if (this.#destroyed || !message || message.t !== 'stream' || typeof message.sid !== 'string' || typeof peerId !== 'string') return;
 
         const streamId = message.sid;
         const streamType = message.st;
+        const active = this.#activeStreams.get(streamId);
+        if (streamType === 'open' ? active : !active || active.peerId !== peerId) return;
 
         switch (streamType) {
             case 'open':
@@ -571,36 +543,46 @@ export class StreamManager {
      * Handles stream open message.
      */
     #handleOpen(streamId, message, peerId) {
-        const handler = this.#streamHandlers.get(message.name);
+        const handler = this.#streamHandlers.get(message.name)?.handler;
         if (!handler) {
             console.warn(`[CrossBus] No handler for stream: ${message.name}`);
             return;
         }
 
         const stream = new ReadableSignalStream(streamId, message.name, message.meta);
-        this.#activeStreams.set(streamId, stream);
+        this.#activeStreams.set(streamId, { peerId, stream });
 
         // Call handler asynchronously
-        handler(stream).catch(err => {
-            console.error('[CrossBus] Stream handler error:', err);
-        });
+        try {
+            Promise.resolve(handler(stream)).catch(err => {
+                stream.error(err?.message ?? 'Stream handler failed');
+                if (this.#activeStreams.get(streamId)?.stream === stream) this.#activeStreams.delete(streamId);
+            });
+        } catch (error) {
+            stream.error(error instanceof Error ? error.message : String(error));
+            if (this.#activeStreams.get(streamId)?.stream === stream) this.#activeStreams.delete(streamId);
+        }
     }
 
     /**
      * Handles stream data message.
      */
     #handleData(streamId, message) {
-        const stream = this.#activeStreams.get(streamId);
+        const stream = this.#activeStreams.get(streamId)?.stream;
         if (!stream) return;
 
-        stream.push(message);
+        try { stream.push(message); }
+        catch (error) {
+            stream.error(error instanceof Error ? error.message : String(error));
+            if (this.#activeStreams.get(streamId)?.stream === stream) this.#activeStreams.delete(streamId);
+        }
     }
 
     /**
      * Handles stream end message.
      */
     #handleEnd(streamId, message) {
-        const stream = this.#activeStreams.get(streamId);
+        const stream = this.#activeStreams.get(streamId)?.stream;
         if (!stream) return;
 
         stream.end(message.meta);
@@ -611,11 +593,20 @@ export class StreamManager {
      * Handles stream error message.
      */
     #handleError(streamId, message) {
-        const stream = this.#activeStreams.get(streamId);
+        const stream = this.#activeStreams.get(streamId)?.stream;
         if (!stream) return;
 
         stream.error(message.reason);
         this.#activeStreams.delete(streamId);
+    }
+
+    /** Cancels readers and releases handlers. Application owners must call this on teardown. */
+    destroy() {
+        if (this.#destroyed) return;
+        this.#destroyed = true;
+        for (const { stream } of this.#activeStreams.values()) stream.error('Stream manager destroyed');
+        this.#activeStreams.clear();
+        this.#streamHandlers.clear();
     }
 
     /**

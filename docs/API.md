@@ -25,7 +25,7 @@ const bus = CrossBus.createSecure({ peerId: 'app', allowedOrigins: ['https://tru
 | `debug` | `false` | Development logging |
 | `debugPrefix` | `'[CrossBus]'` | Log prefix |
 
-`createSecure(options)` requires a nonempty allowlist, rejects wildcard patterns and enables strict mode. It accepts the same resource limits. Payload accounting uses two bytes per UTF-16 code unit, binary byte lengths and per-value/reference overhead; it is not an exact serialized wire size. Limits must be nonnegative safe integers.
+`createSecure(options)` requires a nonempty allowlist, rejects wildcard patterns and enables strict mode. It accepts the same resource limits. Payload accounting uses two bytes per UTF-16 code unit, the complete backing storage of binary views, binary byte lengths and per-value/reference overhead; it is not an exact serialized wire size. Limits must be nonnegative safe integers.
 
 ### Connections and lifecycle
 
@@ -41,7 +41,7 @@ const bus = CrossBus.createSecure({ peerId: 'app', allowedOrigins: ['https://tru
 | `getPeer(peerId)` | Routing metadata or `undefined` |
 | `healthCheck()`, `diagnose()` | Local status and configuration diagnostics |
 
-`addPeer()` does not perform a handshake. `isHub` does not automatically forward requests between arbitrary peers. An application must bind source identities to channels and implement authorized forwarding. Window transport events supply their actual origin; originless transports use an explicit application trust label. `removePeer()` alone does not close a manually owned transport; use the cleanup returned by `addTransport()`.
+`addPeer()` does not perform a handshake. `isHub` does not automatically forward requests between arbitrary peers. An application must bind source identities to channels and implement authorized forwarding. Window transport events supply their actual origin; MessageChannel/BroadcastChannel/SharedWorker/ServiceWorker supply the fixed origin labels listed below. The `origin` binding option is a fallback only when a transport supplies no origin. `removePeer()` alone does not close a manually owned transport; use the cleanup returned by `addTransport()`.
 
 ### Messaging
 
@@ -108,7 +108,7 @@ Transport classes are exported by `crossbus`. A dynamic import of that same root
 | `BroadcastChannelTransport(name)` | Same-origin channel; suitable for one-way group signals; the transport binding labels the channel, not individual tab identities |
 | `SharedWorkerTransport({workerUrl,name}?)` | Requires an application SharedWorker script |
 | `ServiceWorkerTransport(options?)` | Requires an application service worker; await `ready` |
-| `WebSocketTransport(options)` | Requires a compatible backend; call `connect()` before sending; configure reconnection/heartbeat in this transport |
+| `WebSocketTransport(options)` | Requires a compatible backend; call `connect()` to establish the connection and drain queued sends; configure reconnection/heartbeat in this transport |
 | `NativeBridgeTransport(options?)` | Await `ready`; requires a native host adapter; [native API and failure behavior](../native/README.md) |
 
 Worker transports do not implement durable persistence, an offline queue or guaranteed background delivery. Transfer-list ownership is an application decision; an ArrayBuffer is detached after transfer. Native transports use JSON and do not support browser transferables.
@@ -133,6 +133,33 @@ The schema validator supports `type`, `properties`, `required`, `items`, `enum`,
 
 `withBatching()` preserves Promise results for signals and applies inbound hooks per logical message. Signals with per-call routing options are sent immediately. Queued operations are cancelled when the bus is destroyed. `createPresence(bus, options)` wires presence signals and registers lifecycle cleanup; `PresenceManager` is also available for manual wiring.
 
-`StreamManager` takes a `(peerId,message) => Promise` send function; route incoming stream envelopes explicitly to `handleMessage(message, peerId)`. `VectorClock` and `CausalOrderer` are explicit utilities for clock-stamped messages. They do not change default CrossBus routing automatically.
+The exported low-level `PendingRequests` tracker accepts `resolve(requestId, response, targetPeer?)`. When the optional third argument is supplied, a mismatched target returns `false` without settling or removing the request. Omitting it preserves the original tracker behavior. CrossBus always supplies the transport-bound peer; applications using the tracker directly must establish that identity themselves.
+
+`StreamManager` takes a `(peerId,message) => Promise` send function; route incoming stream envelopes explicitly to `handleMessage(message, peerId)` with the transport-bound source identity. Open streams are bound to that peer and duplicate IDs are ignored. Call `manager.destroy()` during teardown to release handlers and reject waiting readers. `chunkSize` must be a positive safe integer: it limits raw bytes per binary chunk or UTF-16 code units per string chunk. Each binary chunk is encoded independently, including empty binary values. Objects are serialized as a single JSON string. These utilities do not add stream deadlines, backpressure or out-of-order reassembly. `VectorClock` and `CausalOrderer` are explicit utilities for clock-stamped messages. They do not change default CrossBus routing automatically.
 
 Refer to [architecture](ARCHITECTURE.md), [integration patterns](ADVANCED.md), [security](../SECURITY.md), [native adapters](../native/README.md) and [benchmarks](BENCHMARKS.md) for boundaries and verification.
+
+## Compact MessageChannel encoding
+
+`new MessageChannelTransport({ wireFormat: 'compact' })` and `MessageChannelTransport.fromPort(port, { wireFormat: 'compact' })` select a versioned array encoding for ordinary signals and RPC. `transport.wireFormat` reports the outgoing format. Both receivers must support compact packets (CrossBus 0.1.3+); there is no automatic capability negotiation. The default is `'standard'`, including communication with 0.1.2.
+
+The receiver reconstructs the same protocol-v1 envelope before applying payload limits, validation hooks, handler permissions and response-peer matching. Transfer lists retain their ownership behavior. Messages with extension fields, custom metadata or other protocol shapes use the standard object encoding. Compact mode requires the default content type. The application data graph is structured-cloned, including cycles. Compact mode reconstructs wrapper objects; raw transport code that depends on reference identity between application data and envelope/payload-wrapper objects should use standard mode. This option reduces serialization work; it does not remove security checks or guarantee a speedup for every payload/runtime. See [the competitor study](COMPETITOR_ANALYSIS.md).
+
+## Transport origin labels
+
+| Transport | Origin passed to the bus |
+|---|---|
+| MessageChannel | `channel` |
+| BroadcastChannel | `broadcast` |
+| SharedWorker | `sharedworker` |
+| ServiceWorker | `serviceworker` |
+| PostMessage window | Actual event origin, with source checks in the transport |
+| NativeBridge / WebSocket | Explicit fallback from `addTransport(..., {peerId, origin})` |
+
+Put the matching label in the bus allowlist. Synthetic labels describe an application-bound channel, not network-origin authentication. PostMessage worker events may have an empty origin; supply an explicit fallback label for that binding.
+
+### WebSocket connection and queue lifecycle (0.1.3 candidate)
+
+`protocols` accepts a subprotocol string or array and is passed to the WebSocket constructor. Concurrent `connect()` calls share one attempt. An error, a close before opening, explicit disconnect or destruction settles that attempt; `destroy()` prevents reconnection and later sends.
+
+`send()` JSON-serializes a snapshot immediately. Before connection it returns `false` and queues the snapshot; `connect()` drains that queue. `maxQueueSize` defaults to 1,000 messages, must be a nonnegative safe integer and can be set to zero to disable the count cap. A full queue throws rather than dropping another message. `offMessage()` removes the inbound observer. This transport requires a JSON-compatible application backend; an accepted send is not a delivery acknowledgment.

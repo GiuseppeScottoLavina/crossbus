@@ -90,7 +90,8 @@ jobs:
           mkdir -p "$RUNNER_TEMP/crossbus-consumer"
           cp tests/package/consumer-smoke.mjs "$RUNNER_TEMP/crossbus-consumer/check.mjs"
           PACKAGE_ARCHIVE="$(find "$GITHUB_WORKSPACE/artifacts" -name '*.tgz' -print -quit)"
+          PACKAGE_VERSION="$(node -p 'require(process.env.GITHUB_WORKSPACE + "/package.json").version')"
           cd "$RUNNER_TEMP/crossbus-consumer"
           npm init -y
           npm install --ignore-scripts --no-audit --no-fund "$PACKAGE_ARCHIVE"
-          node check.mjs 0.1.2
+          node check.mjs "$PACKAGE_VERSION"

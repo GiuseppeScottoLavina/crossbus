@@ -15,6 +15,9 @@ import { PendingRequests } from '../router/pending-requests.js';
 import { Handshake } from '../security/handshake.js';
 import { OriginValidator } from '../security/origin-validator.js';
 
+// A completed dispatch has no asynchronous work or per-message rejection chain.
+const MESSAGE_HANDLED = Promise.resolve();
+
 /**
  * @typedef {Object} CrossBusOptions
  * @property {string} [peerId] - Unique peer identifier (auto-generated if not specified).
@@ -158,6 +161,9 @@ export class CrossBus extends EventEmitter {
 
     /** @type {Map<string, HandlerOptions>} */
     #handlerOptions = new Map();
+
+    /** @type {Map<string, Function>} Owns each handler registration cleanup. */
+    #handlerUnregister = new Map();
 
     /** @type {boolean} */
     #debug = false;
@@ -314,7 +320,7 @@ export class CrossBus extends EventEmitter {
 
         const result = this.#router.broadcast(message, options);
 
-        this.#log('out', `SIGNAL "${signalName}" to ${result.delivered} peers`);
+        if (this.#debug) this.#log('out', `SIGNAL "${signalName}" to ${result.delivered} peers`);
 
         return result;
     }
@@ -334,7 +340,7 @@ export class CrossBus extends EventEmitter {
     request(peerId, handlerName, payload, options = {}) {
         try {
             this.#assertNotDestroyed();
-            this.#log('out', `REQUEST "${handlerName}" to ${peerId}`);
+            if (this.#debug) this.#log('out', `REQUEST "${handlerName}" to ${peerId}`);
             if (!this.#router.getPeer(peerId)) {
                 throw CrossBusError.from(ErrorCode.PEER_NOT_FOUND, { peerId });
             }
@@ -471,7 +477,10 @@ export class CrossBus extends EventEmitter {
 
         this.#handlers.set(handlerName, handler);
 
-        return () => this.unhandle(handlerName);
+        const unregister = () => this.#handlerUnregister.get(handlerName) === unregister
+            ? this.unhandle(handlerName) : false;
+        this.#handlerUnregister.set(handlerName, unregister);
+        return unregister;
     }
 
     /**
@@ -481,6 +490,7 @@ export class CrossBus extends EventEmitter {
      * @returns {boolean} True if handler was removed.
      */
     unhandle(handlerName) {
+        this.#handlerUnregister.delete(handlerName);
         this.#handlerOptions.delete(handlerName);
         for (const key of this.#rateLimitCounters.keys()) {
             if (JSON.parse(key)[0] === handlerName) this.#rateLimitCounters.delete(key);
@@ -637,8 +647,8 @@ export class CrossBus extends EventEmitter {
             throw new TypeError('Transport must have a send() method');
         }
 
-        const peerId = options.peerId || transport.peerId || `transport-${uuid()}`;
-        const origin = options.origin || '*';
+        const peerId = options.peerId ?? transport.peerId ?? `transport-${uuid()}`;
+        const origin = options.origin ?? '*';
 
         this.addPeer(peerId, (message) => transport.send(message), options);
         if (typeof transport.onMessage === 'function') {
@@ -646,8 +656,8 @@ export class CrossBus extends EventEmitter {
                 // Window transports provide the actual event origin. Explicit
                 // origin is the trust label for originless channels/native hosts.
                 const actualOrigin = source?.origin || origin;
-                this.handleMessage(message, actualOrigin, peerId)
-                    .catch(error => console.error('[CrossBus] Incoming message rejected:', error));
+                const pending = this.handleMessage(message, actualOrigin, peerId);
+                if (pending !== MESSAGE_HANDLED) pending.catch(error => console.error('[CrossBus] Incoming message rejected:', error));
             });
         }
         const cleanup = () => {
@@ -681,16 +691,21 @@ export class CrossBus extends EventEmitter {
      * @param {string} [peerId] - Source peer ID if known.
      * @param {Function} [replyFn] - Function to reply to the sender.
      */
-    async handleMessage(message, origin, peerId, replyFn) {
-        if (this.#destroyed) return;
+    handleMessage(message, origin, peerId, replyFn) {
+        try { return this.#receiveMessage(message, origin, peerId, replyFn); }
+        catch (error) { return Promise.reject(error); }
+    }
+
+    #receiveMessage(message, origin, peerId, replyFn) {
+        if (this.#destroyed) return MESSAGE_HANDLED;
 
         // Validate origin
         if (!this.#originValidator.isAllowed(origin)) {
             console.warn(`[CrossBus] Blocked message from unauthorized origin: ${origin}`);
-            return;
+            return MESSAGE_HANDLED;
         }
 
-        if (!message || typeof message !== 'object') return;
+        if (!message || typeof message !== 'object') return MESSAGE_HANDLED;
         // Apply inbound hooks to payload
         // Support both standard 'payload'/'data' and legacy 'p'
         const rawPayload = message.payload ?? message.data ?? message.p;
@@ -723,52 +738,53 @@ export class CrossBus extends EventEmitter {
             dataContent = innerMsg.payload.data ?? innerMsg.data;
         }
 
-        {
-            const hookContext = {
-                type: msgType === MessageType.SIGNAL ? 'signal' :
+        if (this.#inboundHooks.length) {
+            return this.#runHooks(this.#inboundHooks, dataContent, {
+                type: msgType === MessageType.SIGNAL || msgType === MessageType.BROADCAST ? 'signal' :
                     msgType === MessageType.REQUEST ? 'request' : 'response',
-                peerId,
-                handlerName: handlerOrName,
-                direction: 'inbound'
-            };
-            // Run hooks
-            try {
-                dataContent = this.#inboundHooks.length
-                    ? await this.#runHooks(this.#inboundHooks, dataContent, hookContext)
-                    : this.#checkedPayload(dataContent);
-            } catch (/** @type {any} */ error) {
-                if (msgType !== MessageType.REQUEST) throw error;
-                const response = createResponseMessage(message.id, null, this.#peerId, false, {
-                    code: error.code ?? ErrorCode.INVALID_PAYLOAD,
-                    message: error.message ?? 'Inbound hook rejected request'
-                });
-                if (replyFn) replyFn(response);
-                else if (peerId) this.#router.route({ target: peerId, payload: response });
-                return;
-            }
+                peerId, handlerName: handlerOrName, direction: 'inbound'
+            }).then(
+                data => this.#dispatchMessage(message, msgType, handlerOrName, data, origin, peerId, replyFn),
+                error => this.#rejectInbound(message, msgType, error, peerId, replyFn)
+            );
         }
+        try { dataContent = this.#checkedPayload(dataContent); }
+        catch (error) { return this.#rejectInbound(message, msgType, error, peerId, replyFn); }
+        return this.#dispatchMessage(message, msgType, handlerOrName, dataContent, origin, peerId, replyFn);
+    }
 
+    #rejectInbound(message, msgType, error, peerId, replyFn) {
+        if (msgType !== MessageType.REQUEST) return Promise.reject(error);
+        const response = createResponseMessage(message.id, null, this.#peerId, false, {
+            code: error.code ?? ErrorCode.INVALID_PAYLOAD,
+            message: error.message ?? 'Inbound hook rejected request'
+        });
+        if (replyFn) replyFn(response);
+        else if (peerId !== undefined && peerId !== null) this.#router.route({ target: peerId, payload: response });
+        return MESSAGE_HANDLED;
+    }
+
+    #dispatchMessage(message, msgType, handlerOrName, dataContent, origin, peerId, replyFn) {
+        if (this.#destroyed) return MESSAGE_HANDLED;
         switch (msgType) {
             case MessageType.BROADCAST:  // Broadcast has same structure as signal
             case MessageType.SIGNAL:
                 if (typeof handlerOrName !== 'string') {
                     console.warn('[CrossBus] Invalid signal name type');
-                    return;
+                    return MESSAGE_HANDLED;
                 }
-                await this.#handleSignal(handlerOrName, dataContent, peerId, origin);
-                break;
+                return this.#handleSignal(handlerOrName, dataContent, peerId, origin);
 
             case MessageType.REQUEST:
                 if (typeof handlerOrName !== 'string') {
                     console.warn('[CrossBus] Invalid handler name type');
-                    return;
+                    return MESSAGE_HANDLED;
                 }
                 // Pass normalized ID
                 // const reqId = message.id ?? (message.payload ? message.payload.id : undefined);
                 // Wait, 'id' is top level in ProtocolMessage AND legacy.
 
-                await this.#handleRequest(message.id, handlerOrName, dataContent, peerId, replyFn);
-                break;
+                return this.#handleRequest(message.id, handlerOrName, dataContent, peerId, replyFn);
 
             case MessageType.RESPONSE: {
                 let success = message.success;
@@ -794,6 +810,7 @@ export class CrossBus extends EventEmitter {
             default:
                 console.warn(`[CrossBus] Unknown message type: ${msgType}`);
         }
+        return MESSAGE_HANDLED;
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -815,6 +832,7 @@ export class CrossBus extends EventEmitter {
         this.#inboundHooks = [];
         this.#outboundHooks = [];
         this.#handlerOptions.clear();
+        this.#handlerUnregister.clear();
         this.#rateLimitCounters.clear();
         // Cancel all pending requests
         this.#pendingRequests.cancelAll();
@@ -825,10 +843,9 @@ export class CrossBus extends EventEmitter {
         // Clear peers
         this.#router.clearPeers();
 
-        // Clear event listeners
-        this.clear();
-
+        // Select destruction listeners before retiring their subscriptions.
         this.emit('destroyed', {});
+        this.clear();
     }
 
     /**
@@ -877,7 +894,7 @@ export class CrossBus extends EventEmitter {
         } else {
             // Check handler security (allowedPeers, rateLimit, validatePayload)
             const securityCheck = this.#checkHandlerSecurity(handlerName, peerId, data);
-            if (!securityCheck.allowed) {
+            if (securityCheck && !securityCheck.allowed) {
                 response = createResponseMessage(
                     requestId,
                     null,
@@ -925,7 +942,7 @@ export class CrossBus extends EventEmitter {
         // Send response
         if (replyFn) {
             replyFn(response);
-        } else if (peerId) {
+        } else if (peerId !== undefined && peerId !== null) {
             this.#router.route({ target: peerId, payload: response });
         }
     }
@@ -935,14 +952,13 @@ export class CrossBus extends EventEmitter {
      *
      */
     #handleResponse(requestId, success, data, error, peerId) {
-        const pending = this.#pendingRequests.get(requestId);
-        if (!pending || pending.targetPeer !== peerId) return;
+        if (peerId === undefined) return;
         this.#pendingRequests.resolve(requestId, {
             requestId,
             success,
             data,
             error
-        });
+        }, peerId);
     }
 
     /**
@@ -997,7 +1013,7 @@ export class CrossBus extends EventEmitter {
         if (!options.allowedOrigins || options.allowedOrigins.length === 0) {
             console.warn(
                 '[CrossBus Security] ⚠️ No allowedOrigins specified.\n' +
-                'This bus will REJECT all incoming messages from transports.\n' +
+                'Browser messages default to the same origin; other transports need explicit origin labels.\n' +
                 'To receive messages, specify allowed origins:\n' +
                 '  allowedOrigins: ["https://trusted-domain.com"]\n' +
                 'For development only: allowedOrigins: ["*"]'
@@ -1030,12 +1046,12 @@ export class CrossBus extends EventEmitter {
      * @param {string} handlerName
      * @param {string} peerId
      * @param {*} payload
-     * @returns {{ allowed: boolean, error?: CrossBusError }}
+     * @returns {{ allowed: boolean, error?: CrossBusError } | null}
      */
     #checkHandlerSecurity(handlerName, peerId, payload) {
         const options = this.#handlerOptions.get(handlerName);
         if (!options) {
-            return { allowed: true };
+            return null;
         }
 
         // Check peer allowlist

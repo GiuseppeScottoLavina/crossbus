@@ -4,7 +4,7 @@
 
 Signals and request/response messaging for browser windows, iframes, workers, tabs and native WebViews. The npm package has no runtime dependencies and includes ESM, CommonJS and TypeScript declarations.
 
-[API](docs/API.md) · [Getting started](docs/GETTING_STARTED.md) · [Benchmarks](docs/BENCHMARKS.md) · [Native bridges](native/README.md) · [Security](SECURITY.md)
+[API](docs/API.md) · [Getting started](docs/GETTING_STARTED.md) · [Benchmarks](docs/BENCHMARKS.md) · [Competitor study](docs/COMPETITOR_ANALYSIS.md) · [Native bridges](native/README.md) · [Security](SECURITY.md)
 
 ## Run your first request
 
@@ -101,6 +101,14 @@ Remote signal listeners receive the payload at `event.data.payload` and the send
 
 SharedWorker and ServiceWorker transports do not implement persistent storage or an offline message queue. The iOS/Android adapters are source integrations; CocoaPods/Maven packages and physical-device runtime qualification are not provided.
 
+## Performance work for 0.1.3
+
+The 0.1.3 candidate adds an optional `MessageChannelTransport({ wireFormat: 'compact' })` encoding. It requires CrossBus 0.1.3+ receivers and keeps the public envelope, payload limits, hooks and peer checks. Standard encoding remains the default for compatibility with 0.1.2. See [API requirements](docs/API.md#compact-messagechannel-encoding) and the [versioned competitor study](docs/COMPETITOR_ANALYSIS.md) before selecting it.
+
+This candidate is not yet published on npm. Its local suite passed 1,150 tests across 73 files with zero failures/skips, and source line coverage was 95.90% (4,441/4,631). The [audit](docs/AUDIT.md) records scope and remaining qualification. The playground now uses actual CrossBus channels, module Workers and iframe forwarding; its documentation-only deployment layout is browser-tested.
+
+The study found RPC improvements on Node/Bun and faster local stream buffering. Chrome RPC results were mixed, including regressions; compact encoding was slower for large payloads in Chrome Workers. Comlink, birpc and Penpal remain faster in several measured cases. Check the workload-specific tables before choosing an encoding; no overall performance lead is established.
+
 ## Optional features
 
 Plugin subpaths provide retry, circuit breaker, encryption, compression, rate limiting, batching and a documented subset of JSON Schema validation. For example, on the `service` endpoint above, before destroying it:
@@ -131,7 +139,7 @@ The [0.1.2 release](https://github.com/GiuseppeScottoLavina/crossbus/releases/ta
 | Native adapters | Swift iOS and Java Android compilation passed locally; device runtime tests remain pending |
 | Performance | [Repeated Node/Bun/Chrome measurements](docs/BENCHMARKS.md), with raw samples and exact measured bundles; these measurements predate the final 0.1.2 compatibility/banner changes |
 
-The current iframe demo has its own [executable documentation tests](tests/docs/readme.test.js). Historical release counts above do not describe every later revision. These are project checks, not an independent security certification. Safari/Firefox and physical mobile WebViews remain unqualified. The measurements do not establish that CrossBus is the fastest or most complete library in every workload.
+The current iframe demo has its own [executable documentation tests](https://github.com/GiuseppeScottoLavina/crossbus/blob/master/tests/docs/readme.test.js). Historical release counts above do not describe every later revision. These are project checks, not an independent security certification. Safari/Firefox and physical mobile WebViews remain unqualified. The measurements do not establish that CrossBus is the fastest or most complete library in every workload.
 
 To check the current repository, use Node 24 and Bun for development:
 

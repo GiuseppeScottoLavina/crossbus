@@ -1,6 +1,6 @@
 {
     "name": "crossbus",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "description": "Modern cross-context messaging for browsers - iframes, workers, tabs, and native bridges",
     "type": "module",
     "main": "dist/crossbus.cjs",
@@ -71,10 +71,11 @@
         "SECURITY.md",
         "llms.txt",
         "agent.json",
-        "docs/*.md"
+        "docs/*.md",
+        "docs/vendor/marked-LICENSE.md"
     ],
     "scripts": {
-        "build": "bun run tsc && bun run rollup -c",
+        "build": "node scripts/clean-dist.js && bun run tsc && bun run rollup -c && node scripts/sync-docs.js",
         "build:watch": "bun run rollup -c -w",
         "build:bun": "bun build src/index.js --outdir dist/bun --target=bun --minify --sourcemap=external",
         "build:bun:bytecode": "bun build src/index.js --outdir dist/bun --target=bun --minify --bytecode",
@@ -103,7 +104,13 @@
         "bench:rpc": "node tests/benchmarks/verified.js --rpc-compare",
         "bench:report": "node tests/benchmarks/report.js",
         "bench:isolated": "node tests/benchmarks/isolated.js",
-        "release:check": "bun run lint && bun run typecheck && bun run build && bun run test && bun run test:types && bun run test:coverage"
+        "release:check": "bun run lint && bun run typecheck && bun run build && bun run test && bun run test:types && bun run test:coverage",
+        "bench:study": "node tests/benchmarks/study-isolated.js --runtime node",
+        "bench:study:bun": "node tests/benchmarks/study-isolated.js --runtime bun",
+        "bench:study:browser": "node tests/benchmarks/study-isolated.js --runtime chrome",
+        "bench:study:workers": "node tests/benchmarks/study-isolated.js --runtime chrome --worker",
+        "bench:study:report": "node tests/benchmarks/study-report.js",
+        "bench:study:memory": "node tests/benchmarks/study-memory.js"
     },
     "keywords": [
         "postmessage",
@@ -127,17 +134,20 @@
     },
     "homepage": "https://github.com/giuseppescottolavina/crossbus#readme",
     "devDependencies": {
+        "@eslint/js": "^9.27.0",
         "@rollup/plugin-terser": "^0.4.4",
         "@types/node": "^25.0.10",
+        "birpc": "4.2.0",
         "comlink": "^4.4.2",
-        "@eslint/js": "^9.27.0",
         "eslint": "^10.0.0",
         "eslint-config-prettier": "^10.1.8",
-        "globals": "^16.1.0",
         "eventemitter3": "^5.0.4",
+        "globals": "^16.1.0",
         "linkedom": "^0.18.12",
+        "marked": "18.2.0",
         "mitt": "^3.0.1",
-        "nanoevents": "^9.1.0",
+        "nanoevents": "10.0.0",
+        "penpal": "8.0.1",
         "prettier": "^3.8.1",
         "puppeteer-core": "^24.35.0",
         "rollup": "^4.56.0",
@@ -151,6 +161,5 @@
     "publishConfig": {
         "registry": "https://registry.npmjs.org/",
         "access": "public"
-    },
-    "dependencies": {}
+    }
 }

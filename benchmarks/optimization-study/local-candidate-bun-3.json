@@ -1,0 +1,619 @@
+{
+  "metadata": {
+    "engineVersions": {
+      "node": "24.3.0",
+      "bun": "1.3.14",
+      "boringssl": "0c5fce43b7ed5eb6001487ee48ac65766f5ddcd1",
+      "openssl": "1.1.0",
+      "llhttp": "9.3.0",
+      "libarchive": "ded82291ab41d5e355831b96b0e1ff49e24d8939",
+      "mimalloc": "f15aecb94fc8096008bf87b90c53ed682026914a",
+      "picohttpparser": "066d2b1e9ab820703db0837a7255d92d30f0c9f5",
+      "uwebsockets": "191edc04ab1ff64d423e4fae9a0d5ee00ee7f3dd",
+      "webkit": "39862040be27e0b6e1d103aaa5dc6796f21a581f",
+      "zig": "04e7f6ac1e009525bc00934f20199c68f04e0a24",
+      "zlib": "12731092979c6d07f42da27da673a9f6c7b13586",
+      "tinycc": "12882eee073cfe5c7621bcfadf679e1372d4537b",
+      "lolhtml": "77127cd2b8545998756e8d64e36ee2313c4bb312",
+      "ares": "3ac47ee46edd8ea40370222f91613fc16c434853",
+      "libdeflate": "c8c56a20f8f621e6a966b716b31f1dedab6a41e3",
+      "usockets": "191edc04ab1ff64d423e4fae9a0d5ee00ee7f3dd",
+      "lshpack": "8905c024b6d052f083a3d11d0a169b3c2735c8a1",
+      "zstd": "f8745da6ff1ad1e7bab384bd1f9d742439278e99",
+      "v8": "13.6.233.10-node.18",
+      "uv": "1.48.0",
+      "napi": "10",
+      "icu": "74.2",
+      "unicode": "15.1",
+      "modules": "137"
+    },
+    "bunRevision": "191edc04ab1ff64d423e4fae9a0d5ee00ee7f3dd",
+    "timestamp": "2026-11-12T15:10:10.074Z",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M1 Max",
+    "logicalCpus": 10,
+    "runtime": "Bun 1.3.14",
+    "libraries": {
+      "comlink": "4.4.2",
+      "birpc": "4.2.0",
+      "penpal": "8.0.1",
+      "nanoevents": "10.0.0",
+      "mitt": "3.0.1",
+      "eventemitter3": "5.0.4"
+    },
+    "hashes": {
+      "benchmarks/optimization-study/candidate/crossbus.min.js": "a4cbc5b9610d41a4c0d73b7b3221f75084909f7e3e1c9da3613f40a72e5caff3",
+      "benchmarks/optimization-study/candidate/nano.min.js": "eb8410a4dc508889aa9190f89805f7741657b7c10dabc286fd3ecf32dc138087",
+      "tests/benchmarks/artifact-workloads.js": "2c596b2244cbd14a138846301aaafcfa1be75c0c68968d263ec320d47dca3c5f",
+      "tests/benchmarks/competitor-worker.js": "03ad14b5304ecc7325483f5247977e1d9fb945c4f698bbbf879cb563a4bb72b2",
+      "tests/benchmarks/study.js": "be0611b98f51e3d4c15300438bf79e3f20d06d8882768c549922b981d62261c6",
+      "tests/benchmarks/study-isolated.js": "13eb35c739c740a99eadbd02046d6d3096bb90946c7db64c6c0da9b3b48a25a0",
+      "node_modules/comlink/dist/esm/comlink.mjs": "ba9d0de49a44aa9f42c70d6e98e2f00ef3836ca11b785dccd707917d6a4c719b",
+      "node_modules/birpc/dist/index.mjs": "c6da1d8c0b904eee09fa410bc162146bdc642ae39537c3658aab1082b6db35ce",
+      "node_modules/penpal/dist/penpal.mjs": "f354b6819a69c01254810ac9dda796ba2356c82802218f5ac7752a2a3f30fe75",
+      "node_modules/nanoevents/index.js": "6699494a9ef0674ca92b1b3252bfcedb09522e145d988ef66f262a9ac2994c52",
+      "node_modules/mitt/dist/mitt.mjs": "7a0c650bc6798bbe422677ef196d66417510a1c5b51f754c680f67cf1c256c50",
+      "node_modules/eventemitter3/dist/eventemitter3.esm.js": "4b3907d257fc094c13ecf06f4bc1ceb6af198f18ef02191490f5553463399b88"
+    },
+    "gitHead": "bb3a925d8f702c77ce9f9476af6ce7a4fca082cf",
+    "workingTreeDirty": true
+  },
+  "methodology": {
+    "samples": 9,
+    "order": "one warmup, rotate library order per sample; repeat in fresh processes",
+    "callbacks": "observable counter/checksum, identical callback semantics; local reference dispatch",
+    "warning": "not serialization, byte throughput or cross-context RPC"
+  },
+  "results": [
+    {
+      "library": "CrossBus emitSync",
+      "workload": "emit",
+      "listeners": 1,
+      "iterationsPerSample": 1048576,
+      "opsPerSecond": {
+        "median": 210434211.61424163,
+        "min": 92164275.19831239,
+        "max": 211175818.66739482,
+        "samples": [
+          92164275.19831239,
+          92461246.68759651,
+          102895304.2320511,
+          105519300.9845444,
+          210724909.4762461,
+          210949253.13081726,
+          210434211.61424163,
+          211175818.66739482,
+          210832612.84809726
+        ]
+      }
+    },
+    {
+      "library": "CrossBus fast",
+      "workload": "emit",
+      "listeners": 1,
+      "iterationsPerSample": 1048576,
+      "opsPerSecond": {
+        "median": 191822917.38126373,
+        "min": 112365985.01123959,
+        "max": 207904724.0817511,
+        "samples": [
+          126713575.68977141,
+          207904724.0817511,
+          116807484.58358754,
+          112365985.01123959,
+          191834603.53945267,
+          191989746.64133748,
+          191852152.99782097,
+          191633015.29005712,
+          191822917.38126373
+        ]
+      }
+    },
+    {
+      "library": "CrossBus nano",
+      "workload": "emit",
+      "listeners": 1,
+      "iterationsPerSample": 1048576,
+      "opsPerSecond": {
+        "median": 203471987.6152079,
+        "min": 98136477.96534817,
+        "max": 204148757.4890522,
+        "samples": [
+          126524366.33201976,
+          98136477.96534817,
+          98722797.5325702,
+          107704598.74034382,
+          204148757.4890522,
+          204021292.16961333,
+          203667972.04133722,
+          203940303.98809206,
+          203471987.6152079
+        ]
+      }
+    },
+    {
+      "library": "nanoevents",
+      "workload": "emit",
+      "listeners": 1,
+      "iterationsPerSample": 1048576,
+      "opsPerSecond": {
+        "median": 115825818.54806368,
+        "min": 89516679.11642297,
+        "max": 116137449.81309776,
+        "samples": [
+          108625076.10196741,
+          89516679.11642297,
+          89647104.12536587,
+          100986854.65072173,
+          116101547.22194651,
+          115825818.54806368,
+          116137449.81309776,
+          116129410.95037085,
+          116043740.83738722
+        ]
+      }
+    },
+    {
+      "library": "mitt",
+      "workload": "emit",
+      "listeners": 1,
+      "iterationsPerSample": 1048576,
+      "opsPerSecond": {
+        "median": 21796518.214415625,
+        "min": 20815438.76290655,
+        "max": 22607147.092114516,
+        "samples": [
+          21399328.091432367,
+          20815438.76290655,
+          21041553.021753374,
+          21796518.214415625,
+          21733008.542536262,
+          22456513.067897387,
+          22460461.26138274,
+          22607147.092114516,
+          22477192.019569624
+        ]
+      }
+    },
+    {
+      "library": "EventEmitter3",
+      "workload": "emit",
+      "listeners": 1,
+      "iterationsPerSample": 1048576,
+      "opsPerSecond": {
+        "median": 260262561.93973887,
+        "min": 76337337.21614811,
+        "max": 260885748.03721234,
+        "samples": [
+          84759955.13746725,
+          76337337.21614811,
+          84705747.0198423,
+          97220898.428446,
+          260869521.9505107,
+          260302877.74570692,
+          260812746.5384767,
+          260262561.93973887,
+          260885748.03721234
+        ]
+      }
+    },
+    {
+      "library": "CrossBus emitSync",
+      "workload": "emit",
+      "listeners": 10,
+      "iterationsPerSample": 1048576,
+      "opsPerSecond": {
+        "median": 35064837.82709793,
+        "min": 34099848.43659026,
+        "max": 35113421.86185701,
+        "samples": [
+          35059171.647093445,
+          35113421.86185701,
+          35064837.82709793,
+          35013612.245655164,
+          35111167.93078915,
+          34099848.43659026,
+          35085908.907453775,
+          35068502.5333104,
+          34936618.53903452
+        ]
+      }
+    },
+    {
+      "library": "CrossBus fast",
+      "workload": "emit",
+      "listeners": 10,
+      "iterationsPerSample": 1048576,
+      "opsPerSecond": {
+        "median": 34783494.82408685,
+        "min": 33927635.99595551,
+        "max": 34832940.238514625,
+        "samples": [
+          34668015.24343174,
+          34783494.82408685,
+          34832940.238514625,
+          34771095.439258054,
+          34799031.32625009,
+          33927635.99595551,
+          34822288.687697686,
+          34794459.78290929,
+          34687750.17367398
+        ]
+      }
+    },
+    {
+      "library": "CrossBus nano",
+      "workload": "emit",
+      "listeners": 10,
+      "iterationsPerSample": 1048576,
+      "opsPerSecond": {
+        "median": 34269243.45727102,
+        "min": 33903685.5274862,
+        "max": 34287498.72269079,
+        "samples": [
+          34236189.00898495,
+          34238145.301446475,
+          34246205.34803011,
+          34281520.56245221,
+          34281146.22613377,
+          33903685.5274862,
+          34276757.91065612,
+          34269243.45727102,
+          34287498.72269079
+        ]
+      }
+    },
+    {
+      "library": "nanoevents",
+      "workload": "emit",
+      "listeners": 10,
+      "iterationsPerSample": 1048576,
+      "opsPerSecond": {
+        "median": 28025363.989282437,
+        "min": 27825065.756996717,
+        "max": 28056858.849578165,
+        "samples": [
+          27825065.756996717,
+          28041164.81589216,
+          28025363.989282437,
+          28056858.849578165,
+          28047071.37043695,
+          28024459.183175378,
+          28032044.734243337,
+          27925754.46270995,
+          27975485.486230716
+        ]
+      }
+    },
+    {
+      "library": "mitt",
+      "workload": "emit",
+      "listeners": 10,
+      "iterationsPerSample": 1048576,
+      "opsPerSecond": {
+        "median": 15796842.710433902,
+        "min": 15482144.97670044,
+        "max": 15869391.584989138,
+        "samples": [
+          15703249.886356277,
+          15796842.710433902,
+          15842847.203996029,
+          15805355.322422992,
+          15868150.71825527,
+          15707356.531899262,
+          15869391.584989138,
+          15771953.807002205,
+          15482144.97670044
+        ]
+      }
+    },
+    {
+      "library": "EventEmitter3",
+      "workload": "emit",
+      "listeners": 10,
+      "iterationsPerSample": 1048576,
+      "opsPerSecond": {
+        "median": 23576397.404000863,
+        "min": 23390877.264303043,
+        "max": 23587601.014987428,
+        "samples": [
+          23581810.402132872,
+          23574100.719424453,
+          23581721.835687656,
+          23583356.97495671,
+          23587601.014987428,
+          23576397.404000863,
+          23526937.35559378,
+          23571892.974232573,
+          23390877.264303043
+        ]
+      }
+    },
+    {
+      "library": "CrossBus emitSync",
+      "workload": "emit",
+      "listeners": 100,
+      "iterationsPerSample": 131072,
+      "opsPerSecond": {
+        "median": 3385007.345046546,
+        "min": 3352189.3129681875,
+        "max": 3510962.9733124995,
+        "samples": [
+          3510962.9733124995,
+          3352189.3129681875,
+          3390282.677802899,
+          3388993.388654884,
+          3447127.6623079763,
+          3358129.70376301,
+          3364249.459384878,
+          3385007.345046546,
+          3362854.091048331
+        ]
+      }
+    },
+    {
+      "library": "CrossBus fast",
+      "workload": "emit",
+      "listeners": 100,
+      "iterationsPerSample": 131072,
+      "opsPerSecond": {
+        "median": 3410653.927160962,
+        "min": 3390560.334639822,
+        "max": 3562114.217190004,
+        "samples": [
+          3552856.987964887,
+          3562114.217190004,
+          3412992.56735671,
+          3402379.708555481,
+          3427013.9014316737,
+          3406251.700566009,
+          3390560.334639822,
+          3410653.927160962,
+          3391357.2500364846
+        ]
+      }
+    },
+    {
+      "library": "CrossBus nano",
+      "workload": "emit",
+      "listeners": 100,
+      "iterationsPerSample": 131072,
+      "opsPerSecond": {
+        "median": 3408547.4309418364,
+        "min": 3345394.555408162,
+        "max": 3530356.8482612125,
+        "samples": [
+          3523847.4288484924,
+          3530356.8482612125,
+          3345394.555408162,
+          3372053.428029627,
+          3409526.4727209117,
+          3396061.88236638,
+          3470654.1695365924,
+          3373575.9168602466,
+          3408547.4309418364
+        ]
+      }
+    },
+    {
+      "library": "nanoevents",
+      "workload": "emit",
+      "listeners": 100,
+      "iterationsPerSample": 131072,
+      "opsPerSecond": {
+        "median": 3263223.602941775,
+        "min": 2957973.629188499,
+        "max": 3395878.6057342133,
+        "samples": [
+          3382503.2258064514,
+          3395878.6057342133,
+          3234887.9825757467,
+          3250175.6176473442,
+          3277178.923813106,
+          2957973.629188499,
+          3245042.5533042112,
+          3268940.8940261295,
+          3263223.602941775
+        ]
+      }
+    },
+    {
+      "library": "mitt",
+      "workload": "emit",
+      "listeners": 100,
+      "iterationsPerSample": 131072,
+      "opsPerSecond": {
+        "median": 2214952.0075706565,
+        "min": 2011376.2021288245,
+        "max": 2310621.034933349,
+        "samples": [
+          2310621.034933349,
+          2220065.18053918,
+          2204208.9473440847,
+          2011376.2021288245,
+          2228918.189883481,
+          2217400.1183238244,
+          2205666.374281931,
+          2204981.486395252,
+          2214952.0075706565
+        ]
+      }
+    },
+    {
+      "library": "EventEmitter3",
+      "workload": "emit",
+      "listeners": 100,
+      "iterationsPerSample": 131072,
+      "opsPerSecond": {
+        "median": 2959245.242550214,
+        "min": 2911759.354036978,
+        "max": 3079994.727877667,
+        "samples": [
+          3079994.727877667,
+          2935228.09377324,
+          2956366.7941040383,
+          2986329.644978988,
+          2996074.1444232897,
+          2911759.354036978,
+          2959245.242550214,
+          2958098.798631227,
+          2960763.2458758457
+        ]
+      }
+    },
+    {
+      "library": "CrossBus emitSync",
+      "workload": "subscribe+unsubscribe",
+      "listeners": 0,
+      "iterationsPerSample": 262144,
+      "opsPerSecond": {
+        "median": 40804325.12397511,
+        "min": 27159434.24199852,
+        "max": 44988463.88037871,
+        "samples": [
+          27437782.109822657,
+          28256396.531201374,
+          43544610.784659736,
+          42271349.7374296,
+          44988463.88037871,
+          42262544.83898013,
+          40804325.12397511,
+          27159434.24199852,
+          28065430.189244416
+        ]
+      }
+    },
+    {
+      "library": "CrossBus fast",
+      "workload": "subscribe+unsubscribe",
+      "listeners": 0,
+      "iterationsPerSample": 262144,
+      "opsPerSecond": {
+        "median": 46584743.88022942,
+        "min": 35721741.50030738,
+        "max": 49857802.63465412,
+        "samples": [
+          35745082.842130594,
+          45328145.93869909,
+          47701218.13303411,
+          49857802.63465412,
+          47411119.97520995,
+          46584743.88022942,
+          48963039.390232995,
+          41053544.3495676,
+          35721741.50030738
+        ]
+      }
+    },
+    {
+      "library": "CrossBus nano",
+      "workload": "subscribe+unsubscribe",
+      "listeners": 0,
+      "iterationsPerSample": 262144,
+      "opsPerSecond": {
+        "median": 40630146.69345557,
+        "min": 35924900.64409795,
+        "max": 60604323.19963122,
+        "samples": [
+          37999456.41341676,
+          40630146.69345557,
+          38450926.825687446,
+          58611321.4668036,
+          59068048.67057098,
+          60604323.19963122,
+          60571065.47670695,
+          36280606.7103295,
+          35924900.64409795
+        ]
+      }
+    },
+    {
+      "library": "nanoevents",
+      "workload": "subscribe+unsubscribe",
+      "listeners": 0,
+      "iterationsPerSample": 262144,
+      "opsPerSecond": {
+        "median": 37875693.5066035,
+        "min": 30691224.579206686,
+        "max": 41757356.72669718,
+        "samples": [
+          41344640.82174486,
+          41757356.72669718,
+          30691224.579206686,
+          37875693.5066035,
+          35888215.677570246,
+          36532144.28457451,
+          34211659.32368538,
+          40165064.34295376,
+          38871184.04202932
+        ]
+      }
+    },
+    {
+      "library": "mitt",
+      "workload": "subscribe+unsubscribe",
+      "listeners": 0,
+      "iterationsPerSample": 262144,
+      "opsPerSecond": {
+        "median": 22130026.908668946,
+        "min": 20866006.44787504,
+        "max": 23601871.122459643,
+        "samples": [
+          21771477.225426447,
+          22130026.908668946,
+          22957077.64556431,
+          21727116.09466351,
+          20866006.44787504,
+          21456948.265102748,
+          23004168.312051915,
+          22566846.181148678,
+          23601871.122459643
+        ]
+      }
+    },
+    {
+      "library": "EventEmitter3",
+      "workload": "subscribe+unsubscribe",
+      "listeners": 0,
+      "iterationsPerSample": 262144,
+      "opsPerSecond": {
+        "median": 33821942.45996808,
+        "min": 29132371.122563396,
+        "max": 59814380.65086305,
+        "samples": [
+          29132371.122563396,
+          32208707.86617215,
+          31718321.788316797,
+          59814380.65086305,
+          55462604.46419408,
+          59392580.00566803,
+          33369344.791317824,
+          34076760.58626961,
+          33821942.45996808
+        ]
+      }
+    },
+    {
+      "library": "CrossBus stream",
+      "workload": "buffered text chunks",
+      "iterationsPerSample": 16384,
+      "opsPerSecond": {
+        "median": 8926786.079140805,
+        "min": 4755878.084180373,
+        "max": 9306225.01479665,
+        "samples": [
+          4755878.084180373,
+          8411934.226313958,
+          8401512.723542077,
+          9081622.076146206,
+          9275057.77097416,
+          9141790.940680817,
+          9306225.01479665,
+          8926786.079140805,
+          7104429.12416813
+        ]
+      }
+    }
+  ]
+}

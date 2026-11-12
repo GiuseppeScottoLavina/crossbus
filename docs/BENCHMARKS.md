@@ -33,9 +33,15 @@ Older JSON under `tests/benchmarks/` and `tests/perf/` is marked `historical-unv
 
 See [AUDIT.md](AUDIT.md) for the current local validation status and outstanding qualification work.
 
+## Current 0.1.3 candidate study
+
+See [competitor source analysis and current measurements](COMPETITOR_ANALYSIS.md). That study uses the published 0.1.2 runtime as its baseline, current pinned Comlink/birpc/Penpal/nanoevents/mitt/EventEmitter3 versions, three fresh process pairs per runtime and a separate real-Worker comparison. Its artifacts are retained separately under `benchmarks/optimization-study/`.
+
+The snapshot below records the earlier optimization round; it is historical evidence, not the current candidate's ranking.
+
 ## Measured snapshot — 12 November 2026
 
-These measurements were collected from the pre-release 0.1.1 working build. Its exact candidate bundles are preserved in benchmarks/measured-0.1.1/ and checked against the original hashes. Version 0.1.2 adds the Node 18 UUID fallback and retained license/version banners; it has not been re-benchmarked. Size measurements below describe the current release build.
+These measurements were collected from the pre-release 0.1.1 working build. Its exact candidate bundles are preserved in benchmarks/measured-0.1.1/ and checked against the original hashes. Version 0.1.2 adds the Node 18 UUID fallback and retained license/version banners; this historical snapshot does not time that final archive. The separate 0.1.3 competitor study includes the exact published 0.1.2 runtime as its baseline. Size measurements below describe the build recorded in that snapshot.
 
 Apple M1 Max, darwin arm64. Local dispatch uses raw callbacks and preallocated payloads; values below are medians of nine samples, in millions of emits per second.
 

@@ -542,7 +542,7 @@
             <div class="hero-content">
                 <div class="badge">
                     <span class="badge-dot"></span>
-                    v0.1.2 — Cross-Context Messaging for Browsers
+                    v0.1.3 (development) — Cross-Context Messaging for Browsers
                 </div>
 
                 <h1>
@@ -585,29 +585,26 @@
 
     <section class="features" id="features">
         <div class="container">
-            <h2 class="section-title">Everything you need.</h2>
+            <h2 class="section-title">Messaging building blocks.</h2>
             <p class="section-subtitle">
-                7 transport types, security defaults, agent-ready docs, and a plugin ecosystem out of the box.
+                7 transport types, configurable validation, integration guides and optional plugins.
             </p>
 
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-icon">🔒</div>
-                    <h3>Secure by Default</h3>
-                    <p>createSecure() enforces best practices. Dev warnings catch insecure configs. AES-256-GCM
-                        encryption built-in.</p>
+                    <h3>Explicit security configuration</h3>
+                    <p>createSecure() requires explicit origins. Handler permissions and payload limits are configurable; encryption is an optional plugin.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">⚡</div>
                     <h3>Fast</h3>
-                    <p>Synchronous local events and cross-context RPC, with reproducible benchmarks. Zero runtime
-                        overhead.</p>
+                    <p>Synchronous local events and cross-context RPC, with reproducible benchmarks. Separate local callback throughput from transport and serialization costs.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🤖</div>
                     <h3>Agent-Ready Design</h3>
-                    <p>Optimized for AI agent usage. llms.txt + GEMINI.md docs.
-                        Schema validation. Copy-paste patterns for agents.</p>
+                    <p>llms.txt and integration guides describe application patterns. Schema validation supports a documented subset of JSON Schema.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">📡</div>
@@ -622,7 +619,7 @@
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🏢</div>
-                    <h3>Enterprise Ready</h3>
+                    <h3>Observability utilities</h3>
                     <p>Distributed tracing, Prometheus metrics, backpressure control, message versioning with migration.
                     </p>
                 </div>
@@ -632,80 +629,26 @@
 
     <section class="code-section" id="code">
         <div class="container">
-            <h2 class="section-title">Two files. That's it.</h2>
-            <p class="section-subtitle">
-                Connect any iframe to your main page with secure RPC in under 30 seconds.
-            </p>
-
-            <div class="code-container">
-                <div class="code-block">
-                    <div class="code-header">
-                        <span class="code-dot red"></span>
-                        <span class="code-dot yellow"></span>
-                        <span class="code-dot green"></span>
-                        <span class="code-title">main.js — Hub (Parent Page)</span>
-                    </div>
-                    <pre><code><span class="keyword">import</span> { CrossBus } <span class="keyword">from</span> <span class="string">'crossbus'</span>;
-
-<span class="comment">// 1. Create secure hub</span>
-<span class="keyword">const</span> hub = CrossBus.<span class="function">createSecure</span>({
-  peerId: <span class="string">'hub'</span>,
-  isHub: <span class="keyword">true</span>,
-  allowedOrigins: [<span class="string">'https://yourdomain.com'</span>]
-});
-
-<span class="comment">// 2. Register handlers</span>
-hub.<span class="function">handle</span>(<span class="string">'getData'</span>, <span class="keyword">async</span> ({ userId }) => {
-  <span class="keyword">return</span> <span class="keyword">await</span> <span class="function">db.query</span>({ userId });
-});
-
-<span class="comment">// 3. Connect iframe</span>
-hub.<span class="function">addTransport</span>(
-  <span class="keyword">new</span> <span class="function">PostMessageTransport</span>(iframe.contentWindow),
-  { peerId: <span class="string">'agent'</span> }
-);</code></pre>
-                </div>
-
-                <div class="code-block">
-                    <div class="code-header">
-                        <span class="code-dot red"></span>
-                        <span class="code-dot yellow"></span>
-                        <span class="code-dot green"></span>
-                        <span class="code-title">iframe.js — Agent (Child Frame)</span>
-                    </div>
-                    <pre><code><span class="keyword">import</span> { CrossBus } <span class="keyword">from</span> <span class="string">'crossbus'</span>;
-
-<span class="comment">// 1. Create agent</span>
-<span class="keyword">const</span> agent = <span class="keyword">new</span> <span class="function">CrossBus</span>({
-  peerId: <span class="string">'agent'</span>,
-  allowedOrigins: [<span class="string">'*'</span>]
-});
-
-<span class="comment">// 2. Connect to parent</span>
-agent.<span class="function">addTransport</span>(
-  <span class="keyword">new</span> <span class="function">PostMessageTransport</span>(window.parent),
-  { peerId: <span class="string">'hub'</span> }
-);
-
-<span class="comment">// 3. Make RPC calls — that's it!</span>
-<span class="keyword">const</span> user = <span class="keyword">await</span> agent.<span class="function">request</span>(
-  <span class="string">'hub'</span>, <span class="string">'getData'</span>, { userId: <span class="variable">123</span> }
-);</code></pre>
-                </div>
-            </div>
+            <h2 class="section-title">Run the complete iframe example</h2>
+            <p class="section-subtitle">Node.js 18+ and Git. This command starts both local origins and serves the HTML, modules and import maps.</p>
+            <div class="code-block"><pre><code>git clone https://github.com/GiuseppeScottoLavina/crossbus.git
+cd crossbus
+node examples/quickstart/server.js</code></pre></div>
+            <p>Open <code>http://127.0.0.1:8780/</code>. The widget at port 8781 displays <code>{"id":123,"status":"ready"}</code> after a real RPC. Both ports must be free. Stop with Ctrl+C.</p>
+            <p><a href="https://github.com/GiuseppeScottoLavina/crossbus/tree/master/examples/quickstart">Complete example files and instructions</a> · <a href="playground.html">Interactive connections</a></p>
         </div>
     </section>
 
     <section class="comparison" id="comparison">
         <div class="container">
-            <h2 class="section-title">Why developers choose CrossBus</h2>
+            <h2 class="section-title">What CrossBus provides</h2>
             <p class="section-subtitle">
                 Signals, RPC, optional plugins and native WebView adapters.
             </p>
 
             <p>Review the <a href="doc.html?file=ARCHITECTURE.md">architecture</a>,
                 <a href="doc.html?file=BENCHMARKS.md">benchmark methodology and results</a>,
-                and <a href="https://github.com/giuseppescottolavina/crossbus/tree/main/native">native adapter sources</a>.
+                and <a href="https://github.com/giuseppescottolavina/crossbus/tree/master/native">native adapter sources</a>.
                 No independent security rating or universal performance ranking is claimed.</p>
         </div>
     </section>
@@ -735,7 +678,7 @@ agent.<span class="function">addTransport</span>(
                 <a href="https://github.com/giuseppescottolavina/crossbus">GitHub</a>
                 <a href="./doc.html?file=API.md">Documentation</a>
                 <a href="https://www.npmjs.com/package/crossbus">NPM</a>
-                <a href="../LICENSE">Apache 2.0 License</a>
+                <a href="https://github.com/GiuseppeScottoLavina/crossbus/blob/master/LICENSE">Apache 2.0 License</a>
             </p>
             <p style="margin-top: 16px;">Built with ❤️ for developers who care about security and performance.</p>
         </div>

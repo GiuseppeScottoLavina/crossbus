@@ -291,7 +291,7 @@ export default [
     batchConfig,
     {
         input: 'src/plugins/schema-validation.js',
-        output: { file: 'dist/plugins/schema-validation.js', format: 'es', sourcemap: true }
+        output: { file: 'dist/plugins/schema-validation.js', format: 'es', banner, sourcemap: true }
     },
     nanoConfig,
     enterpriseConfig,
