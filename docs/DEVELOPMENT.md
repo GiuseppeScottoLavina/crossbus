@@ -144,4 +144,6 @@ Use Node 24 and Bun, and install the committed lockfile with `npm ci --legacy-pe
 
 TypeScript 6 requires explicit `types: ["node"]` and `rootDir: "./src"` for this project. These preserve existing environment declarations and the package's declaration paths. `bun run test:types` uses its own strict consumer configuration in `tests/package/tsconfig.json`; it does not inherit the source-only output root. CI also compiles that consumer with TypeScript 5.9.3. See the [official TypeScript migration notes](https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/) for the changed defaults. No type-checking rules or runtime assertions were relaxed for the upgrade.
 
-The tagged `v0.1.3` release and attached npm archive remain immutable. Current master includes post-release tooling changes and regenerated declarations; publishing the prepared 0.1.3 archive means using the release attachment described in [RELEASING.md](RELEASING.md), rather than rebuilding it from a later checkout.
+The additional tooling refresh resolves ESLint 10.14.0, Rollup 4.68.2, Prettier 3.9.10 and Puppeteer Core 25.17.0. Browser integrations are checked against the complete combined lockfile.
+
+The tagged `v0.1.3` release and its published npm archive remain immutable. Current master includes post-release tooling changes and regenerated declarations/maps; use the release attachment described in [RELEASING.md](RELEASING.md) when checking the published package. A future publication needs a new version and its own qualification.

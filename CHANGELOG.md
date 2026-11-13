@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Update ESLint to 10.14.0, Rollup to 4.68.2, Prettier to 3.9.10 and Puppeteer Core to 25.17.0 with a combined, clean-installable lockfile. Regenerate source maps and the bundle report; JavaScript bundle bytes remain unchanged.
+- Record the verified npm 0.1.3 publication in the README and release guide; keep the published archive and tag separate from post-release development changes.
 - Refresh development dependencies and their lockfile: @eslint/js 10.0.1, globals 17.14.0, @rollup/plugin-terser 1.0.2, rollup-plugin-visualizer 7.1.3 and TypeScript 6.0.3.
 - Preserve declaration output paths under TypeScript 6 with explicit source roots and Node type inclusion; use a separate strict configuration for consumer declaration checks and verify TypeScript 5.9 compatibility in CI.
 - Regenerate private helper declarations and the bundle visualization. Runtime source, package exports and JavaScript bundle bytes are unchanged; the tagged 0.1.3 archive remains separate from this post-release tooling refresh.

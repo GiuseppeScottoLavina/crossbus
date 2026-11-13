@@ -103,9 +103,9 @@ SharedWorker and ServiceWorker transports do not implement persistent storage or
 
 ## Performance work for 0.1.3
 
-The 0.1.3 candidate adds an optional `MessageChannelTransport({ wireFormat: 'compact' })` encoding. It requires CrossBus 0.1.3+ receivers and keeps the public envelope, payload limits, hooks and peer checks. Standard encoding remains the default for compatibility with 0.1.2. See [API requirements](docs/API.md#compact-messagechannel-encoding) and the [versioned competitor study](docs/COMPETITOR_ANALYSIS.md) before selecting it.
+Version 0.1.3 adds an optional `MessageChannelTransport({ wireFormat: 'compact' })` encoding. It requires CrossBus 0.1.3+ receivers and keeps the public envelope, payload limits, hooks and peer checks. Standard encoding remains the default for compatibility with 0.1.2. See [API requirements](docs/API.md#compact-messagechannel-encoding) and the [versioned competitor study](docs/COMPETITOR_ANALYSIS.md) before selecting it.
 
-This candidate is not yet published on npm. Its local suite passed 1,150 tests across 73 files with zero failures/skips, and source line coverage was 95.90% (4,441/4,631). The [audit](docs/AUDIT.md) records scope and remaining qualification. The playground now uses actual CrossBus channels, module Workers and iframe forwarding; its documentation-only deployment layout is browser-tested.
+Version 0.1.3 is [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.3). Its release qualification passed 1,150 tests across 73 files with zero failures/skips, and source line coverage was 95.90% (4,441/4,631). The [audit](docs/AUDIT.md) records scope, post-release tooling updates and remaining qualification. The playground uses actual CrossBus channels, module Workers and iframe forwarding; its documentation-only deployment layout is browser-tested.
 
 The study found RPC improvements on Node/Bun and faster local stream buffering. Chrome RPC results were mixed, including regressions; compact encoding was slower for large payloads in Chrome Workers. Comlink, birpc and Penpal remain faster in several measured cases. Check the workload-specific tables before choosing an encoding; no overall performance lead is established.
 
