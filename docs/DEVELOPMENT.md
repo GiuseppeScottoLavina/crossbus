@@ -137,3 +137,11 @@ function getDelay(a, b) {
 ## Platform qualification
 
 Target modern browser engines and keep runtime dependencies optional. The package declares Node >=18, but the locally tested versions and remaining compatibility work are recorded in [AUDIT.md](AUDIT.md). Browser/native API availability varies by transport. Do not list a browser or mobile OS version as qualified from a build check alone. Native compiler targets, installed WebView capabilities and physical runtime qualification are separate facts.
+
+## Development toolchain
+
+Use Node 24 and Bun, and install the committed lockfile with `npm ci --legacy-peer-deps`. The development toolchain is separate from the runtime package's Node >=18 requirement. The lockfile currently resolves @eslint/js 10.0.1, globals 17.14.0, @rollup/plugin-terser 1.0.2, rollup-plugin-visualizer 7.1.3 and TypeScript 6.0.3. Update `package.json` and `package-lock.json` together; changing only a dependency range breaks clean CI installation.
+
+TypeScript 6 requires explicit `types: ["node"]` and `rootDir: "./src"` for this project. These preserve existing environment declarations and the package's declaration paths. `bun run test:types` uses its own strict consumer configuration in `tests/package/tsconfig.json`; it does not inherit the source-only output root. CI also compiles that consumer with TypeScript 5.9.3. See the [official TypeScript migration notes](https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/) for the changed defaults. No type-checking rules or runtime assertions were relaxed for the upgrade.
+
+The tagged `v0.1.3` release and attached npm archive remain immutable. Current master includes post-release tooling changes and regenerated declarations; publishing the prepared 0.1.3 archive means using the release attachment described in [RELEASING.md](RELEASING.md), rather than rebuilding it from a later checkout.

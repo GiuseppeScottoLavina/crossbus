@@ -3,6 +3,8 @@
         "target": "ES2022",
         "module": "NodeNext",
         "moduleResolution": "NodeNext",
+        "types": ["node"],
+        "rootDir": "./src",
         "allowJs": true,
         "checkJs": true,
         "declaration": true,

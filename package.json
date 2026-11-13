@@ -96,7 +96,7 @@
         "test:all": "bun test tests/unit/ tests/package/ tests/e2e/ tests/integration/ tests/docs/",
         "bench:bun": "bun tests/benchmarks/verified.js",
         "bench:browser": "node tests/benchmarks/verified.js --browser",
-        "test:types": "tsc --noEmit --strict --skipLibCheck --target ES2022 --module NodeNext --moduleResolution NodeNext tests/package/types.ts",
+        "test:types": "tsc --project tests/package/tsconfig.json",
         "test:native": "python3 tests/native/check.py",
         "bench:memory": "node --expose-gc tests/benchmarks/memory.js",
         "test:docs": "bun test tests/docs/",
@@ -140,15 +140,15 @@
     },
     "homepage": "https://github.com/giuseppescottolavina/crossbus#readme",
     "devDependencies": {
-        "@eslint/js": "^9.27.0",
-        "@rollup/plugin-terser": "^0.4.4",
+        "@eslint/js": "^10.0.1",
+        "@rollup/plugin-terser": "^1.0.0",
         "@types/node": "^25.0.10",
         "birpc": "4.2.0",
         "comlink": "^4.4.2",
         "eslint": "^10.0.0",
         "eslint-config-prettier": "^10.1.8",
         "eventemitter3": "^5.0.4",
-        "globals": "^16.1.0",
+        "globals": "^17.4.0",
         "linkedom": "^0.18.12",
         "marked": "18.2.0",
         "mitt": "^3.0.1",
@@ -157,8 +157,8 @@
         "prettier": "^3.8.1",
         "puppeteer-core": "^24.35.0",
         "rollup": "^4.56.0",
-        "rollup-plugin-visualizer": "^6.0.5",
-        "typescript": "^5.9.3"
+        "rollup-plugin-visualizer": "^7.0.1",
+        "typescript": "^6.0.2"
     },
     "engines": {
         "node": ">=18.0.0"

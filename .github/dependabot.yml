@@ -16,6 +16,8 @@ updates:
           - "@rollup/*"
           - "rollup*"
           - "eslint*"
+          - "@eslint/*"
+          - "globals"
           - "prettier*"
           - "typescript"
           - "@types/*"
