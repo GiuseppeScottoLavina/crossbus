@@ -35,6 +35,8 @@ See [AUDIT.md](AUDIT.md) for the current local validation status and outstanding
 
 ## Current 0.1.3 candidate study
 
+The later [explicit RPC grouping experiment](RPC_BATCHING.md) retains separate raw data and adapters outside the npm export map. It includes a strict transparent negative control, paired fresh processes, real Workers, latency, native-send counts, payload/hook guard conditions and teardown checks. Its bulk operation has different object-graph semantics from independent calls; it does not change the approved runtime or establish an equivalent competitor bulk comparison.
+
 See [competitor source analysis and current measurements](COMPETITOR_ANALYSIS.md). That study uses the published 0.1.2 runtime as its baseline, current pinned Comlink/birpc/Penpal/nanoevents/mitt/EventEmitter3 versions, three fresh process pairs per runtime and a separate real-Worker comparison. Its artifacts are retained separately under `benchmarks/optimization-study/`.
 
 The snapshot below records the earlier optimization round; it is historical evidence, not the current candidate's ranking.

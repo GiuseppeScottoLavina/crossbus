@@ -110,7 +110,13 @@
         "bench:study:browser": "node tests/benchmarks/study-isolated.js --runtime chrome",
         "bench:study:workers": "node tests/benchmarks/study-isolated.js --runtime chrome --worker",
         "bench:study:report": "node tests/benchmarks/study-report.js",
-        "bench:study:memory": "node tests/benchmarks/study-memory.js"
+        "bench:study:memory": "node tests/benchmarks/study-memory.js",
+        "test:experiments": "bun test tests/experiments/",
+        "bench:batch": "node experiments/rpc-batching/isolated.js --runtime node",
+        "bench:batch:browser": "node experiments/rpc-batching/isolated.js --runtime chrome",
+        "bench:batch:workers": "node experiments/rpc-batching/isolated.js --runtime chrome --worker",
+        "bench:batch:bun": "node experiments/rpc-batching/isolated.js --runtime bun",
+        "bench:batch:report": "node experiments/rpc-batching/report.js"
     },
     "keywords": [
         "postmessage",

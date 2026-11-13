@@ -109,6 +109,8 @@ This candidate is not yet published on npm. Its local suite passed 1,150 tests a
 
 The study found RPC improvements on Node/Bun and faster local stream buffering. Chrome RPC results were mixed, including regressions; compact encoding was slower for large payloads in Chrome Workers. Comlink, birpc and Penpal remain faster in several measured cases. Check the workload-specific tables before choosing an encoding; no overall performance lead is established.
 
+A separate [explicit RPC grouping prototype](docs/RPC_BATCHING.md) explores further gains without changing the package API. For 64 concurrent 1 KiB echo calls, paired-process median group/stock ratios were 1.34× on Node, 1.91× on Bun and 2.00× in same-page headless Chrome. Worker results were variable, and large payloads regressed in several runtimes. The prototype is excluded from npm and uses shared group-graph semantics; it is not a transparent replacement for individual calls or evidence of a universal lead.
+
 ## Optional features
 
 Plugin subpaths provide retry, circuit breaker, encryption, compression, rate limiting, batching and a documented subset of JSON Schema validation. For example, on the `service` endpoint above, before destroying it:
@@ -147,6 +149,7 @@ To check the current repository, use Node 24 and Bun for development:
 npm ci --legacy-peer-deps
 bun run release:check
 bun run test:all
+bun run test:experiments # repository-only RPC grouping prototypes
 # On a Mac configured with the required native SDKs:
 bun run test:native
 ```
