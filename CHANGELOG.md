@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.3] - Unreleased
 
+- Experimental follow-up (not selected for release): evaluate RPC routing allocations, inbound payload snapshots, MessageChannel sends and compact-field checks with unchanged API/wire formats. The follow-up records regressions and unchanged-code controls; no general speedup is established.
 - Reduce owned message-record, synchronous inbound-dispatch, debug and pending-request lookup overhead while retaining validation, timeout and peer checks.
 - Add opt-in compact MessageChannel encoding for compatible 0.1.3+ receivers; standard encoding remains the default for 0.1.2 interoperability.
 - Correct deep/cyclic payload accounting and charge typed views for their complete backing storage, including SharedArrayBuffer.

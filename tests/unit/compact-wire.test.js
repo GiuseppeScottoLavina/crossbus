@@ -57,3 +57,12 @@ it('preserves cyclic application data and reads scalar envelope getters only onc
  const result=decodeCompact(structuredClone(encodeCompact(message)));
  expect(reads).toBe(1);expect(result.payload.data.self).toBe(result.payload.data);expect(result.payload.data.n).toBe(7);
 });
+it('preserves compact packets for reordered fields and retains enumerable extensions',()=>{
+ const message=createRequestMessage('echo',7,'a','b','id');
+ const reverse=value=>Object.fromEntries(Object.entries(value).reverse());
+ const reordered=reverse({...message,payload:reverse(message.payload)});
+ expect(decodeCompact(structuredClone(encodeCompact(reordered)))).toEqual(message);
+ const nonenumerable={...message,extra:true};
+ Object.defineProperty(nonenumerable,'id',{value:'id',enumerable:false});
+ expect(encodeCompact(nonenumerable)).toBe(nonenumerable);
+});

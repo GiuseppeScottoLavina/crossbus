@@ -1,8 +1,14 @@
-# Local audit — 12 November 2026
+# Local audit — 13 November 2026
 
-## 0.1.3 candidate follow-up
+## 13 November internal RPC follow-up
 
-The current candidate passed **1,150 tests across 73 files, zero failures and zero skips**, including real Chrome module Workers, two-origin iframe examples, the documentation-only publish root and a live WebSocket server. Lint, source/consumer type checks, clean build and the release gate passed. Unit coverage was **4,441 / 4,631 executable source lines (95.90%)**; the 90% line gate remains enforced. Branch coverage is not reported by this Bun LCOV output.
+The unmerged experimental candidate passed **1,162 tests across 76 files, zero failures and zero skips**. The release gate passed lint, source/consumer types, a clean build, unit/package checks and source coverage: **4,461 / 4,651 executable lines (95.91%)**, with the 90% gate retained. No branch-coverage figure is verified.
+
+Additional checks cover standard/legacy response forms, a single inbound payload snapshot, disconnected/replaced peers, send-function receivers, frozen RPC envelopes, graph aliases, standard transfer lists and reordered compact fields. Public API, wire formats, origins, payload/request limits, asynchronous hook behavior and response-peer binding are retained. The experiment is not selected for release: it includes regressions and no general speedup is established. The [RPC follow-up](RPC_FOLLOWUP.md) records repeated measurements and separately labelled diagnostic cases; it does not claim a theoretical maximum or universal lead. The historical snapshot evidence below remains separate.
+
+## 12 November 0.1.3 snapshot
+
+The 12 November snapshot passed **1,150 tests across 73 files, zero failures and zero skips**, including real Chrome module Workers, two-origin iframe examples, the documentation-only publish root and a live WebSocket server. Lint, source/consumer type checks, clean build and the release gate passed. Unit coverage was **4,441 / 4,631 executable source lines (95.90%)**; the 90% line gate remains enforced. Branch coverage is not reported by this Bun LCOV output.
 
 New regressions cover full typed-array backing storage, SharedArrayBuffer, 20,000-level payload graphs, recursive listener mutation, stale cleanup registration identity, empty peer routing, response peer binding, absent origins outside browser windows, stream source ownership/chunking/destruction and WebSocket connection/queue lifecycle. Compact packets are decoded before normal bus checks; extension metadata falls back to standard encoding. Default MessageChannel interoperability with the published 0.1.2 runtime is tested.
 

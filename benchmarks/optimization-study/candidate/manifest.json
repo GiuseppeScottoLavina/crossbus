@@ -47,5 +47,6 @@
     "src/transports/service-worker.js": "d5dcbf3842220fb79a8d2e3f0790476a55a9e209e0aa442f2c9cb8c95987c108",
     "src/transports/shared-worker.js": "12bebfa0e8adab755743d6dc94e6ba22db9770f20902861897d692f90e97a741",
     "src/transports/websocket.js": "62bef9068ca77abd4e77bd4a5730c3a7c1b885f162f86cadd45a525926d3bc4b"
-  }
+  },
+  "sourceCommit": "3a3c6bbfeaa2a09169fcd4781b6be85b7c16b807"
 }

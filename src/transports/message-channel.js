@@ -76,6 +76,9 @@ export class MessageChannelTransport {
     /** @type {boolean} */
     #autoTransfer;
 
+    /** @type {boolean} Default mode needs no serializer or transfer discovery. */
+    #direct;
+
     /** @type {'standard'|'compact'} */
     #wireFormat;
 
@@ -146,6 +149,7 @@ export class MessageChannelTransport {
         this.#autoTransfer = options.autoTransfer ?? false;
         this.#serializer = getSerializer(this.#contentType);
         this.#isInitiator = port === null;
+        this.#direct = this.#wireFormat === 'standard' && this.#contentType === 'application/json' && !this.#autoTransfer;
 
         // Set up message handler
         this.#localPort.onmessage = this.#handleMessage.bind(this);
@@ -194,6 +198,17 @@ export class MessageChannelTransport {
             });
         }
 
+        // Keep the common path small enough for the engine to inline. This
+        // forwards the original graph: copying a wrapper would break aliases.
+        if (this.#direct && message[PROTOCOL_MARKER] === PROTOCOL_VERSION) {
+            this.#localPort.postMessage(message, /** @type {any} */(transfer));
+            return;
+        }
+        this.#sendGeneral(message, transfer);
+    }
+
+    /** Handles optional codecs, compact encoding and transfer discovery. */
+    #sendGeneral(message, transfer) {
         // Ensure message has protocol marker
         // Protocol builders already supply the marker. These transports clone
         // synchronously, so an extra top-level object copy is unnecessary.

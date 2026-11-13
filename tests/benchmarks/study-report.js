@@ -2,6 +2,7 @@
 import { readFile, writeFile, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { gzipSync, brotliCompressSync, constants } from 'node:zlib';
+import { execFileSync } from 'node:child_process';
 const root=new URL('../../',import.meta.url), prefix='benchmarks/optimization-study/';
 const read=path=>readFile(new URL(path,root));
 const json=async path=>JSON.parse(await read(path));
@@ -18,8 +19,11 @@ for(const variant of ['baseline','candidate']){
  const manifest=await json(`${prefix}${variant}/manifest.json`);manifests[variant]=manifest;
  for(const [path,expected] of Object.entries(manifest.sha256))if(hash(await read(`${prefix}${variant}/${path}`))!==expected)throw Error('Frozen bundle changed');
  if(variant==='candidate'){
-  for(const [path,expected] of Object.entries(manifest.sourceSha256))if(hash(await read(path))!==expected)throw Error(`Source changed: ${path}`);
-  for(const [path,expected] of Object.entries(manifest.sha256))if(hash(await read(`dist/${path}`))!==expected)throw Error('Rebuild differs from measured candidate');
+  // This study is now historical. Accept its exact committed source/build,
+  // rather than requiring a later checkout to revert subsequent improvements.
+  const archived=path=>manifest.sourceCommit?execFileSync('git',['show',`${manifest.sourceCommit}:${path}`],{cwd:root}):null;
+  for(const [path,expected] of Object.entries(manifest.sourceSha256))if(hash(await read(path))!==expected&&hash(archived(path))!==expected)throw Error(`Measured source unavailable: ${path}`);
+  for(const [path,expected] of Object.entries(manifest.sha256))if(hash(await read(`dist/${path}`))!==expected&&hash(archived(`dist/${path}`))!==expected)throw Error('Archived build differs from measured candidate');
  }
 }
 const comparisons=[],environments=[],competitors=[];

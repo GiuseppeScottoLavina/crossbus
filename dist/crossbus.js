@@ -3212,13 +3212,33 @@ class CrossBus extends EventEmitter {
         );
 
         // Send request
-        const result = this.#router.route({ target: peerId, payload: message });
+        const sent = this.#sendProtocol(peerId, message);
 
-        if (!result.success) {
+        if (!sent) {
             this.#pendingRequests.reject(requestId, CrossBusError.from(ErrorCode.SEND_FAILED, { peerId }));
         }
 
         return promise;
+    }
+
+    /**
+     * Sends an already-built protocol envelope without allocating routing input,
+     * a delivery-count result and a failed-peer array for a single RPC packet.
+     * Resolve the live binding on every send: hooks may remove or replace peers.
+     * @param {string} peerId
+     * @param {Object} message
+     * @returns {boolean}
+     */
+    #sendProtocol(peerId, message) {
+        const peer = this.#router.getPeer(peerId);
+        if (!peer || peer.status !== PeerStatus.CONNECTED) return false;
+        try {
+            peer.sendFn(message);
+            return true;
+        } catch (error) {
+            console.error(`[Router] Failed to send to ${peerId}:`, error);
+            return false;
+        }
     }
 
     /**
@@ -3535,36 +3555,30 @@ class CrossBus extends EventEmitter {
         }
 
         if (!message || typeof message !== 'object') return MESSAGE_HANDLED;
-        // Apply inbound hooks to payload
-        // Support both standard 'payload'/'data' and legacy 'p'
-        const rawPayload = message.payload ?? message.data ?? message.p;
+        // Snapshot the protocol payload once. Apart from fewer property reads,
+        // accessors cannot supply different envelopes to validation and dispatch.
+        const payload = message.payload;
         const msgType = message.type ?? message.t;
+        let handlerOrName;
+        let dataContent;
 
-        // Normalize fields based on schema
-        let handlerOrName = message.handler ?? message.name;
-        let dataContent = rawPayload;
-
-        // If ProtocolMessage (has 'payload' object containing metadata), extract from it
-        if (message.payload && typeof message.payload === 'object' && !message.p) {
-            if (msgType === MessageType.SIGNAL || msgType === MessageType.BROADCAST) {
-                handlerOrName = message.payload.name;
-                dataContent = message.payload.data;
-            } else if (msgType === MessageType.REQUEST) {
-                handlerOrName = message.payload.name;
-                dataContent = message.payload.data;
-            } else if (msgType === MessageType.RESPONSE) {
-                // Response payload structure? createResponseMessage puts 'data' in payload
-                dataContent = message.payload.data;
+        if (payload && typeof payload === 'object' && !message.p) {
+            if (msgType === MessageType.REQUEST || msgType === MessageType.SIGNAL || msgType === MessageType.BROADCAST) {
+                handlerOrName = payload.name;
+                dataContent = payload.data;
+            } else {
+                handlerOrName = message.handler ?? message.name;
+                dataContent = msgType === MessageType.RESPONSE ? payload.data : payload;
             }
-        }
-        // Handle envelope format: { t, p: { type, payload: { name, data } } }
-        // Router creates envelopes with 'p' containing the original signal message
-        // Detect by: has 't' (not 'type'), has 'p' with nested 'payload' (ProtocolMessage structure)
-        else if (message.t && !message.type && message.p && typeof message.p === 'object' && message.p.payload) {
-            const innerMsg = message.p;
-            // Extract from nested ProtocolMessage
-            handlerOrName = innerMsg.payload.name ?? innerMsg.name;
-            dataContent = innerMsg.payload.data ?? innerMsg.data;
+        } else {
+            // Preserve the legacy direct and nested router envelope formats.
+            handlerOrName = message.handler ?? message.name;
+            dataContent = payload ?? message.data ?? message.p;
+            if (message.t && !message.type && message.p && typeof message.p === 'object' && message.p.payload) {
+                const innerMsg = message.p;
+                handlerOrName = innerMsg.payload.name ?? innerMsg.name;
+                dataContent = innerMsg.payload.data ?? innerMsg.data;
+            }
         }
 
         if (this.#inboundHooks.length) {
@@ -3573,13 +3587,13 @@ class CrossBus extends EventEmitter {
                     msgType === MessageType.REQUEST ? 'request' : 'response',
                 peerId, handlerName: handlerOrName, direction: 'inbound'
             }).then(
-                data => this.#dispatchMessage(message, msgType, handlerOrName, data, origin, peerId, replyFn),
+                data => this.#dispatchMessage(message, msgType, handlerOrName, data, origin, peerId, replyFn, payload),
                 error => this.#rejectInbound(message, msgType, error, peerId, replyFn)
             );
         }
         try { dataContent = this.#checkedPayload(dataContent); }
         catch (error) { return this.#rejectInbound(message, msgType, error, peerId, replyFn); }
-        return this.#dispatchMessage(message, msgType, handlerOrName, dataContent, origin, peerId, replyFn);
+        return this.#dispatchMessage(message, msgType, handlerOrName, dataContent, origin, peerId, replyFn, payload);
     }
 
     #rejectInbound(message, msgType, error, peerId, replyFn) {
@@ -3589,11 +3603,11 @@ class CrossBus extends EventEmitter {
             message: error.message ?? 'Inbound hook rejected request'
         });
         if (replyFn) replyFn(response);
-        else if (peerId !== undefined && peerId !== null) this.#router.route({ target: peerId, payload: response });
+        else if (peerId !== undefined && peerId !== null) this.#sendProtocol(peerId, response);
         return MESSAGE_HANDLED;
     }
 
-    #dispatchMessage(message, msgType, handlerOrName, dataContent, origin, peerId, replyFn) {
+    #dispatchMessage(message, msgType, handlerOrName, dataContent, origin, peerId, replyFn, payload) {
         if (this.#destroyed) return MESSAGE_HANDLED;
         switch (msgType) {
             case MessageType.BROADCAST:  // Broadcast has same structure as signal
@@ -3620,13 +3634,13 @@ class CrossBus extends EventEmitter {
                 let error = message.error;
 
                 // Extract from ProtocolMessage payload if needed
-                if (message.payload && message.payload.success !== undefined) {
-                    success = message.payload.success;
-                    error = message.payload.error;
+                if (payload && payload.success !== undefined) {
+                    success = payload.success;
+                    error = payload.error;
                 }
 
                 // If legacy response structure inside payload?
-                this.#handleResponse(message.payload?.requestId ?? message.id, success, dataContent, error, peerId);
+                this.#handleResponse(payload?.requestId ?? message.id, success, dataContent, error, peerId);
                 break;
             }
 
@@ -3772,7 +3786,7 @@ class CrossBus extends EventEmitter {
         if (replyFn) {
             replyFn(response);
         } else if (peerId !== undefined && peerId !== null) {
-            this.#router.route({ target: peerId, payload: response });
+            this.#sendProtocol(peerId, response);
         }
     }
 
@@ -5960,7 +5974,14 @@ function exactFields(value, names) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
     const keys = Object.keys(value);
     if (keys.length !== names.length) return false;
-    for (const key of keys) if (!names.includes(key)) return false;
+    // Builders create fields in this order; validate it in linear comparisons.
+    // Reordered/custom records still use the full set check before encoding.
+    for (let i = 0; i < names.length; i++) {
+        if (keys[i] !== names[i]) {
+            for (const key of keys) if (!names.includes(key)) return false;
+            break;
+        }
+    }
     return true;
 }
 /**
@@ -6076,6 +6097,9 @@ class MessageChannelTransport {
     /** @type {boolean} */
     #autoTransfer;
 
+    /** @type {boolean} Default mode needs no serializer or transfer discovery. */
+    #direct;
+
     /** @type {'standard'|'compact'} */
     #wireFormat;
 
@@ -6146,6 +6170,7 @@ class MessageChannelTransport {
         this.#autoTransfer = options.autoTransfer ?? false;
         this.#serializer = getSerializer(this.#contentType);
         this.#isInitiator = port === null;
+        this.#direct = this.#wireFormat === 'standard' && this.#contentType === 'application/json' && !this.#autoTransfer;
 
         // Set up message handler
         this.#localPort.onmessage = this.#handleMessage.bind(this);
@@ -6194,6 +6219,17 @@ class MessageChannelTransport {
             });
         }
 
+        // Keep the common path small enough for the engine to inline. This
+        // forwards the original graph: copying a wrapper would break aliases.
+        if (this.#direct && message[PROTOCOL_MARKER] === PROTOCOL_VERSION) {
+            this.#localPort.postMessage(message, /** @type {any} */(transfer));
+            return;
+        }
+        this.#sendGeneral(message, transfer);
+    }
+
+    /** Handles optional codecs, compact encoding and transfer discovery. */
+    #sendGeneral(message, transfer) {
         // Ensure message has protocol marker
         // Protocol builders already supply the marker. These transports clone
         // synchronously, so an extra top-level object copy is unnecessary.

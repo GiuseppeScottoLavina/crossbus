@@ -35,6 +35,8 @@ See [AUDIT.md](AUDIT.md) for the current local validation status and outstanding
 
 ## Current 0.1.3 candidate study
 
+The [13 November RPC follow-up](RPC_FOLLOWUP.md) compares an unmerged experimental candidate with the approved 12 November snapshot, using longer warm-up/batches and separately labelled payload-budget diagnostics. It preserves the earlier measurements below and in the first competitor study.
+
 See [competitor source analysis and current measurements](COMPETITOR_ANALYSIS.md). That study uses the published 0.1.2 runtime as its baseline, current pinned Comlink/birpc/Penpal/nanoevents/mitt/EventEmitter3 versions, three fresh process pairs per runtime and a separate real-Worker comparison. Its artifacts are retained separately under `benchmarks/optimization-study/`.
 
 The snapshot below records the earlier optimization round; it is historical evidence, not the current candidate's ranking.

@@ -10,7 +10,14 @@ function exactFields(value, names) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
     const keys = Object.keys(value);
     if (keys.length !== names.length) return false;
-    for (const key of keys) if (!names.includes(key)) return false;
+    // Builders create fields in this order; validate it in linear comparisons.
+    // Reordered/custom records still use the full set check before encoding.
+    for (let i = 0; i < names.length; i++) {
+        if (keys[i] !== names[i]) {
+            for (const key of keys) if (!names.includes(key)) return false;
+            break;
+        }
+    }
     return true;
 }
 /**

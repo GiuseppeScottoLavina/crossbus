@@ -110,7 +110,14 @@
         "bench:study:browser": "node tests/benchmarks/study-isolated.js --runtime chrome",
         "bench:study:workers": "node tests/benchmarks/study-isolated.js --runtime chrome --worker",
         "bench:study:report": "node tests/benchmarks/study-report.js",
-        "bench:study:memory": "node tests/benchmarks/study-memory.js"
+        "bench:study:memory": "node tests/benchmarks/study-memory.js",
+        "bench:rpc-followup": "node tests/benchmarks/rpc-followup-isolated.js --runtime node",
+        "bench:rpc-followup:bun": "node tests/benchmarks/rpc-followup-isolated.js --runtime bun",
+        "bench:rpc-followup:browser": "node tests/benchmarks/rpc-followup-isolated.js --runtime chrome",
+        "bench:rpc-followup:workers": "node tests/benchmarks/rpc-followup-isolated.js --runtime chrome --worker",
+        "bench:rpc-followup:memory": "node tests/benchmarks/rpc-followup-memory.js",
+        "bench:rpc-followup:report": "node tests/benchmarks/rpc-followup-report.js",
+        "bench:rpc-followup:profile": "node tests/benchmarks/rpc-followup-profile.js"
     },
     "keywords": [
         "postmessage",
