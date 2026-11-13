@@ -1,14 +1,16 @@
 # Releasing CrossBus
 
-Version **0.1.3 is [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.3)**. Its reported registry integrity was verified on 13 November 2026 against the exact CI archive attached to the GitHub release. Publishing a GitHub release and publishing to npm are separate operations; creating a tag alone does not publish a package.
+Version **0.1.4 is [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.4)**. Its reported registry integrity was verified on 13 November 2026 against the exact CI archive attached to the GitHub release. Publishing a GitHub release and publishing to npm are separate operations; creating a tag alone does not publish a package.
 
-The [GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.3) uses tag **`v0.1.3`** and attaches `crossbus-0.1.3.tgz`, `SHA256SUMS` and `release-manifest.json`. The manifest identifies the exact release commit, successful CI run, package integrity and measured runtime hash. Download the attached archive and verify its checksum when checking the released bytes. The repository has no npm publishing workflow. Neither the tag nor its reviewed archive should be replaced by a later build.
+The [0.1.4 GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.4) preserves the exact CI archive, checksum and release manifest. The downloaded npm tarball was compared byte for byte with that archive. Its tested source commit is `309b040f2e48d52d88a21cbe34c005d479f89077`; later publication-documentation commits do not replace its bytes.
+
+The earlier [0.1.3 GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.3) uses tag **`v0.1.3`** and attaches `crossbus-0.1.3.tgz`, `SHA256SUMS` and `release-manifest.json`. The manifest identifies the exact release commit, successful CI run, package integrity and measured runtime hash. Download the attached archive and verify its checksum when checking the released bytes. The repository has no npm publishing workflow. Neither the tag nor its reviewed archive should be replaced by a later build.
 
 The RPC grouping experiments and their tests/data remain in the repository, excluded from the npm archive and all 12 package exports. Release 0.1.3 keeps standard MessageChannel encoding as its default; the existing opt-in compact encoding is included. The bulk-RPC prototype is not a released API.
 
 ## Validate and pack a future release
 
-Use Node 24 and Bun for development. Package metadata is now **0.1.4, an unreleased development candidate** containing tooling and runtime changes. Review the [Worker RPC study](WORKER_RPC.md), ownership changes and qualification limits before preparing its release. For any subsequent version, advance metadata to a new, unpublished version first. Install the committed dependency versions and validate that checkout:
+Use Node 24 and Bun for development. Package metadata is **0.1.4, already published**. Do not republish it or replace its release archive. For a subsequent release, advance metadata to a new, unpublished version first, and review the [Worker RPC study](WORKER_RPC.md), ownership changes and qualification limits. Install the committed dependency versions and validate that checkout:
 
 ```sh
 npm ci --legacy-peer-deps
@@ -37,6 +39,12 @@ npm view "crossbus@${RELEASE_VERSION}" version dist.integrity --registry=https:/
 ```
 
 Publishing the tarball uploads the reviewed bytes; it does not run the source checkout's `prepublishOnly` gate again. Publishing from the repository instead runs `release:check` through that lifecycle hook and builds a new archive. Registry publication is irreversible for consumers and must be an intentional release action.
+
+### Wait for registry availability
+
+npm scans uploads before making them installable. A successful `npm publish` can report that processing continues while the version is still absent from registry reads. The [official announcement](https://github.blog/changelog/2026-07-28-npm-publish-time-malware-scanning-and-dual-use-metadata/) describes typical delays around five minutes, sometimes 15 minutes or longer; these are not guaranteed deadlines. Keep checking availability rather than repeating the publish command.
+
+Before declaring the release complete, verify the version and `latest` tag, compare `dist.integrity` with the reviewed archive, download the registry tarball and compare its bytes/checksum. Install that exact registry version in an isolated consumer and run the packaged smoke test. If processing does not complete, check npm's notifications/status before taking another publishing action.
 
 ## Measurement scope
 

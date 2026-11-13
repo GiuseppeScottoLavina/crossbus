@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.4] - Unreleased
+## [0.1.4] - 2026-11-13
 
 - Amortize browser UUID entropy calls using fresh Web Crypto byte slices and canonical UUID v4 formatting; retain native Node/Bun UUID generation and the existing no-Web-Crypto fallback. Performance scope is recorded separately from UUID-only diagnostics.
 - Decode the existing MessageChannel and PostMessage JSON-string serializer fallback before protocol validation. Authenticate window origin/source before decoding, preserve per-message guards, reject explicit JSON transfer lists and avoid detaching buffers omitted by serialization.
