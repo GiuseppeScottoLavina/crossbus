@@ -1,0 +1,11 @@
+{
+  "commit": "6f13d80641eb9731f7d39d1d5136cf0a4b8d3e93",
+  "description": "Approved runtime frozen before Worker RPC optimization; profiles use unminified code, performance comparisons use minified code.",
+  "sha256": {
+    "crossbus.js": "5f75bad2257187ae80b9e594b25f8407fa6d98654ac5836f48279f64fd5f3c39",
+    "crossbus.js.map": "dfbd08c2fa93c3792ef921a4036b1c50d1c8abf64af85474f73ab84a21057893",
+    "crossbus.min.js": "a4cbc5b9610d41a4c0d73b7b3221f75084909f7e3e1c9da3613f40a72e5caff3",
+    "crossbus.min.js.map": "84b024c7ee746adb5ad00b78e225a4c90f92eef6021e876448ed532280dcb391",
+    "nano.min.js": "eb8410a4dc508889aa9190f89805f7741657b7c10dabc286fd3ecf32dc138087"
+  }
+}

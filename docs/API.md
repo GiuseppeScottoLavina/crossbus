@@ -113,6 +113,12 @@ Transport classes are exported by `crossbus`. A dynamic import of that same root
 
 Worker transports do not implement durable persistence, an offline queue or guaranteed background delivery. Transfer-list ownership is an application decision; an ArrayBuffer is detached after transfer. Native transports use JSON and do not support browser transferables.
 
+### Buffer ownership and serializer fallback (0.1.4 development)
+
+`autoTransfer` defaults to `false`. When enabled on MessageChannel or PostMessage, discovery now follows typed arrays and DataViews to their actual same-realm ArrayBuffer. It moves the **whole backing allocation**, including bytes outside a subview, and detaches every sender alias. Use an explicit copy if the receiver must see only a slice or the sender must retain ownership. Node Buffers are excluded from automatic view-buffer discovery because their storage may belong to a slab; SharedArrayBuffer is shared, not transferred. Explicit transfer lists remain the caller's responsibility. Discovery handles cycles and avoids recursive JavaScript calls; the browser's own clone-depth limits still apply.
+
+The default `contentType: 'application/json'` uses native structured clone for these transports, despite the label. A non-default label selects the existing serializer fallback, which currently falls back to JSON. This mode requires 0.1.4 receivers to decode incoming strings and supports only JSON-compatible data: it does not preserve cycles, Maps or typed-array storage. Nonempty explicit transfer lists throw `TypeError` before detachment; automatic transfer discovery is disabled for this mode. Malformed strings are ignored. Window origin/source checks apply before decoding, and decoded protocol messages still pass bus limits, hooks and authorization. There is no automatic encoding negotiation.
+
 ## Optional plugins and utilities
 
 Use dynamic imports from the package subpaths:
@@ -158,7 +164,7 @@ The receiver reconstructs the same protocol-v1 envelope before applying payload 
 
 Put the matching label in the bus allowlist. Synthetic labels describe an application-bound channel, not network-origin authentication. PostMessage worker events may have an empty origin; supply an explicit fallback label for that binding.
 
-### WebSocket connection and queue lifecycle (0.1.3 candidate)
+### WebSocket connection and queue lifecycle (since 0.1.3)
 
 `protocols` accepts a subprotocol string or array and is passed to the WebSocket constructor. Concurrent `connect()` calls share one attempt. An error, a close before opening, explicit disconnect or destruction settles that attempt; `destroy()` prevents reconnection and later sends.
 

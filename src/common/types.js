@@ -4,6 +4,8 @@
  * @module common/types
  */
 
+import {viewStorage} from './buffer-storage.js';
+
 /**
  * Protocol marker for CrossBus messages.
  * @constant {string}
@@ -169,23 +171,37 @@ export function isTransferable(value) {
 }
 
 /**
- * Recursively finds all transferable objects in a value.
+ * Finds transferable objects without recursive calls or per-value result arrays.
+ * Typed views transfer their actual same-realm backing ArrayBuffer. Node Buffers
+ * keep copy semantics because their backing storage may belong to a shared slab.
  *
  * @param {*} value - Value to search.
  * @param {Set<Transferable>} [found] - Set to collect transferables.
  * @returns {Transferable[]} Array of transferables found.
  */
 export function findTransferables(value, found = new Set(), seen = new Set()) {
-    if (value === null || value === undefined) return Array.from(found);
-    if (isTransferable(value)) {
-        found.add(value);
-        return Array.from(found);
+    const pending = [[value].values()];
+    while(pending.length) {
+        const entry = pending[pending.length-1].next();
+        if(entry.done){pending.pop();continue;}
+        const current = entry.value;
+        if(current === null || typeof current !== 'object')continue;
+        if(isTransferable(current)){found.add(current);continue;}
+        if(seen.has(current))continue;
+        seen.add(current);
+        if(ArrayBuffer.isView(current)) {
+            if(!(typeof Buffer !== 'undefined' && typeof Buffer.isBuffer === 'function' && Buffer.isBuffer(current))) {
+                const buffer = viewStorage(current);
+                if(buffer instanceof ArrayBuffer)found.add(buffer);
+            }
+            // Structured clone ignores custom typed-view properties. Enumerating
+            // indices is unnecessary and can detach data that is never sent.
+            continue;
+        }
+        const values = current instanceof Map ? [...current.keys(), ...current.values()].values()
+            : current instanceof Set ? current.values() : Object.values(current).values();
+        pending.push(values);
     }
-    if (typeof value !== 'object' || seen.has(value)) return Array.from(found);
-    seen.add(value);
-    const values = value instanceof Map ? [...value.keys(), ...value.values()]
-        : value instanceof Set ? value.values() : Object.values(value);
-    for (const item of values) findTransferables(item, found, seen);
     return Array.from(found);
 }
 

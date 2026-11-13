@@ -5,7 +5,8 @@
 | Version | Status |
 | ------- | ------ |
 | 0.1.2 | Published release; historical checks and limitations are recorded in the audit |
-| 0.1.3 | Unreleased candidate; current checks are recorded separately in the audit |
+| 0.1.3 | Published release; qualification is recorded in the audit |
+| 0.1.4 | Unreleased development candidate; separate checks are recorded in the audit |
 
 See [the audit](docs/AUDIT.md) for measured coverage and outstanding browser/device qualification. A passing suite does not establish that a version has no vulnerabilities.
 
@@ -79,5 +80,9 @@ We thank all security researchers who responsibly disclose vulnerabilities.
 `createSecure()` requires an explicit nonempty allowlist, rejects wildcard patterns and enables strict mode. Configure transport origin/source checks too. Manually supplied messages require an authenticated channel identity. Responses must come from the requested peer. Inbound/outbound hook errors stop processing; inbound RPC validation failures return an error without running the protected handler.
 
 `maxPendingRequests` bounds in-flight requests. `maxPayloadSize` applies a conservative in-memory estimate (two bytes per UTF-16 code unit, binary byte lengths and per-value overhead), not an exact wire-size guarantee. Zero disables either budget. Per-handler rate limiting is a local fixed window, not a distributed DoS defense. The schema plugin supports selected keywords; it is not a complete JSON Schema implementation.
+
+In 0.1.4, typed-view budgets read native backing storage rather than shadowable public properties. Opt-in automatic transfer moves an eligible view's entire backing ArrayBuffer and detaches all sender aliases. JSON-string transport encoding rejects explicit transfer lists and does not discover automatic transfers. Native structured clone and JSON parsing may allocate before the bus can enforce its budget; this is not a limit on browser-internal allocation.
+
+Browser UUIDs in 0.1.4 consume fresh Web Crypto bytes from a bounded pool; Node/Bun retain native UUID generation. Entropy-provider errors propagate. The older no-Web-Crypto fallback remains noncryptographic. Message and peer IDs are labels, not authentication credentials.
 
 Native adapters restrict origins and main frames, and reject malformed or oversized envelopes. See [native integration and qualification limits](native/README.md). Shared/service worker transport availability does not imply persistent storage or offline delivery. Production deployment, browser compatibility and security should be validated for the application's actual configuration.

@@ -53,7 +53,7 @@ Preserved baseline/candidate bundles live in `benchmarks/optimization-study/`. T
 
 Apple M1 Max; darwin arm64. Collected on 2026-11-12. Runtime versions: Node v24.15.0, Bun 1.3.14, HeadlessChrome/155.0.8059.79. Bun revision: 191edc04ab1ff64d423e4fae9a0d5ee00ee7f3dd. Chrome is headless.
 
-The frozen candidate is version **0.1.3**, not yet an npm release. The baseline is byte-identical to the minified runtime/nano files in the published 0.1.2 archive. The summary and all process samples are in [optimization-study](https://github.com/GiuseppeScottoLavina/crossbus/tree/perf/verified-0.1.3/benchmarks/optimization-study). Candidate source hashes identify the measured working tree; metadata records the previous HEAD and dirty status rather than pretending these files were committed at measurement time.
+The frozen candidate is version **0.1.3**, unreleased at measurement time and subsequently published. These are historical results, not measurements of the current development version; see the [0.1.4 Worker RPC study](WORKER_RPC.md) for the next comparison. The baseline is byte-identical to the minified runtime/nano files in the published 0.1.2 archive. The summary and all process samples are in [optimization-study](https://github.com/GiuseppeScottoLavina/crossbus/tree/perf/verified-0.1.3/benchmarks/optimization-study). The verifier checks the frozen candidate source archive against its original source hashes, rather than requiring a later checkout to equal 0.1.3. Metadata records the previous HEAD and dirty status rather than pretending these files were committed at measurement time.
 
 ### Interpretation
 

@@ -18,8 +18,11 @@ for(const variant of ['baseline','candidate']){
  const manifest=await json(`${prefix}${variant}/manifest.json`);manifests[variant]=manifest;
  for(const [path,expected] of Object.entries(manifest.sha256))if(hash(await read(`${prefix}${variant}/${path}`))!==expected)throw Error('Frozen bundle changed');
  if(variant==='candidate'){
-  for(const [path,expected] of Object.entries(manifest.sourceSha256))if(hash(await read(path))!==expected)throw Error(`Source changed: ${path}`);
-  for(const [path,expected] of Object.entries(manifest.sha256))if(hash(await read(`dist/${path}`))!==expected)throw Error('Rebuild differs from measured candidate');
+  // Historical 0.1.3 evidence is verified against its frozen sources. Current
+  // dist/src may belong to a newer version and must not relabel these timings.
+  const sources=await json(`${prefix}candidate/source.json`);
+  if(JSON.stringify(Object.keys(sources).sort())!==JSON.stringify(Object.keys(manifest.sourceSha256).sort()))throw Error('Historical source set changed');
+  for(const [path,expected] of Object.entries(manifest.sourceSha256))if(hash(sources[path])!==expected)throw Error(`Archived source changed: ${path}`);
  }
 }
 const comparisons=[],environments=[],competitors=[];
@@ -76,7 +79,7 @@ const f=value=>Math.round(value).toLocaleString('en-US');
 const ratio=row=>`${row.ratio.median.toFixed(2)}× (${row.ratio.min.toFixed(2)}–${row.ratio.max.toFixed(2)})`;
 let output='\n## Measured results\n\n'+`${environments[0].metadata.cpu}; ${environments[0].metadata.platform} ${environments[0].metadata.arch}. `;
 output+='Collected on '+environments[0].metadata.timestamp.slice(0,10)+'. Runtime versions: '+[...new Set(environments.map(e=>e.metadata.runtime))].join(', ')+'. Bun revision: '+environments.find(e=>e.runtime==='bun').metadata.bunRevision+'. Chrome is headless.\n\n';
-output+='The frozen candidate is version **0.1.3**, not yet an npm release. The baseline is byte-identical to the minified runtime/nano files in the published 0.1.2 archive. The summary and all process samples are in [optimization-study](https://github.com/GiuseppeScottoLavina/crossbus/tree/perf/verified-0.1.3/benchmarks/optimization-study). Candidate source hashes identify the measured working tree; metadata records the previous HEAD and dirty status rather than pretending these files were committed at measurement time.\n\n';
+output+='The frozen candidate is version **0.1.3**, unreleased at measurement time and subsequently published. These are historical results, not measurements of the current development version; see the [0.1.4 Worker RPC study](WORKER_RPC.md) for the next comparison. The baseline is byte-identical to the minified runtime/nano files in the published 0.1.2 archive. The summary and all process samples are in [optimization-study](https://github.com/GiuseppeScottoLavina/crossbus/tree/perf/verified-0.1.3/benchmarks/optimization-study). The verifier checks the frozen candidate source archive against its original source hashes, rather than requiring a later checkout to equal 0.1.3. Metadata records the previous HEAD and dirty status rather than pretending these files were committed at measurement time.\n\n';
 output+='### Interpretation\n\nFor the 1 KiB text field, the standard RPC path improved on Node/Bun. Chrome showed mixed results, including regressions; optional compact encoding was particularly unfavorable for large payloads in the real-Worker test. This candidate does not establish a browser RPC speedup or an overall lead over the competitors. Additional lifecycle/security fixes and the larger bundle are explicit tradeoffs. The stream-buffer workload improved across the measured engines, with a much larger effect on Node; it is a local enqueue/collect result.\n\n';
 output+='### RPC before/after\n\nCandidate/baseline throughput; median of three paired process ratios, with the observed minimum–maximum in parentheses. Compact is compared with baseline standard encoding. Every row uses the same echo data and concurrency.\n\n| Runtime/topology | Text bytes | In flight | Standard | Standard + hooks | Compact | Compact + hooks |\n|---|---:|---:|---:|---:|---:|---:|\n';
 for(const [kind,runtime] of [['rpc','node'],['rpc','bun'],['rpc','chrome'],['worker','chrome']])for(const concurrency of [1,16])for(const textBytes of [0,1024,65536]){

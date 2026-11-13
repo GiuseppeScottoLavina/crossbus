@@ -204,12 +204,13 @@ export class MessageChannelTransport {
 
         let dataToSend = this.#wireFormat === 'compact' ? encodeCompact(envelope) : envelope;
         if (this.#contentType !== 'application/json') {
+            if (transfer?.length) throw new TypeError('Transfer lists require structured-clone MessageChannel encoding');
             dataToSend = this.#serializer.serialize(envelope);
         }
 
         // Auto-detect transferables if enabled
         let transferables = transfer;
-        if (this.#autoTransfer && !transfer) {
+        if (this.#autoTransfer && !transfer && this.#contentType === 'application/json') {
             transferables = findTransferables(message);
             if (transferables.length === 0) {
                 transferables = undefined;
@@ -281,7 +282,15 @@ export class MessageChannelTransport {
         if (!this.#messageHandler) return;
 
         // Get message data
-        let data = decodeCompact(event.data);
+        let packet = event.data;
+        // Non-default content types already use the JSON serializer fallback
+        // when sending. Decode that wire representation before protocol checks.
+        // Malformed/unrelated strings are not protocol messages.
+        if (typeof packet === 'string') {
+            try { packet = this.#serializer.deserialize(packet); }
+            catch { return; }
+        }
+        const data = decodeCompact(packet);
 
         // Skip non-protocol messages
         if (!isProtocolMessage(data)) return;

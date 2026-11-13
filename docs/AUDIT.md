@@ -1,5 +1,15 @@
 # Local audit — 13 November 2026
 
+## 0.1.4 development qualification
+
+The development candidate passes **1,169 library tests / 79 files** and **42 experimental tests / 4 files**, with zero failures/skips. Lint, source types, build, package exports and consumer declarations pass with TypeScript 6.0.3 and 5.9.3. Source line coverage is **4,525 / 4,729 (95.69%)**; this does not measure branch coverage or establish absence of vulnerabilities. The additional tests verify browser/Worker UUID entropy use and failure propagation, valid JSON-string RPC, window origin/source rejection, hook/ACL rejection without handler execution, typed-view transfer ownership and native buffer-budget accounting.
+
+Changes affect runtime bytes in this candidate: browser UUID generation, serialized MessageChannel/PostMessage reception, JSON transfer-list handling and typed-view discovery/budgets. The default structured-clone wire format and public export map remain unchanged. Automatic transfer remains opt-in and now moves eligible typed-view backing buffers in full; all sender aliases detach. The [Worker RPC study](WORKER_RPC.md) retains frozen 0.1.3 and 0.1.4 artifacts and separate CPU diagnostics; historical benchmark data is not relabeled as current performance. Physical iOS/Android and Safari/Firefox qualification remain pending.
+
+This is **unreleased development work**. The published 0.1.3 npm archive and immutable tag are separate. The tooling-only statements below describe the earlier `6f13d80` checkout, before these runtime changes.
+
+The locally packed 0.1.4 archive passes isolated consumer checks on Node 18.20.8 and 24.15.0: all 12 exports/declarations, ESM/CommonJS, standard/compact minified RPC, schema rejection and native source inclusion. The complete timing matrix contains **48 datasets / 25,503,744 checked calls**, plus 24 baseline CPU profiles and three UUID diagnostics. The report verifier checks exact inputs and all timing/count invariants. Both older study verifiers continue checking their historical runtimes/sources against preserved snapshots rather than presenting their results as 0.1.4 performance. No npm publication is performed by these checks.
+
 ## Post-release development dependency refresh
 
 The additional grouped tooling update resolves ESLint 10.14.0, Rollup 4.68.2 and Prettier 3.9.10; Puppeteer Core resolves to 25.17.0. Their combined lockfile also passed clean installation, the release gate, all 1,150 library tests and 40 prototype tests, with consumer declarations checked by TypeScript 6.0.3 and 5.9.3. Source maps and the generated visualization were refreshed. JavaScript/CJS bundle bytes still match `v0.1.3`.

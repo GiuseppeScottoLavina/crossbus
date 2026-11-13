@@ -13,18 +13,15 @@ export function isProtocolMessage(obj: any): boolean;
  */
 export function isTransferable(value: any): boolean;
 /**
- * Recursively finds all transferable objects in a value.
+ * Finds transferable objects without recursive calls or per-value result arrays.
+ * Typed views transfer their actual same-realm backing ArrayBuffer. Node Buffers
+ * keep copy semantics because their backing storage may belong to a shared slab.
  *
  * @param {*} value - Value to search.
  * @param {Set<Transferable>} [found] - Set to collect transferables.
  * @returns {Transferable[]} Array of transferables found.
  */
 export function findTransferables(value: any, found?: Set<Transferable>, seen?: Set<any>): Transferable[];
-/**
- * @fileoverview Common types and constants shared across all modules.
- * This module is included in the common bundle to avoid duplication.
- * @module common/types
- */
 /**
  * Protocol marker for CrossBus messages.
  * @constant {string}
@@ -148,9 +145,9 @@ export const Defaults: any;
  * List of transferable types for auto-detection.
  * @constant {Function[]}
  */
-export const TransferableTypes: ({
+export const TransferableTypes: (ArrayBufferConstructor | {
     new (): MessagePort;
     prototype: MessagePort;
-} | ArrayBufferConstructor)[];
+})[];
 /** Shared immutable empty metadata for internally constructed envelopes. */
 export const EMPTY_MESSAGE_META: Readonly<{}>;

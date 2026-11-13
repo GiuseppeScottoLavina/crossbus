@@ -378,11 +378,29 @@ function isRetryable(err) {
     return false;
 }
 
+// Capture native getters: public .buffer/.byteLength properties can be shadowed
+// without changing which storage structured clone copies or transfers.
+nativeGetter(Object.getPrototypeOf(Uint8Array.prototype), 'buffer');
+nativeGetter(DataView.prototype, 'buffer');
+nativeGetter(ArrayBuffer.prototype, 'byteLength');
+const sharedConstructor = typeof SharedArrayBuffer !== 'undefined' ? SharedArrayBuffer : null;
+sharedConstructor ? nativeGetter(sharedConstructor.prototype, 'byteLength') : null;
+
+function nativeGetter(prototype, name) {
+    const getter=Object.getOwnPropertyDescriptor(prototype,name)?.get;
+    if(!getter)throw new TypeError('Required native buffer accessor is unavailable');
+    return getter;
+}
+
 /**
  * @fileoverview Utility functions shared across modules.
  * @module common/utils
  */
 
+
+// Node and Bun already have fast native UUID backends. Browsers amortize the
+// Web Crypto call while retaining fresh random bytes and the UUID v4 format.
+typeof process !== 'undefined' && typeof process.versions?.node === 'string';
 
 /**
  * Creates a promise that resolves after a timeout.

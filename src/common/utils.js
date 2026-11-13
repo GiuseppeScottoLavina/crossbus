@@ -4,16 +4,26 @@
  */
 
 import { CrossBusError, ErrorCode } from './errors.js';
+import { createUuidPool } from './uuid-pool.js';
+import { viewStorage, storageLength } from './buffer-storage.js';
+
+// Node and Bun already have fast native UUID backends. Browsers amortize the
+// Web Crypto call while retaining fresh random bytes and the UUID v4 format.
+const NATIVE_UUID_BACKEND = typeof process !== 'undefined' && typeof process.versions?.node === 'string';
+const browserUuid = createUuidPool(bytes => { crypto.getRandomValues(bytes); });
 
 /**
  * Generates a UUID v4.
- * Uses crypto.randomUUID() when available, falls back to manual generation.
+ * Uses native cached UUIDs on Node/Bun and pooled Web Crypto bytes in browsers.
+ * Retains manual generation only when neither Web Crypto primitive is present.
  *
  * @returns {string} UUID v4 string.
  */
 export function uuid() {
-    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-        return crypto.randomUUID();
+    if (typeof crypto !== 'undefined') {
+        if (NATIVE_UUID_BACKEND && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+        if (typeof crypto.getRandomValues === 'function') return browserUuid();
+        if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
     }
     // Fallback for older browsers
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -219,8 +229,8 @@ function measurePayload(root, limit) {
     /** @type {object[]|null} */
     let pending = null;
     while (true) {
-        if (value instanceof ArrayBuffer || (typeof SharedArrayBuffer !== 'undefined' && value instanceof SharedArrayBuffer)) bytes += value.byteLength;
-        else if (ArrayBuffer.isView(value)) bytes += value.buffer.byteLength;
+        if (value instanceof ArrayBuffer || (typeof SharedArrayBuffer !== 'undefined' && value instanceof SharedArrayBuffer)) bytes += storageLength(value);
+        else if (ArrayBuffer.isView(value)) bytes += storageLength(viewStorage(value));
         else if (typeof Blob !== 'undefined' && value instanceof Blob) bytes += value.size;
         else if (value instanceof Map) {
             for (const entry of value) for (const item of entry) {
