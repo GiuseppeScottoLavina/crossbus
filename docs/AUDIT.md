@@ -2,6 +2,10 @@
 
 ## Post-release development dependency refresh
 
+The additional grouped tooling update resolves ESLint 10.14.0, Rollup 4.68.2 and Prettier 3.9.10; Puppeteer Core resolves to 25.17.0. Their combined lockfile also passed clean installation, the release gate, all 1,150 library tests and 40 prototype tests, with consumer declarations checked by TypeScript 6.0.3 and 5.9.3. Source maps and the generated visualization were refreshed. JavaScript/CJS bundle bytes still match `v0.1.3`.
+
+The registry was checked on 13 November 2026: **0.1.3 is now published**, and its reported npm integrity matches the exact CI archive attached to the GitHub release. The pre-publication checks below are historical. This tooling refresh does not replace that archive or move its tag.
+
 The five older Dependabot upgrades are integrated against the current master with a matching lockfile: @eslint/js 10.0.1, globals 17.14.0, @rollup/plugin-terser 1.0.2, rollup-plugin-visualizer 7.1.3 and TypeScript 6.0.3. A clean `npm ci --legacy-peer-deps` succeeded. Node 24 remains the development runtime; this does not raise the package consumer's Node >=18 requirement.
 
 TypeScript 6 initially failed on the changed type-inclusion/output-root defaults and the command-line consumer check. Explicit source configuration and a separate strict consumer configuration resolve those failures without changing source APIs or relaxing checks. Consumer declarations also pass with TypeScript 5.9.3. The private static helper declarations in compression/encryption and the standalone bundle visualization were regenerated.
@@ -16,9 +20,9 @@ Local validation passed the release gate (lint, source/consumer types, clean bui
 
 The study retains 55 verified datasets, including 54 timing datasets with **21,430,272** checked echo calls, native-send counts, burst completion latency, payload/hook guard conditions and a separate teardown study. For 64 concurrent 1 KiB calls, paired-process median group/stock ratios were **1.34× Node, 1.91× Bun and 2.00× same-page headless Chrome**. Worker ratios were smaller and variable; one 16-call process pair regressed. Large 64 KiB groups regressed on Node/Chrome, and asynchronous hooks kept ordinary sends. The strict transparent control often lost throughput despite fewer posts. These results support further work on an opt-in bulk operation, not a universal speed or feature leadership claim. Comparator bulk APIs, protocol negotiation and physical-device qualification remain outside this experiment. GitHub publication/CI and npm publication are separate operations.
 
-## 0.1.3 candidate follow-up
+## 0.1.3 pre-publication qualification
 
-The current candidate passed **1,150 tests across 73 files, zero failures and zero skips**, including real Chrome module Workers, two-origin iframe examples, the documentation-only publish root and a live WebSocket server. Lint, source/consumer type checks, clean build and the release gate passed. Unit coverage was **4,441 / 4,631 executable source lines (95.90%)**; the 90% line gate remains enforced. Branch coverage is not reported by this Bun LCOV output.
+Before publication, the 0.1.3 candidate passed **1,150 tests across 73 files, zero failures and zero skips**, including real Chrome module Workers, two-origin iframe examples, the documentation-only publish root and a live WebSocket server. Lint, source/consumer type checks, clean build and the release gate passed. Unit coverage was **4,441 / 4,631 executable source lines (95.90%)**; the 90% line gate remains enforced. Branch coverage is not reported by this Bun LCOV output.
 
 New regressions cover full typed-array backing storage, SharedArrayBuffer, 20,000-level payload graphs, recursive listener mutation, stale cleanup registration identity, empty peer routing, response peer binding, absent origins outside browser windows, stream source ownership/chunking/destruction and WebSocket connection/queue lifecycle. Compact packets are decoded before normal bus checks; extension metadata falls back to standard encoding. Default MessageChannel interoperability with the published 0.1.2 runtime is tested.
 
@@ -26,7 +30,7 @@ The playground now invokes the library through real MessageChannels, module Work
 
 Swift compilation passed against the iOS simulator SDK (arm64 iOS 15 target); Java compilation passed against Android API 35 and cached AndroidX WebKit. No physical-device runtime qualification was added. The [competitor study](COMPETITOR_ANALYSIS.md) records source inspection, exact measured bundles, isolated process repetitions and the limits of its claims. Publication, remote CI and live Pages deployment remain separate from local validation. The historical evidence below describes 0.1.2.
 
-The prepared 0.1.3 tarball was installed in a separate consumer and checked on Node 18.20.8 and 24.15.0: all 12 exports, declarations, ESM/CommonJS/minified standard and compact RPC, schema rejection and native source inclusion passed. The registry was checked separately: latest remained 0.1.2, with 0.1.3 absent. This candidate has not been published to npm.
+The prepared 0.1.3 tarball was installed in a separate consumer and checked on Node 18.20.8 and 24.15.0: all 12 exports, declarations, ESM/CommonJS/minified standard and compact RPC, schema rejection and native source inclusion passed. At that pre-publication registry check, latest remained 0.1.2 and 0.1.3 was absent. Publication was verified later, as recorded above.
 
 ## 0.1.2 release record
 
