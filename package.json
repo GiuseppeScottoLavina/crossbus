@@ -155,7 +155,7 @@
         "nanoevents": "10.0.0",
         "penpal": "8.0.1",
         "prettier": "^3.8.1",
-        "puppeteer-core": "^24.35.0",
+        "puppeteer-core": "^25.16.0",
         "rollup": "^4.56.0",
         "rollup-plugin-visualizer": "^7.0.1",
         "typescript": "^6.0.2"
