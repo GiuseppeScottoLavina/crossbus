@@ -115,8 +115,8 @@ export class Encryption {
         encryptHook: import("../core/cross-bus.js").MessageHook;
         decryptHook: import("../core/cross-bus.js").MessageHook;
     };
-    static "__#private@#arrayBufferToBase64"(buffer: any): string;
-    static "__#private@#base64ToArrayBuffer"(base64: any): ArrayBuffer;
+    static #arrayBufferToBase64(buffer: any): string;
+    static #base64ToArrayBuffer(base64: any): ArrayBuffer;
 }
 export type EncryptedPayload = {
     /**

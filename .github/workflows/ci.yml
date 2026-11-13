@@ -44,6 +44,9 @@ jobs:
     - name: Test consumer declarations
       run: bun run test:types
 
+    - name: Test TypeScript 5.9 consumer compatibility
+      run: npx --yes --package typescript@5.9.3 tsc --project tests/package/tsconfig.json
+
     - name: Test with Coverage
       run: bun run test:coverage
 

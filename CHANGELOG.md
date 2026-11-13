@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+- Refresh development dependencies and their lockfile: @eslint/js 10.0.1, globals 17.14.0, @rollup/plugin-terser 1.0.2, rollup-plugin-visualizer 7.1.3 and TypeScript 6.0.3.
+- Preserve declaration output paths under TypeScript 6 with explicit source roots and Node type inclusion; use a separate strict configuration for consumer declaration checks and verify TypeScript 5.9 compatibility in CI.
+- Regenerate private helper declarations and the bundle visualization. Runtime source, package exports and JavaScript bundle bytes are unchanged; the tagged 0.1.3 archive remains separate from this post-release tooling refresh.
+- Include @eslint packages and globals in the existing grouped minor/patch Dependabot updates; major upgrades still require separate review.
+
 ## [0.1.3] - 2026-11-13
 
 - Reduce owned message-record, synchronous inbound-dispatch, debug and pending-request lookup overhead while retaining validation, timeout and peer checks.

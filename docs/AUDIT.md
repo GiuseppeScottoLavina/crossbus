@@ -1,5 +1,13 @@
 # Local audit — 13 November 2026
 
+## Post-release development dependency refresh
+
+The five older Dependabot upgrades are integrated against the current master with a matching lockfile: @eslint/js 10.0.1, globals 17.14.0, @rollup/plugin-terser 1.0.2, rollup-plugin-visualizer 7.1.3 and TypeScript 6.0.3. A clean `npm ci --legacy-peer-deps` succeeded. Node 24 remains the development runtime; this does not raise the package consumer's Node >=18 requirement.
+
+TypeScript 6 initially failed on the changed type-inclusion/output-root defaults and the command-line consumer check. Explicit source configuration and a separate strict consumer configuration resolve those failures without changing source APIs or relaxing checks. Consumer declarations also pass with TypeScript 5.9.3. The private static helper declarations in compression/encryption and the standalone bundle visualization were regenerated.
+
+The release gate passed with **95.90% source line coverage (4,441 / 4,631)**, the complete library suite passed **1,150 tests / 73 files**, and the separate prototype suite passed **40 tests / 3 files**, with zero failures/skips. JavaScript runtime source, public exports and every generated JavaScript bundle remain unchanged; the minified main runtime retains SHA-256 `a4cbc5b9610d41a4c0d73b7b3221f75084909f7e3e1c9da3613f40a72e5caff3`. The grouping report verifier still validates all 55 retained datasets; no new performance claim is inferred from the tooling upgrade. The `v0.1.3` tag and prepared release archive are unchanged. GitHub CI and merge status are verified separately when integrating this update.
+
 ## Repository-only RPC grouping experiment
 
 The [grouping study](RPC_BATCHING.md) uses the exact approved master runtime (`3a3c6bb`) with adapters outside `src/`, the npm file list and all 12 package exports. Standard encoding, runtime defaults and the prepared 0.1.3 public API are unchanged. Both endpoints must install the prototype; it has explicit shared-graph semantics and no capability negotiation. It is not the existing signal-batching plugin.
