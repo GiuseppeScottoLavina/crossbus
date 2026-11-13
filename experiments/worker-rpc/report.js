@@ -143,9 +143,9 @@ const find=(profile,runtime,name,c,size=1024)=>comparisons.find(r=>r.profile===p
 const ratio=row=>`${row.throughputRatio.median.toFixed(2)}× (${row.throughputRatio.min.toFixed(2)}–${row.throughputRatio.max.toFixed(2)})`;
 const integer=n=>Math.round(n).toLocaleString('en-US');
 const gh='https://github.com/giuseppescottolavina/crossbus/tree/master/';
-let text=`# Worker RPC optimization — 0.1.4 development candidate
+let text=`# Worker RPC optimization — 0.1.4
 
-This study compares a frozen 0.1.3 runtime with the unreleased 0.1.4 candidate. It measures individual RPCs with the existing default security/resource checks. It does not establish a universal performance lead or qualify iOS/Android, Safari or Firefox. Both exact bundles and source snapshots are retained under [benchmarks/worker-rpc](${gh}benchmarks/worker-rpc).
+This study compares a frozen 0.1.3 runtime with the 0.1.4 candidate, which was unreleased when measured and subsequently [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.4). It measures individual RPCs with the existing default security/resource checks. It does not establish a universal performance lead or qualify iOS/Android, Safari or Firefox. Both exact bundles and source snapshots are retained under [benchmarks/worker-rpc](${gh}benchmarks/worker-rpc).
 
 At 64 concurrent 1 KiB calls, standard Chrome Worker throughput has a paired median ratio of ${ratio(find('primary','chrome-worker','CrossBus',64))}; compact has ${ratio(find('primary','chrome-worker','CrossBus compact wire',64))}. Same-page standard Chrome improves across the three tested concurrency levels. Worker standard plus async hooks at 64 calls is mixed (${ratio(find('primary','chrome-worker','CrossBus + async hooks',64))}). Node/Bun show no general gain, and the guard matrix retains a Bun empty-payload regression and a Chrome Worker 64 KiB regression. Tail latency also worsens in some cases. The candidate increases minified gzip size by ${integer(sizes.candidate.gzip9-sizes.baseline.gzip9)} bytes. These tradeoffs rule out a blanket speedup claim.
 

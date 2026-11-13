@@ -6,7 +6,7 @@
 | ------- | ------ |
 | 0.1.2 | Published release; historical checks and limitations are recorded in the audit |
 | 0.1.3 | Published release; qualification is recorded in the audit |
-| 0.1.4 | Unreleased development candidate; separate checks are recorded in the audit |
+| 0.1.4 | Published release; qualification and limitations are recorded in the audit |
 
 See [the audit](docs/AUDIT.md) for measured coverage and outstanding browser/device qualification. A passing suite does not establish that a version has no vulnerabilities.
 

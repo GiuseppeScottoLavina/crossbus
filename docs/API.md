@@ -113,7 +113,7 @@ Transport classes are exported by `crossbus`. A dynamic import of that same root
 
 Worker transports do not implement durable persistence, an offline queue or guaranteed background delivery. Transfer-list ownership is an application decision; an ArrayBuffer is detached after transfer. Native transports use JSON and do not support browser transferables.
 
-### Buffer ownership and serializer fallback (0.1.4 development)
+### Buffer ownership and serializer fallback (since 0.1.4)
 
 `autoTransfer` defaults to `false`. When enabled on MessageChannel or PostMessage, discovery now follows typed arrays and DataViews to their actual same-realm ArrayBuffer. It moves the **whole backing allocation**, including bytes outside a subview, and detaches every sender alias. Use an explicit copy if the receiver must see only a slice or the sender must retain ownership. Node Buffers are excluded from automatic view-buffer discovery because their storage may belong to a slab; SharedArrayBuffer is shared, not transferred. Explicit transfer lists remain the caller's responsibility. Discovery handles cycles and avoids recursive JavaScript calls; the browser's own clone-depth limits still apply.
 

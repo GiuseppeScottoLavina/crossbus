@@ -1,12 +1,16 @@
 # Local audit — 13 November 2026
 
-## 0.1.4 development qualification
+## 0.1.4 publication record
+
+On 13 November 2026, npm publication of **0.1.4** was verified against the exact archive from [CI 43500587011](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43500587011), source commit `309b040f2e48d52d88a21cbe34c005d479f89077`. The downloaded registry tarball matches that tested archive byte for byte, SHA-256 `8fda380febe008cc9c4db1dccfc2cd30eb7058c0ecf5a8b8a6f81123a29ff2c1`. The [GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.4) preserves the same archive, checksum and release manifest. Publication does not extend browser/device qualification or change the scopes of the measurements below.
+
+## 0.1.4 qualification
 
 The development candidate passes **1,169 library tests / 79 files** and **42 experimental tests / 4 files**, with zero failures/skips. Lint, source types, build, package exports and consumer declarations pass with TypeScript 6.0.3 and 5.9.3. Source line coverage is **4,525 / 4,729 (95.69%)**; this does not measure branch coverage or establish absence of vulnerabilities. The additional tests verify browser/Worker UUID entropy use and failure propagation, valid JSON-string RPC, window origin/source rejection, hook/ACL rejection without handler execution, typed-view transfer ownership and native buffer-budget accounting.
 
 Changes affect runtime bytes in this candidate: browser UUID generation, serialized MessageChannel/PostMessage reception, JSON transfer-list handling and typed-view discovery/budgets. The default structured-clone wire format and public export map remain unchanged. Automatic transfer remains opt-in and now moves eligible typed-view backing buffers in full; all sender aliases detach. The [Worker RPC study](WORKER_RPC.md) retains frozen 0.1.3 and 0.1.4 artifacts and separate CPU diagnostics; historical benchmark data is not relabeled as current performance. Physical iOS/Android and Safari/Firefox qualification remain pending.
 
-This is **unreleased development work**. The published 0.1.3 npm archive and immutable tag are separate. The tooling-only statements below describe the earlier `6f13d80` checkout, before these runtime changes.
+This section records **pre-publication qualification** of the 0.1.4 candidate. Its publication is recorded above. The published 0.1.3 npm archive and immutable tag are separate. The tooling-only statements below describe the earlier `6f13d80` checkout, before these runtime changes.
 
 The locally packed 0.1.4 archive passes isolated consumer checks on Node 18.20.8 and 24.15.0: all 12 exports/declarations, ESM/CommonJS, standard/compact minified RPC, schema rejection and native source inclusion. The complete timing matrix contains **48 datasets / 25,503,744 checked calls**, plus 24 baseline CPU profiles and three UUID diagnostics. The report verifier checks exact inputs and all timing/count invariants. Both older study verifiers continue checking their historical runtimes/sources against preserved snapshots rather than presenting their results as 0.1.4 performance. No npm publication is performed by these checks.
 
