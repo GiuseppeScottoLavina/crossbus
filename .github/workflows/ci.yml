@@ -38,6 +38,9 @@ jobs:
     - name: Test packaged exports
       run: bun test tests/package/
 
+    - name: Test opt-in RPC experiments
+      run: bun test tests/experiments/
+
     - name: Test consumer declarations
       run: bun run test:types
 

@@ -1,0 +1,5 @@
+{
+  "description": "Exact approved master 3a3c6bb runtime used in every stock and prototype case. Experimental adapters are outside src/ and npm exports.",
+  "version": "0.1.3",
+  "sha256": "a4cbc5b9610d41a4c0d73b7b3221f75084909f7e3e1c9da3613f40a72e5caff3"
+}

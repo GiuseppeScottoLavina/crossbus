@@ -1,4 +1,12 @@
-# Local audit — 12 November 2026
+# Local audit — 13 November 2026
+
+## Repository-only RPC grouping experiment
+
+The [grouping study](RPC_BATCHING.md) uses the exact approved master runtime (`3a3c6bb`) with adapters outside `src/`, the npm file list and all 12 package exports. Standard encoding, runtime defaults and the prepared 0.1.3 public API are unchanged. Both endpoints must install the prototype; it has explicit shared-graph semantics and no capability negotiation. It is not the existing signal-batching plugin.
+
+Local validation passed the release gate (lint, source/consumer types, clean build, unit/package tests and source coverage), the complete library suite (**1,150 tests / 73 files**), and a separate **40 experimental tests / 3 files**, all with zero failures/skips. The prototype demo returned `[5,9]` on Node 18.20.8 and 24.15.0. Source line coverage remains **4,441 / 4,631 (95.90%)** and excludes the experimental adapters; no experimental coverage percentage is claimed. The package dry run confirms those adapters are excluded from npm. Browser tests required permission to open local ports; the restricted sandbox attempt failed before starting its servers, and the unrestricted rerun passed without changing assertions.
+
+The study retains 55 verified datasets, including 54 timing datasets with **21,430,272** checked echo calls, native-send counts, burst completion latency, payload/hook guard conditions and a separate teardown study. For 64 concurrent 1 KiB calls, paired-process median group/stock ratios were **1.34× Node, 1.91× Bun and 2.00× same-page headless Chrome**. Worker ratios were smaller and variable; one 16-call process pair regressed. Large 64 KiB groups regressed on Node/Chrome, and asynchronous hooks kept ordinary sends. The strict transparent control often lost throughput despite fewer posts. These results support further work on an opt-in bulk operation, not a universal speed or feature leadership claim. Comparator bulk APIs, protocol negotiation and physical-device qualification remain outside this experiment. GitHub publication/CI and npm publication are separate operations.
 
 ## 0.1.3 candidate follow-up
 

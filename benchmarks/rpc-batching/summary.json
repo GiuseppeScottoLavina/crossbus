@@ -1,0 +1,2442 @@
+{
+  "scope": "Opt-in research outside npm exports; explicit bulk graph semantics differ from independent calls.",
+  "verifiedFiles": [
+    {
+      "file": "benchmarks/rpc-batching/primary-node-1.json",
+      "sha256": "d0ef88470ae96969c64224eb96c05b8b761b27e5c34d9eb6105792c30434c85d"
+    },
+    {
+      "file": "benchmarks/rpc-batching/primary-node-2.json",
+      "sha256": "70aad57c5358572bff4811d1d623b18cfa5c8a45e8eeec37f11afbe54b9bb0b7"
+    },
+    {
+      "file": "benchmarks/rpc-batching/primary-node-3.json",
+      "sha256": "df500acee40628740fa48edff6ede6c96b012e523911a6e6dc45cd99ca5a3364"
+    },
+    {
+      "file": "benchmarks/rpc-batching/primary-bun-1.json",
+      "sha256": "4107d02f3556c58f88dee7ffe87064d9a034b9abca1bcf085f60260b7e67538e"
+    },
+    {
+      "file": "benchmarks/rpc-batching/primary-bun-2.json",
+      "sha256": "4dd7bacc9a9d693b0f996d7e908746ea424c1a11815d0281e379e0a0a24034a6"
+    },
+    {
+      "file": "benchmarks/rpc-batching/primary-bun-3.json",
+      "sha256": "a2d20c4282899ad48031e0a1663850302e45980ff0ffbcebfc379d6962cabb73"
+    },
+    {
+      "file": "benchmarks/rpc-batching/primary-chrome-1.json",
+      "sha256": "55f3cc0e649445956f70758f39c4e168dc99d77f2bd602666a45b32bd7079cfb"
+    },
+    {
+      "file": "benchmarks/rpc-batching/primary-chrome-2.json",
+      "sha256": "19c5df2b592868adb8585323a04fce563a34000cbd7f1e1f6c7d9ef2c8f431a3"
+    },
+    {
+      "file": "benchmarks/rpc-batching/primary-chrome-3.json",
+      "sha256": "e5bab915f906b7d68ab41a707571a0a00e4887d4030a11b0f75451f86c870ccb"
+    },
+    {
+      "file": "benchmarks/rpc-batching/primary-chrome-worker-1.json",
+      "sha256": "64e9118d84c999a0d59c8104b751d50e61465ce5145de050b5b69ce43357bb34"
+    },
+    {
+      "file": "benchmarks/rpc-batching/primary-chrome-worker-2.json",
+      "sha256": "3d01a2e0a8c50b3e9ae0813b97546f1941b9b98736fc3f362d60e9056cdace57"
+    },
+    {
+      "file": "benchmarks/rpc-batching/primary-chrome-worker-3.json",
+      "sha256": "7b8c6134b4ac135569f5e8888d4b09faa6fa5275085304f41cbb45cf6df4e523"
+    },
+    {
+      "file": "benchmarks/rpc-batching/guard-node-1.json",
+      "sha256": "ff09a7434e2942fa18f0c022370226bb845af3f69641fb619757e4cdceef2b78"
+    },
+    {
+      "file": "benchmarks/rpc-batching/guard-node-2.json",
+      "sha256": "8d695b00d905a345f1753c2a51e6443a628d0d7be645a1201e64afa4b839eacd"
+    },
+    {
+      "file": "benchmarks/rpc-batching/guard-node-3.json",
+      "sha256": "68c7f27453533ad8acd0ffd16e6687f28c92576b2255b9f3b4d424bcfcf20af2"
+    },
+    {
+      "file": "benchmarks/rpc-batching/guard-bun-1.json",
+      "sha256": "dff9164ccc3842a12561028010555110eae59e69456a90be22fcbe50ce0d5ace"
+    },
+    {
+      "file": "benchmarks/rpc-batching/guard-bun-2.json",
+      "sha256": "0b87224eb82eec001f7b31a74d172a8569b4f03aa1331c483812209ff5ff6994"
+    },
+    {
+      "file": "benchmarks/rpc-batching/guard-bun-3.json",
+      "sha256": "a0807b3cbff1ef8facd2d992266486bcabdd129b6784c7e4022b2559235f3b53"
+    },
+    {
+      "file": "benchmarks/rpc-batching/guard-chrome-1.json",
+      "sha256": "0d6bfd3909aa94f56ec316d27d8097a66731f6897eac3bf3d28f876eb78184d0"
+    },
+    {
+      "file": "benchmarks/rpc-batching/guard-chrome-2.json",
+      "sha256": "df15cfa30f169862508fcd0366d40712d6889192ea709054317f45e2de5c2284"
+    },
+    {
+      "file": "benchmarks/rpc-batching/guard-chrome-3.json",
+      "sha256": "a43e26c8fd2db599e8bf18e6a61b55f99aa8157dd0f1e1526cfd33daa6c269c6"
+    },
+    {
+      "file": "benchmarks/rpc-batching/guard-chrome-worker-1.json",
+      "sha256": "ccee4619404a0f85941d9b115a8cdd3789d8dcb36e816d6761fd3c5a15ae1295"
+    },
+    {
+      "file": "benchmarks/rpc-batching/guard-chrome-worker-2.json",
+      "sha256": "829469dd17381b64fc98e2c2109083d20ea378338ff87a1658db307cfcf15bb2"
+    },
+    {
+      "file": "benchmarks/rpc-batching/guard-chrome-worker-3.json",
+      "sha256": "6c9d73be8d3fd4e961b8c079f000babca9bbc1aee5fab3be5b2a507c838dd43c"
+    },
+    {
+      "file": "benchmarks/rpc-batching/hooks-node-1.json",
+      "sha256": "5d38632282b1b513ecda2f376fed7785e8d300d581413b3dc6786d4e7da9775d"
+    },
+    {
+      "file": "benchmarks/rpc-batching/hooks-node-2.json",
+      "sha256": "4b63d5eccf323a66273bce019194441f5a0c91bff24b48586b8dfe42b5d6fa0c"
+    },
+    {
+      "file": "benchmarks/rpc-batching/hooks-node-3.json",
+      "sha256": "5b9c84d077d38f5664aed9e108ea9762be3402808a9ad1c3a2107d0623ae57c5"
+    },
+    {
+      "file": "benchmarks/rpc-batching/hooks-chrome-worker-1.json",
+      "sha256": "69941fd66ad2ac6e684165389a75e570173a65b5b65cd58cc137209eac9fe49b"
+    },
+    {
+      "file": "benchmarks/rpc-batching/hooks-chrome-worker-2.json",
+      "sha256": "64c69a1eb135190e64e2b5dfd0c71091106d6582bdaa556b16f5365266487df3"
+    },
+    {
+      "file": "benchmarks/rpc-batching/hooks-chrome-worker-3.json",
+      "sha256": "7e1feda40c6ab4e14025eda35238b044a573bf8acd83c63ea34054677f245502"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-node-stock-1.json",
+      "sha256": "30899799b62aee6aa4747d15315cd70352c08eccc7ecf3149a297b52b2784e04"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-node-group-1.json",
+      "sha256": "f169a214acd6d50f98c741c1b988fcdf62b947048fa85e85fa71ae5f0bea3e84"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-node-stock-2.json",
+      "sha256": "eeb87231d192ad768907b3c023569732dbbc6ee1f1e96cdbc06c17e705b331a5"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-node-group-2.json",
+      "sha256": "26ad133cbc8899a5310733ea99e5f43b9f792dc4e7c228230d7edc86380da938"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-node-stock-3.json",
+      "sha256": "317c02a4141c36846c28d6ea7bbfeabedde21516f3cfa3f06559f4d4f4794391"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-node-group-3.json",
+      "sha256": "fb6591820a949bfc0a432102f6d375cd8f631e83c027c686c58816a7e71b05aa"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-bun-stock-1.json",
+      "sha256": "8791ba228c195ffbdb8b50ba7e70e991686c68458e089065649badcd281af087"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-bun-group-1.json",
+      "sha256": "cdd5e149e4a3c9b5c4ea11d20230c8a211e98d333dc267d3d3b3b1a9c2613e07"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-bun-stock-2.json",
+      "sha256": "72b898e6a41ae3d844f39aba5a27e732f1503c0bc747816c7d0e36aff22e1549"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-bun-group-2.json",
+      "sha256": "78acee59d87b55752aeb0ddf513eb4820fd7d4aa0cdc02c5ce1569344226154b"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-bun-stock-3.json",
+      "sha256": "631b57d24481f90c6868469262cf585a8aca472490b36b70f8b46336f4d3615a"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-bun-group-3.json",
+      "sha256": "8f472b03b2812eb58f4157292fb87434ac8d13347e0fb30ce578b67d148ade51"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-chrome-stock-1.json",
+      "sha256": "2c9052cd3634d06951f4fb3a8dbe9752d57a06efdd4d1f8310b388d4926c60e2"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-chrome-group-1.json",
+      "sha256": "5f5c75a715d70136693709096366e850fbba50c40f11890179b6a6c036409d50"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-chrome-stock-2.json",
+      "sha256": "fea0d1155dc68bf2011f2e5a7344d3d8fd5eeb79e75cb892c56f55ea40609c1c"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-chrome-group-2.json",
+      "sha256": "92333933487b03d9dc066e90abdcda6d935fade8b1d9312713b33def934f5137"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-chrome-stock-3.json",
+      "sha256": "74cf0da085fe22a5913edee4bbd3bcac6713198479c15ba70ec7b9802e5d8208"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-chrome-group-3.json",
+      "sha256": "6f00ee48fbcff7d193bd226ed15db93339fc9e95f44944e48fd8151326fc4dd0"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-chrome-worker-stock-1.json",
+      "sha256": "6497adebc6e5e4abb167489756e1ece78d35a9f4aa80856083bc5dace016d9ba"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-chrome-worker-group-1.json",
+      "sha256": "07ef3c0e7d046777045d6d545883b34dbe12b952ed26ae5bae7f4ffb13b36ce9"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-chrome-worker-stock-2.json",
+      "sha256": "b3a0169c438c4d880b2e8122c4798a74dbc60eb31cc728486faaaf21b8310273"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-chrome-worker-group-2.json",
+      "sha256": "3f72a2373407de3b8c7c3780756692acf716f1d79cc8234105172377f7161b88"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-chrome-worker-stock-3.json",
+      "sha256": "fafb08dad086224d1098b85f645b171d282b25f3c1cfd21f21e9710cd0c02462"
+    },
+    {
+      "file": "benchmarks/rpc-batching/isolated-chrome-worker-group-3.json",
+      "sha256": "6d4589b3a932bafd96a8844fac9a91d772002b082a034bfa9b9bd0bb8d378097"
+    },
+    {
+      "file": "benchmarks/rpc-batching/lifecycle-node.json",
+      "sha256": "8c8c498638a34ea3f86a5f2675a4e2056f4a0a91095ee5f83bfe92b0d50ba24d"
+    }
+  ],
+  "reportScriptSha256": "a1f1b85125c21c6f38b2e3ead710e5b721498b6eec344c95eb5affba912c090c",
+  "coreSha256": "a4cbc5b9610d41a4c0d73b7b3221f75084909f7e3e1c9da3613f40a72e5caff3",
+  "provenance": {
+    "node": {
+      "timestamp": "2026-11-13T09:37:32.594Z",
+      "runtime": "Node v24.15.0",
+      "platform": "darwin",
+      "arch": "arm64",
+      "cpu": "Apple M1 Max",
+      "hashes": {
+        "dist/crossbus.min.js": "a4cbc5b9610d41a4c0d73b7b3221f75084909f7e3e1c9da3613f40a72e5caff3",
+        "src/common/types.js": "06812e928d74038cf18f5d5b6988294775b28276b4f6bad89e72d62acfc30563",
+        "experiments/rpc-batching/transport.js": "04f179bd755e96341e6f98c275fd17b07817edfd82a2344adef1719230b9e021",
+        "experiments/rpc-batching/group-transport.js": "7532b88a9327f12984ab9de52200d7c72514c598f049b94d03dc744db1a345cb",
+        "experiments/rpc-batching/endpoints.js": "f98d68c4405322f78728097fb8e8cae30f5794d3fbc111a5f40d3c8b5094dc6c",
+        "experiments/rpc-batching/worker.js": "d4dc869c9a247904665176262b0abcd41d9b54a9406d8f4d1730bc2f811f76ef",
+        "experiments/rpc-batching/workloads.js": "c2f2035eb9f0fd7e0d160137c8d310f2923fff4ad7e080de57ab696fbe595d60",
+        "experiments/rpc-batching/run.js": "aa298664de2da0bd44cadca8be97b80d2daa1b70de7a78aafa3f3394db8d2845",
+        "experiments/rpc-batching/isolated.js": "67d337595059e9771a86c4e106fd88c7c3e1b61cfbec3618ac873f2bfa794007",
+        "tests/e2e/puppeteer-helper.js": "08e5581df647bf1e3c04559280a766b62aad128ce0fe8d4dbe6a65b53f124d5d",
+        "node_modules/birpc/dist/index.mjs": "c6da1d8c0b904eee09fa410bc162146bdc642ae39537c3658aab1082b6db35ce",
+        "node_modules/penpal/dist/penpal.mjs": "f354b6819a69c01254810ac9dda796ba2356c82802218f5ac7752a2a3f30fe75"
+      },
+      "libraries": {
+        "birpc": "4.2.0",
+        "penpal": "8.0.1"
+      },
+      "gitHead": "3a3c6bbfeaa2a09169fcd4781b6be85b7c16b807",
+      "dirty": true
+    },
+    "bun": {
+      "timestamp": "2026-11-13T09:37:52.156Z",
+      "runtime": "Bun 1.3.14",
+      "bunRevision": "191edc04ab1ff64d423e4fae9a0d5ee00ee7f3dd",
+      "platform": "darwin",
+      "arch": "arm64",
+      "cpu": "Apple M1 Max",
+      "hashes": {
+        "dist/crossbus.min.js": "a4cbc5b9610d41a4c0d73b7b3221f75084909f7e3e1c9da3613f40a72e5caff3",
+        "src/common/types.js": "06812e928d74038cf18f5d5b6988294775b28276b4f6bad89e72d62acfc30563",
+        "experiments/rpc-batching/transport.js": "04f179bd755e96341e6f98c275fd17b07817edfd82a2344adef1719230b9e021",
+        "experiments/rpc-batching/group-transport.js": "7532b88a9327f12984ab9de52200d7c72514c598f049b94d03dc744db1a345cb",
+        "experiments/rpc-batching/endpoints.js": "f98d68c4405322f78728097fb8e8cae30f5794d3fbc111a5f40d3c8b5094dc6c",
+        "experiments/rpc-batching/worker.js": "d4dc869c9a247904665176262b0abcd41d9b54a9406d8f4d1730bc2f811f76ef",
+        "experiments/rpc-batching/workloads.js": "c2f2035eb9f0fd7e0d160137c8d310f2923fff4ad7e080de57ab696fbe595d60",
+        "experiments/rpc-batching/run.js": "aa298664de2da0bd44cadca8be97b80d2daa1b70de7a78aafa3f3394db8d2845",
+        "experiments/rpc-batching/isolated.js": "67d337595059e9771a86c4e106fd88c7c3e1b61cfbec3618ac873f2bfa794007",
+        "tests/e2e/puppeteer-helper.js": "08e5581df647bf1e3c04559280a766b62aad128ce0fe8d4dbe6a65b53f124d5d",
+        "node_modules/birpc/dist/index.mjs": "c6da1d8c0b904eee09fa410bc162146bdc642ae39537c3658aab1082b6db35ce",
+        "node_modules/penpal/dist/penpal.mjs": "f354b6819a69c01254810ac9dda796ba2356c82802218f5ac7752a2a3f30fe75"
+      },
+      "libraries": {
+        "birpc": "4.2.0",
+        "penpal": "8.0.1"
+      },
+      "gitHead": "3a3c6bbfeaa2a09169fcd4781b6be85b7c16b807",
+      "dirty": true
+    },
+    "chrome": {
+      "timestamp": "2026-11-13T09:38:18.383Z",
+      "runtime": "HeadlessChrome/155.0.8059.79",
+      "platform": "darwin",
+      "arch": "arm64",
+      "cpu": "Apple M1 Max",
+      "hashes": {
+        "dist/crossbus.min.js": "a4cbc5b9610d41a4c0d73b7b3221f75084909f7e3e1c9da3613f40a72e5caff3",
+        "src/common/types.js": "06812e928d74038cf18f5d5b6988294775b28276b4f6bad89e72d62acfc30563",
+        "experiments/rpc-batching/transport.js": "04f179bd755e96341e6f98c275fd17b07817edfd82a2344adef1719230b9e021",
+        "experiments/rpc-batching/group-transport.js": "7532b88a9327f12984ab9de52200d7c72514c598f049b94d03dc744db1a345cb",
+        "experiments/rpc-batching/endpoints.js": "f98d68c4405322f78728097fb8e8cae30f5794d3fbc111a5f40d3c8b5094dc6c",
+        "experiments/rpc-batching/worker.js": "d4dc869c9a247904665176262b0abcd41d9b54a9406d8f4d1730bc2f811f76ef",
+        "experiments/rpc-batching/workloads.js": "c2f2035eb9f0fd7e0d160137c8d310f2923fff4ad7e080de57ab696fbe595d60",
+        "experiments/rpc-batching/run.js": "aa298664de2da0bd44cadca8be97b80d2daa1b70de7a78aafa3f3394db8d2845",
+        "experiments/rpc-batching/isolated.js": "67d337595059e9771a86c4e106fd88c7c3e1b61cfbec3618ac873f2bfa794007",
+        "tests/e2e/puppeteer-helper.js": "08e5581df647bf1e3c04559280a766b62aad128ce0fe8d4dbe6a65b53f124d5d",
+        "node_modules/birpc/dist/index.mjs": "c6da1d8c0b904eee09fa410bc162146bdc642ae39537c3658aab1082b6db35ce",
+        "node_modules/penpal/dist/penpal.mjs": "f354b6819a69c01254810ac9dda796ba2356c82802218f5ac7752a2a3f30fe75"
+      },
+      "libraries": {
+        "birpc": "4.2.0",
+        "penpal": "8.0.1"
+      },
+      "gitHead": "3a3c6bbfeaa2a09169fcd4781b6be85b7c16b807",
+      "dirty": true,
+      "headless": true
+    },
+    "chrome-worker": {
+      "timestamp": "2026-11-13T09:38:49.033Z",
+      "runtime": "HeadlessChrome/155.0.8059.79",
+      "platform": "darwin",
+      "arch": "arm64",
+      "cpu": "Apple M1 Max",
+      "hashes": {
+        "dist/crossbus.min.js": "a4cbc5b9610d41a4c0d73b7b3221f75084909f7e3e1c9da3613f40a72e5caff3",
+        "src/common/types.js": "06812e928d74038cf18f5d5b6988294775b28276b4f6bad89e72d62acfc30563",
+        "experiments/rpc-batching/transport.js": "04f179bd755e96341e6f98c275fd17b07817edfd82a2344adef1719230b9e021",
+        "experiments/rpc-batching/group-transport.js": "7532b88a9327f12984ab9de52200d7c72514c598f049b94d03dc744db1a345cb",
+        "experiments/rpc-batching/endpoints.js": "f98d68c4405322f78728097fb8e8cae30f5794d3fbc111a5f40d3c8b5094dc6c",
+        "experiments/rpc-batching/worker.js": "d4dc869c9a247904665176262b0abcd41d9b54a9406d8f4d1730bc2f811f76ef",
+        "experiments/rpc-batching/workloads.js": "c2f2035eb9f0fd7e0d160137c8d310f2923fff4ad7e080de57ab696fbe595d60",
+        "experiments/rpc-batching/run.js": "aa298664de2da0bd44cadca8be97b80d2daa1b70de7a78aafa3f3394db8d2845",
+        "experiments/rpc-batching/isolated.js": "67d337595059e9771a86c4e106fd88c7c3e1b61cfbec3618ac873f2bfa794007",
+        "tests/e2e/puppeteer-helper.js": "08e5581df647bf1e3c04559280a766b62aad128ce0fe8d4dbe6a65b53f124d5d",
+        "node_modules/birpc/dist/index.mjs": "c6da1d8c0b904eee09fa410bc162146bdc642ae39537c3658aab1082b6db35ce",
+        "node_modules/penpal/dist/penpal.mjs": "f354b6819a69c01254810ac9dda796ba2356c82802218f5ac7752a2a3f30fe75"
+      },
+      "libraries": {
+        "birpc": "4.2.0",
+        "penpal": "8.0.1"
+      },
+      "gitHead": "3a3c6bbfeaa2a09169fcd4781b6be85b7c16b807",
+      "dirty": true,
+      "headless": true
+    }
+  },
+  "checkedLogicalCalls": 21430272,
+  "paired": [
+    {
+      "runtime": "node",
+      "concurrency": 16,
+      "throughputRatio": {
+        "median": 1.1727958783116401,
+        "min": 1.1632394605904715,
+        "max": 1.2373331204024427,
+        "samples": [
+          1.2373331204024427,
+          1.1727958783116401,
+          1.1632394605904715
+        ]
+      },
+      "controls": {
+        "birpc": {
+          "median": 1.0106132897963902,
+          "min": 0.978790789074018,
+          "max": 1.049068911424193,
+          "samples": [
+            1.049068911424193,
+            0.978790789074018,
+            1.0106132897963902
+          ]
+        },
+        "penpal": {
+          "median": 1.000240127056027,
+          "min": 0.9703632286468004,
+          "max": 1.0016562489098007,
+          "samples": [
+            1.0016562489098007,
+            0.9703632286468004,
+            1.000240127056027
+          ]
+        }
+      },
+      "latencyMs": {
+        "stock": {
+          "p50": {
+            "median": 0.10808299999996507,
+            "min": 0.10429199999998673,
+            "max": 0.110416999999984,
+            "samples": [
+              0.110416999999984,
+              0.10429199999998673,
+              0.10808299999996507
+            ]
+          },
+          "p95": {
+            "median": 0.12774999999999181,
+            "min": 0.12683300000003328,
+            "max": 0.13037499999995816,
+            "samples": [
+              0.13037499999995816,
+              0.12683300000003328,
+              0.12774999999999181
+            ]
+          },
+          "p99": {
+            "median": 0.14216700000008586,
+            "min": 0.1369999999999436,
+            "max": 0.16391599999997197,
+            "samples": [
+              0.14216700000008586,
+              0.1369999999999436,
+              0.16391599999997197
+            ]
+          }
+        },
+        "group": {
+          "p50": {
+            "median": 0.08358299999997598,
+            "min": 0.0833749999999327,
+            "max": 0.08808299999998326,
+            "samples": [
+              0.08808299999998326,
+              0.08358299999997598,
+              0.0833749999999327
+            ]
+          },
+          "p95": {
+            "median": 0.11349999999993088,
+            "min": 0.10133399999995163,
+            "max": 0.12016600000004019,
+            "samples": [
+              0.11349999999993088,
+              0.12016600000004019,
+              0.10133399999995163
+            ]
+          },
+          "p99": {
+            "median": 0.14512500000000728,
+            "min": 0.13954200000000583,
+            "max": 0.19612500000005184,
+            "samples": [
+              0.14512500000000728,
+              0.19612500000005184,
+              0.13954200000000583
+            ]
+          }
+        }
+      }
+    },
+    {
+      "runtime": "node",
+      "concurrency": 64,
+      "throughputRatio": {
+        "median": 1.3434438399998803,
+        "min": 1.2870348264120595,
+        "max": 1.365433338132403,
+        "samples": [
+          1.365433338132403,
+          1.2870348264120595,
+          1.3434438399998803
+        ]
+      },
+      "controls": {
+        "birpc": {
+          "median": 0.9840611095836354,
+          "min": 0.9782010342444554,
+          "max": 1.0070768609224583,
+          "samples": [
+            1.0070768609224583,
+            0.9782010342444554,
+            0.9840611095836354
+          ]
+        },
+        "penpal": {
+          "median": 0.9352413423816293,
+          "min": 0.9260133252069394,
+          "max": 1.0279090066368737,
+          "samples": [
+            1.0279090066368737,
+            0.9260133252069394,
+            0.9352413423816293
+          ]
+        }
+      },
+      "latencyMs": {
+        "stock": {
+          "p50": {
+            "median": 0.42058300000007875,
+            "min": 0.41416700000013407,
+            "max": 0.4315839999999298,
+            "samples": [
+              0.4315839999999298,
+              0.41416700000013407,
+              0.42058300000007875
+            ]
+          },
+          "p95": {
+            "median": 0.4837079999999787,
+            "min": 0.46612500000014734,
+            "max": 0.5550419999999576,
+            "samples": [
+              0.5550419999999576,
+              0.4837079999999787,
+              0.46612500000014734
+            ]
+          },
+          "p99": {
+            "median": 0.5332089999999425,
+            "min": 0.5254170000000613,
+            "max": 0.7881250000000364,
+            "samples": [
+              0.7881250000000364,
+              0.5254170000000613,
+              0.5332089999999425
+            ]
+          }
+        },
+        "group": {
+          "p50": {
+            "median": 0.3244170000000395,
+            "min": 0.32262500000001637,
+            "max": 0.3300829999998314,
+            "samples": [
+              0.3300829999998314,
+              0.3244170000000395,
+              0.32262500000001637
+            ]
+          },
+          "p95": {
+            "median": 0.4702079999999569,
+            "min": 0.3893749999999727,
+            "max": 0.49566699999991215,
+            "samples": [
+              0.49566699999991215,
+              0.4702079999999569,
+              0.3893749999999727
+            ]
+          },
+          "p99": {
+            "median": 0.5360410000000684,
+            "min": 0.4254160000000411,
+            "max": 0.8152500000001055,
+            "samples": [
+              0.8152500000001055,
+              0.5360410000000684,
+              0.4254160000000411
+            ]
+          }
+        }
+      }
+    },
+    {
+      "runtime": "bun",
+      "concurrency": 16,
+      "throughputRatio": {
+        "median": 1.6871522434825543,
+        "min": 1.605957750650227,
+        "max": 1.7397387939219018,
+        "samples": [
+          1.605957750650227,
+          1.6871522434825543,
+          1.7397387939219018
+        ]
+      },
+      "controls": {
+        "birpc": {
+          "median": 1.0198998147345024,
+          "min": 0.9676751297480903,
+          "max": 1.0237428954280208,
+          "samples": [
+            0.9676751297480903,
+            1.0237428954280208,
+            1.0198998147345024
+          ]
+        },
+        "penpal": {
+          "median": 0.9941287299375153,
+          "min": 0.990344087439324,
+          "max": 1.0254670068039144,
+          "samples": [
+            0.9941287299375153,
+            1.0254670068039144,
+            0.990344087439324
+          ]
+        }
+      },
+      "latencyMs": {
+        "stock": {
+          "p50": {
+            "median": 0.15845899999999347,
+            "min": 0.15837499999997817,
+            "max": 0.16075000000000728,
+            "samples": [
+              0.15845899999999347,
+              0.15837499999997817,
+              0.16075000000000728
+            ]
+          },
+          "p95": {
+            "median": 0.23366699999996854,
+            "min": 0.21145799999999326,
+            "max": 0.36883400000010624,
+            "samples": [
+              0.36883400000010624,
+              0.23366699999996854,
+              0.21145799999999326
+            ]
+          },
+          "p99": {
+            "median": 0.2519999999999527,
+            "min": 0.22441700000013043,
+            "max": 0.5251670000000104,
+            "samples": [
+              0.5251670000000104,
+              0.2519999999999527,
+              0.22441700000013043
+            ]
+          }
+        },
+        "group": {
+          "p50": {
+            "median": 0.0909999999998945,
+            "min": 0.08895800000004783,
+            "max": 0.09633300000018608,
+            "samples": [
+              0.09633300000018608,
+              0.08895800000004783,
+              0.0909999999998945
+            ]
+          },
+          "p95": {
+            "median": 0.1344169999999849,
+            "min": 0.12183299999992414,
+            "max": 0.13670799999999872,
+            "samples": [
+              0.13670799999999872,
+              0.1344169999999849,
+              0.12183299999992414
+            ]
+          },
+          "p99": {
+            "median": 0.1586250000000291,
+            "min": 0.14566599999989194,
+            "max": 0.19074999999998,
+            "samples": [
+              0.19074999999998,
+              0.14566599999989194,
+              0.1586250000000291
+            ]
+          }
+        }
+      }
+    },
+    {
+      "runtime": "bun",
+      "concurrency": 64,
+      "throughputRatio": {
+        "median": 1.9134447613218988,
+        "min": 1.820804431758389,
+        "max": 1.9649354339095495,
+        "samples": [
+          1.9649354339095495,
+          1.820804431758389,
+          1.9134447613218988
+        ]
+      },
+      "controls": {
+        "birpc": {
+          "median": 0.9907318138551103,
+          "min": 0.9604383351166913,
+          "max": 1.0106441685552008,
+          "samples": [
+            0.9604383351166913,
+            0.9907318138551103,
+            1.0106441685552008
+          ]
+        },
+        "penpal": {
+          "median": 0.9886254938099815,
+          "min": 0.9753093583374343,
+          "max": 1.0043758133694891,
+          "samples": [
+            0.9753093583374343,
+            0.9886254938099815,
+            1.0043758133694891
+          ]
+        }
+      },
+      "latencyMs": {
+        "stock": {
+          "p50": {
+            "median": 0.6013339999999516,
+            "min": 0.5835000000001855,
+            "max": 0.6078330000000278,
+            "samples": [
+              0.6078330000000278,
+              0.6013339999999516,
+              0.5835000000001855
+            ]
+          },
+          "p95": {
+            "median": 0.7365840000002208,
+            "min": 0.6813339999998789,
+            "max": 0.7975839999999152,
+            "samples": [
+              0.7975839999999152,
+              0.6813339999998789,
+              0.7365840000002208
+            ]
+          },
+          "p99": {
+            "median": 1.6042500000003201,
+            "min": 1.419166000000132,
+            "max": 1.6935829999997623,
+            "samples": [
+              1.6042500000003201,
+              1.419166000000132,
+              1.6935829999997623
+            ]
+          }
+        },
+        "group": {
+          "p50": {
+            "median": 0.3223750000001928,
+            "min": 0.32162500000004,
+            "max": 0.33425000000033833,
+            "samples": [
+              0.32162500000004,
+              0.3223750000001928,
+              0.33425000000033833
+            ]
+          },
+          "p95": {
+            "median": 0.4074169999998958,
+            "min": 0.3759580000000824,
+            "max": 0.4793750000003456,
+            "samples": [
+              0.3759580000000824,
+              0.4793750000003456,
+              0.4074169999998958
+            ]
+          },
+          "p99": {
+            "median": 0.7474170000000413,
+            "min": 0.5882920000001377,
+            "max": 0.9204999999997199,
+            "samples": [
+              0.9204999999997199,
+              0.7474170000000413,
+              0.5882920000001377
+            ]
+          }
+        }
+      }
+    },
+    {
+      "runtime": "chrome",
+      "concurrency": 16,
+      "throughputRatio": {
+        "median": 1.8087248322385714,
+        "min": 1.6859756097599932,
+        "max": 1.8841059602656154,
+        "samples": [
+          1.8087248322385714,
+          1.6859756097599932,
+          1.8841059602656154
+        ]
+      },
+      "controls": {
+        "birpc": {
+          "median": 0.9881516587457555,
+          "min": 0.9425837320705287,
+          "max": 1.0126903553298292,
+          "samples": [
+            0.9881516587457555,
+            1.0126903553298292,
+            0.9425837320705287
+          ]
+        },
+        "penpal": {
+          "median": 1.0394431554570989,
+          "min": 0.9568181818097152,
+          "max": 1.0778032036695202,
+          "samples": [
+            1.0394431554570989,
+            1.0778032036695202,
+            0.9568181818097152
+          ]
+        }
+      },
+      "latencyMs": {
+        "stock": {
+          "p50": {
+            "median": 0.20000000018626451,
+            "min": 0.20000000018626451,
+            "max": 0.20000000018626451,
+            "samples": [
+              0.20000000018626451,
+              0.20000000018626451,
+              0.20000000018626451
+            ]
+          },
+          "p95": {
+            "median": 0.2999999998137355,
+            "min": 0.2999999998137355,
+            "max": 0.2999999998137355,
+            "samples": [
+              0.2999999998137355,
+              0.2999999998137355,
+              0.2999999998137355
+            ]
+          },
+          "p99": {
+            "median": 0.30000000074505806,
+            "min": 0.2999999998137355,
+            "max": 0.30000000074505806,
+            "samples": [
+              0.30000000074505806,
+              0.30000000074505806,
+              0.2999999998137355
+            ]
+          }
+        },
+        "group": {
+          "p50": {
+            "median": 0.09999999962747097,
+            "min": 0.09999999962747097,
+            "max": 0.10000000055879354,
+            "samples": [
+              0.09999999962747097,
+              0.10000000055879354,
+              0.09999999962747097
+            ]
+          },
+          "p95": {
+            "median": 0.20000000018626451,
+            "min": 0.20000000018626451,
+            "max": 0.2999999998137355,
+            "samples": [
+              0.20000000018626451,
+              0.20000000018626451,
+              0.2999999998137355
+            ]
+          },
+          "p99": {
+            "median": 0.20000000018626451,
+            "min": 0.20000000018626451,
+            "max": 0.40000000037252903,
+            "samples": [
+              0.20000000018626451,
+              0.20000000018626451,
+              0.40000000037252903
+            ]
+          }
+        }
+      }
+    },
+    {
+      "runtime": "chrome",
+      "concurrency": 64,
+      "throughputRatio": {
+        "median": 1.9999999999658855,
+        "min": 1.8530465950258688,
+        "max": 2.0597014925585793,
+        "samples": [
+          1.8530465950258688,
+          1.9999999999658855,
+          2.0597014925585793
+        ]
+      },
+      "controls": {
+        "birpc": {
+          "median": 0.9952038369260103,
+          "min": 0.9304556354829839,
+          "max": 1,
+          "samples": [
+            1,
+            0.9304556354829839,
+            0.9952038369260103
+          ]
+        },
+        "penpal": {
+          "median": 0.9817767653798652,
+          "min": 0.9552572706728637,
+          "max": 1.0885780885729777,
+          "samples": [
+            0.9552572706728637,
+            1.0885780885729777,
+            0.9817767653798652
+          ]
+        }
+      },
+      "latencyMs": {
+        "stock": {
+          "p50": {
+            "median": 0.7999999998137355,
+            "min": 0.7999999998137355,
+            "max": 0.7999999998137355,
+            "samples": [
+              0.7999999998137355,
+              0.7999999998137355,
+              0.7999999998137355
+            ]
+          },
+          "p95": {
+            "median": 1,
+            "min": 0.900000000372529,
+            "max": 1,
+            "samples": [
+              0.900000000372529,
+              1,
+              1
+            ]
+          },
+          "p99": {
+            "median": 1.5,
+            "min": 1.400000000372529,
+            "max": 2,
+            "samples": [
+              1.5,
+              2,
+              1.400000000372529
+            ]
+          }
+        },
+        "group": {
+          "p50": {
+            "median": 0.39999999944120646,
+            "min": 0.39999999944120646,
+            "max": 0.39999999944120646,
+            "samples": [
+              0.39999999944120646,
+              0.39999999944120646,
+              0.39999999944120646
+            ]
+          },
+          "p95": {
+            "median": 0.5,
+            "min": 0.5,
+            "max": 0.5,
+            "samples": [
+              0.5,
+              0.5,
+              0.5
+            ]
+          },
+          "p99": {
+            "median": 1.5,
+            "min": 0.7000000001862645,
+            "max": 2,
+            "samples": [
+              1.5,
+              0.7000000001862645,
+              2
+            ]
+          }
+        }
+      }
+    },
+    {
+      "runtime": "chrome-worker",
+      "concurrency": 16,
+      "throughputRatio": {
+        "median": 1.2123655914068003,
+        "min": 0.9484536082244094,
+        "max": 1.3480825958979223,
+        "samples": [
+          1.3480825958979223,
+          0.9484536082244094,
+          1.2123655914068003
+        ]
+      },
+      "controls": {
+        "birpc": {
+          "median": 1.0409556314059347,
+          "min": 0.9794520547755148,
+          "max": 1.050167224112353,
+          "samples": [
+            0.9794520547755148,
+            1.050167224112353,
+            1.0409556314059347
+          ]
+        },
+        "penpal": {
+          "median": 1.033003300330236,
+          "min": 1.0000000000312523,
+          "max": 1.1144781144585816,
+          "samples": [
+            1.0000000000312523,
+            1.033003300330236,
+            1.1144781144585816
+          ]
+        }
+      },
+      "latencyMs": {
+        "stock": {
+          "p50": {
+            "median": 0.10000000055879354,
+            "min": 0.10000000055879354,
+            "max": 0.10000000055879354,
+            "samples": [
+              0.10000000055879354,
+              0.10000000055879354,
+              0.10000000055879354
+            ]
+          },
+          "p95": {
+            "median": 0.20000000018626451,
+            "min": 0.20000000018626451,
+            "max": 0.2999999998137355,
+            "samples": [
+              0.20000000018626451,
+              0.2999999998137355,
+              0.20000000018626451
+            ]
+          },
+          "p99": {
+            "median": 0.2999999998137355,
+            "min": 0.2999999998137355,
+            "max": 1.800000000745058,
+            "samples": [
+              0.2999999998137355,
+              1.800000000745058,
+              0.2999999998137355
+            ]
+          }
+        },
+        "group": {
+          "p50": {
+            "median": 0.10000000055879354,
+            "min": 0.10000000055879354,
+            "max": 0.10000000055879354,
+            "samples": [
+              0.10000000055879354,
+              0.10000000055879354,
+              0.10000000055879354
+            ]
+          },
+          "p95": {
+            "median": 0.20000000018626451,
+            "min": 0.20000000018626451,
+            "max": 0.20000000018626451,
+            "samples": [
+              0.20000000018626451,
+              0.20000000018626451,
+              0.20000000018626451
+            ]
+          },
+          "p99": {
+            "median": 0.39999999944120646,
+            "min": 0.20000000018626451,
+            "max": 1.599999999627471,
+            "samples": [
+              0.20000000018626451,
+              1.599999999627471,
+              0.39999999944120646
+            ]
+          }
+        }
+      }
+    },
+    {
+      "runtime": "chrome-worker",
+      "concurrency": 64,
+      "throughputRatio": {
+        "median": 1.0869565217255879,
+        "min": 1.044871794883467,
+        "max": 1.1764705882580415,
+        "samples": [
+          1.0869565217255879,
+          1.044871794883467,
+          1.1764705882580415
+        ]
+      },
+      "controls": {
+        "birpc": {
+          "median": 1.0901639343943177,
+          "min": 0.8993506493621357,
+          "max": 1.0920000000298025,
+          "samples": [
+            1.0901639343943177,
+            1.0920000000298025,
+            0.8993506493621357
+          ]
+        },
+        "penpal": {
+          "median": 0.9700996677622652,
+          "min": 0.9617834394849671,
+          "max": 1.0352112675723792,
+          "samples": [
+            0.9617834394849671,
+            1.0352112675723792,
+            0.9700996677622652
+          ]
+        }
+      },
+      "latencyMs": {
+        "stock": {
+          "p50": {
+            "median": 0.5,
+            "min": 0.40000000037252903,
+            "max": 0.5,
+            "samples": [
+              0.5,
+              0.40000000037252903,
+              0.5
+            ]
+          },
+          "p95": {
+            "median": 0.7000000001862645,
+            "min": 0.5,
+            "max": 0.7000000001862645,
+            "samples": [
+              0.7000000001862645,
+              0.5,
+              0.7000000001862645
+            ]
+          },
+          "p99": {
+            "median": 2.7999999998137355,
+            "min": 2.599999999627471,
+            "max": 5.2999999998137355,
+            "samples": [
+              2.7999999998137355,
+              5.2999999998137355,
+              2.599999999627471
+            ]
+          }
+        },
+        "group": {
+          "p50": {
+            "median": 0.40000000037252903,
+            "min": 0.40000000037252903,
+            "max": 0.40000000037252903,
+            "samples": [
+              0.40000000037252903,
+              0.40000000037252903,
+              0.40000000037252903
+            ]
+          },
+          "p95": {
+            "median": 0.599999999627471,
+            "min": 0.5,
+            "max": 0.6000000005587935,
+            "samples": [
+              0.5,
+              0.599999999627471,
+              0.6000000005587935
+            ]
+          },
+          "p99": {
+            "median": 1.5,
+            "min": 1.5,
+            "max": 1.599999999627471,
+            "samples": [
+              1.5,
+              1.5,
+              1.599999999627471
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "primary": [
+    {
+      "runtime": "node",
+      "concurrency": 1,
+      "rates": {
+        "stock": {
+          "median": 103191.02369098103,
+          "min": 100952.38569391353,
+          "max": 104795.8961763316,
+          "samples": [
+            103191.02369098103,
+            104795.8961763316,
+            100952.38569391353
+          ]
+        },
+        "batch16": {
+          "median": 98777.24097127547,
+          "min": 95687.05548503625,
+          "max": 100262.11836966273,
+          "samples": [
+            98777.24097127547,
+            100262.11836966273,
+            95687.05548503625
+          ]
+        },
+        "batch64": {
+          "median": 100492.11449712292,
+          "min": 99159.64860783693,
+          "max": 102251.20404786973,
+          "samples": [
+            99159.64860783693,
+            102251.20404786973,
+            100492.11449712292
+          ]
+        },
+        "group": {
+          "median": 98327.40192165738,
+          "min": 96461.20665150911,
+          "max": 99315.9300108809,
+          "samples": [
+            96461.20665150911,
+            99315.9300108809,
+            98327.40192165738
+          ]
+        },
+        "birpc": {
+          "median": 146687.13935904912,
+          "min": 141584.15454850666,
+          "max": 150905.62533139563,
+          "samples": [
+            141584.15454850666,
+            150905.62533139563,
+            146687.13935904912
+          ]
+        },
+        "penpal": {
+          "median": 126897.25099226028,
+          "min": 124006.59996064217,
+          "max": 130929.9002081454,
+          "samples": [
+            124006.59996064217,
+            130929.9002081454,
+            126897.25099226028
+          ]
+        }
+      }
+    },
+    {
+      "runtime": "node",
+      "concurrency": 16,
+      "rates": {
+        "stock": {
+          "median": 141485.72515769256,
+          "min": 138320.55010785116,
+          "max": 144960.577871755,
+          "samples": [
+            144960.577871755,
+            141485.72515769256,
+            138320.55010785116
+          ]
+        },
+        "batch16": {
+          "median": 104505.79170281177,
+          "min": 103425.74812785156,
+          "max": 104522.01642975898,
+          "samples": [
+            104505.79170281177,
+            103425.74812785156,
+            104522.01642975898
+          ]
+        },
+        "batch64": {
+          "median": 103948.83768145368,
+          "min": 102632.31337293508,
+          "max": 105801.86044409165,
+          "samples": [
+            105801.86044409165,
+            103948.83768145368,
+            102632.31337293508
+          ]
+        },
+        "group": {
+          "median": 182501.37109947315,
+          "min": 178369.05105356945,
+          "max": 182782.34081615068,
+          "samples": [
+            178369.05105356945,
+            182501.37109947315,
+            182782.34081615068
+          ]
+        },
+        "birpc": {
+          "median": 197233.62505868732,
+          "min": 194500.39681214897,
+          "max": 198333.89841062968,
+          "samples": [
+            197233.62505868732,
+            198333.89841062968,
+            194500.39681214897
+          ]
+        },
+        "penpal": {
+          "median": 177584.12321632708,
+          "min": 176878.92728112562,
+          "max": 184952.65645477452,
+          "samples": [
+            177584.12321632708,
+            184952.65645477452,
+            176878.92728112562
+          ]
+        }
+      }
+    },
+    {
+      "runtime": "node",
+      "concurrency": 64,
+      "rates": {
+        "stock": {
+          "median": 145306.40619263542,
+          "min": 142377.32946917147,
+          "max": 145315.64413376607,
+          "samples": [
+            145315.64413376607,
+            145306.40619263542,
+            142377.32946917147
+          ]
+        },
+        "batch16": {
+          "median": 104388.38207259196,
+          "min": 103624.93218904304,
+          "max": 106565.60417689328,
+          "samples": [
+            106565.60417689328,
+            103624.93218904304,
+            104388.38207259196
+          ]
+        },
+        "batch64": {
+          "median": 109680.0107109378,
+          "min": 107672.59225183127,
+          "max": 111374.58947954362,
+          "samples": [
+            111374.58947954362,
+            109680.0107109378,
+            107672.59225183127
+          ]
+        },
+        "group": {
+          "median": 200412.2248521471,
+          "min": 197998.34118381477,
+          "max": 202750.94822945812,
+          "samples": [
+            200412.2248521471,
+            202750.94822945812,
+            197998.34118381477
+          ]
+        },
+        "birpc": {
+          "median": 200289.32418783387,
+          "min": 194812.61010229433,
+          "max": 201183.3075616323,
+          "samples": [
+            201183.3075616323,
+            194812.61010229433,
+            200289.32418783387
+          ]
+        },
+        "penpal": {
+          "median": 186002.85806833138,
+          "min": 183888.43682481954,
+          "max": 192199.3257163446,
+          "samples": [
+            183888.43682481954,
+            192199.3257163446,
+            186002.85806833138
+          ]
+        }
+      }
+    },
+    {
+      "runtime": "bun",
+      "concurrency": 1,
+      "rates": {
+        "stock": {
+          "median": 80114.8129766045,
+          "min": 79123.76610582022,
+          "max": 81756.5555643779,
+          "samples": [
+            79123.76610582022,
+            81756.5555643779,
+            80114.8129766045
+          ]
+        },
+        "batch16": {
+          "median": 76571.48198345552,
+          "min": 76251.58383531212,
+          "max": 77941.7249740606,
+          "samples": [
+            76251.58383531212,
+            77941.7249740606,
+            76571.48198345552
+          ]
+        },
+        "batch64": {
+          "median": 77928.1314656707,
+          "min": 77872.57301741946,
+          "max": 78569.97278536399,
+          "samples": [
+            77872.57301741946,
+            78569.97278536399,
+            77928.1314656707
+          ]
+        },
+        "group": {
+          "median": 78139.91592938646,
+          "min": 77521.67886368198,
+          "max": 79071.57767314381,
+          "samples": [
+            78139.91592938646,
+            79071.57767314381,
+            77521.67886368198
+          ]
+        },
+        "birpc": {
+          "median": 104220.93515134726,
+          "min": 102213.99352992396,
+          "max": 106335.40695165122,
+          "samples": [
+            102213.99352992396,
+            104220.93515134726,
+            106335.40695165122
+          ]
+        },
+        "penpal": {
+          "median": 90253.64424979321,
+          "min": 88905.12642239514,
+          "max": 91448.13275571873,
+          "samples": [
+            90253.64424979321,
+            88905.12642239514,
+            91448.13275571873
+          ]
+        }
+      }
+    },
+    {
+      "runtime": "bun",
+      "concurrency": 16,
+      "rates": {
+        "stock": {
+          "median": 95033.05867402793,
+          "min": 90355.3495451627,
+          "max": 96082.38388839165,
+          "samples": [
+            95033.05867402793,
+            96082.38388839165,
+            90355.3495451627
+          ]
+        },
+        "batch16": {
+          "median": 73420.80734208072,
+          "min": 72594.40254266073,
+          "max": 74505.80378565528,
+          "samples": [
+            74505.80378565528,
+            73420.80734208072,
+            72594.40254266073
+          ]
+        },
+        "batch64": {
+          "median": 73993.67339640569,
+          "min": 73053.49706162956,
+          "max": 74122.89014196866,
+          "samples": [
+            73053.49706162956,
+            73993.67339640569,
+            74122.89014196866
+          ]
+        },
+        "group": {
+          "median": 153364.6772392428,
+          "min": 152148.4053168112,
+          "max": 156217.87374277433,
+          "samples": [
+            152148.4053168112,
+            153364.6772392428,
+            156217.87374277433
+          ]
+        },
+        "birpc": {
+          "median": 127482.76259379247,
+          "min": 125082.54730485544,
+          "max": 130171.38893889035,
+          "samples": [
+            130171.38893889035,
+            127482.76259379247,
+            125082.54730485544
+          ]
+        },
+        "penpal": {
+          "median": 112440.85291328146,
+          "min": 111821.16824947168,
+          "max": 112620.6785148413,
+          "samples": [
+            111821.16824947168,
+            112620.6785148413,
+            112440.85291328146
+          ]
+        }
+      }
+    },
+    {
+      "runtime": "bun",
+      "concurrency": 64,
+      "rates": {
+        "stock": {
+          "median": 97759.38403568821,
+          "min": 95061.6361917846,
+          "max": 98543.46218981576,
+          "samples": [
+            98543.46218981576,
+            95061.6361917846,
+            97759.38403568821
+          ]
+        },
+        "batch16": {
+          "median": 74983.12376288646,
+          "min": 74674.12066072681,
+          "max": 75967.9717102392,
+          "samples": [
+            74983.12376288646,
+            74674.12066072681,
+            75967.9717102392
+          ]
+        },
+        "batch64": {
+          "median": 80282.17616912177,
+          "min": 79081.75578488069,
+          "max": 80391.09482563367,
+          "samples": [
+            79081.75578488069,
+            80282.17616912177,
+            80391.09482563367
+          ]
+        },
+        "group": {
+          "median": 183363.64399429047,
+          "min": 179463.82640625507,
+          "max": 183755.41149817134,
+          "samples": [
+            179463.82640625507,
+            183755.41149817134,
+            183363.64399429047
+          ]
+        },
+        "birpc": {
+          "median": 134108.02545511702,
+          "min": 129767.23509108888,
+          "max": 136719.23503452074,
+          "samples": [
+            134108.02545511702,
+            129767.23509108888,
+            136719.23503452074
+          ]
+        },
+        "penpal": {
+          "median": 115701.03755809285,
+          "min": 115218.67694753385,
+          "max": 116727.44463703505,
+          "samples": [
+            115218.67694753385,
+            115701.03755809285,
+            116727.44463703505
+          ]
+        }
+      }
+    },
+    {
+      "runtime": "chrome",
+      "concurrency": 1,
+      "rates": {
+        "stock": {
+          "median": 66601.62601626017,
+          "min": 64200.62695849791,
+          "max": 68609.715242667,
+          "samples": [
+            66601.62601626017,
+            68609.715242667,
+            64200.62695849791
+          ]
+        },
+        "batch16": {
+          "median": 64000,
+          "min": 61317.36526963206,
+          "max": 66601.62601626017,
+          "samples": [
+            64000,
+            66601.62601626017,
+            61317.36526963206
+          ]
+        },
+        "batch64": {
+          "median": 66171.24394243903,
+          "min": 65746.38844321422,
+          "max": 66818.92332809864,
+          "samples": [
+            66171.24394243903,
+            65746.38844321422,
+            66818.92332809864
+          ]
+        },
+        "group": {
+          "median": 66710.09772047683,
+          "min": 66601.62601626017,
+          "max": 67037.64320724289,
+          "samples": [
+            67037.64320724289,
+            66710.09772047683,
+            66601.62601626017
+          ]
+        },
+        "birpc": {
+          "median": 90220.26431829107,
+          "min": 89628.00875236992,
+          "max": 90619.46902617524,
+          "samples": [
+            90220.26431829107,
+            90619.46902617524,
+            89628.00875236992
+          ]
+        },
+        "penpal": {
+          "median": 83591.83673469388,
+          "min": 82414.4869212203,
+          "max": 84279.83538997747,
+          "samples": [
+            82414.4869212203,
+            84279.83538997747,
+            83591.83673469388
+          ]
+        }
+      }
+    },
+    {
+      "runtime": "chrome",
+      "concurrency": 16,
+      "rates": {
+        "stock": {
+          "median": 78167.93893074198,
+          "min": 77283.01886792452,
+          "max": 78467.43294991158,
+          "samples": [
+            78467.43294991158,
+            78167.93893074198,
+            77283.01886792452
+          ]
+        },
+        "batch16": {
+          "median": 85511.48225403225,
+          "min": 81108.91089108911,
+          "max": 86050.42016874067,
+          "samples": [
+            85511.48225403225,
+            81108.91089108911,
+            86050.42016874067
+          ]
+        },
+        "batch64": {
+          "median": 86779.6610166067,
+          "min": 86050.42016874067,
+          "max": 87896.99570885718,
+          "samples": [
+            87896.99570885718,
+            86779.6610166067,
+            86050.42016874067
+          ]
+        },
+        "group": {
+          "median": 141241.3793103448,
+          "min": 141241.3793103448,
+          "max": 145248.2269493952,
+          "samples": [
+            141241.3793103448,
+            145248.2269493952,
+            141241.3793103448
+          ]
+        },
+        "birpc": {
+          "median": 101637.71712205785,
+          "min": 90619.46902617524,
+          "max": 105025.64102564102,
+          "samples": [
+            101637.71712205785,
+            90619.46902617524,
+            105025.64102564102
+          ]
+        },
+        "penpal": {
+          "median": 93944.95412723633,
+          "min": 92044.94382022471,
+          "max": 95034.80278504416,
+          "samples": [
+            92044.94382022471,
+            93944.95412723633,
+            95034.80278504416
+          ]
+        }
+      }
+    },
+    {
+      "runtime": "chrome",
+      "concurrency": 64,
+      "rates": {
+        "stock": {
+          "median": 75294.1176465432,
+          "min": 74472.72727272726,
+          "max": 76275.60521388812,
+          "samples": [
+            74472.72727272726,
+            75294.1176465432,
+            76275.60521388812
+          ]
+        },
+        "batch16": {
+          "median": 84628.09917453077,
+          "min": 83252.03252001002,
+          "max": 86413.5021090255,
+          "samples": [
+            83252.03252001002,
+            86413.5021090255,
+            84628.09917453077
+          ]
+        },
+        "batch64": {
+          "median": 88086.02150537635,
+          "min": 87334.75479848192,
+          "max": 88275.86207002863,
+          "samples": [
+            88086.02150537635,
+            88275.86207002863,
+            87334.75479848192
+          ]
+        },
+        "group": {
+          "median": 155151.5151493258,
+          "min": 153984.9624081716,
+          "max": 159999.99999650754,
+          "samples": [
+            155151.5151493258,
+            159999.99999650754,
+            153984.9624081716
+          ]
+        },
+        "birpc": {
+          "median": 100886.69950831486,
+          "min": 99417.47572995319,
+          "max": 101890.54726557,
+          "samples": [
+            100886.69950831486,
+            101890.54726557,
+            99417.47572995319
+          ]
+        },
+        "penpal": {
+          "median": 93944.95412924305,
+          "min": 93515.9817355575,
+          "max": 96150.23474262486,
+          "samples": [
+            93515.9817355575,
+            96150.23474262486,
+            93944.95412924305
+          ]
+        }
+      }
+    },
+    {
+      "runtime": "chrome-worker",
+      "concurrency": 1,
+      "rates": {
+        "stock": {
+          "median": 36934.174932247435,
+          "min": 36669.65085043124,
+          "max": 38388.003748761475,
+          "samples": [
+            38388.003748761475,
+            36934.174932247435,
+            36669.65085043124
+          ]
+        },
+        "batch16": {
+          "median": 34948.80546069531,
+          "min": 34623.8377008153,
+          "max": 35249.569707344526,
+          "samples": [
+            34623.8377008153,
+            34948.80546069531,
+            35249.569707344526
+          ]
+        },
+        "batch64": {
+          "median": 34682.47248078425,
+          "min": 34623.8377008153,
+          "max": 34711.86440677966,
+          "samples": [
+            34682.47248078425,
+            34711.86440677966,
+            34623.8377008153
+          ]
+        },
+        "group": {
+          "median": 34536.25632388588,
+          "min": 34218.88053461676,
+          "max": 37406.39269406392,
+          "samples": [
+            34218.88053461676,
+            34536.25632388588,
+            37406.39269406392
+          ]
+        },
+        "birpc": {
+          "median": 46074.24071971694,
+          "min": 45867.86114231292,
+          "max": 46598.40728080365,
+          "samples": [
+            46074.24071971694,
+            46598.40728080365,
+            45867.86114231292
+          ]
+        },
+        "penpal": {
+          "median": 42010.256410256414,
+          "min": 42010.256410256414,
+          "max": 43161.2223391351,
+          "samples": [
+            42010.256410256414,
+            42010.256410256414,
+            43161.2223391351
+          ]
+        }
+      }
+    },
+    {
+      "runtime": "chrome-worker",
+      "concurrency": 16,
+      "rates": {
+        "stock": {
+          "median": 99902.43902439025,
+          "min": 97061.61137397916,
+          "max": 106389.6103896104,
+          "samples": [
+            97061.61137397916,
+            99902.43902439025,
+            106389.6103896104
+          ]
+        },
+        "batch16": {
+          "median": 79226.3056089989,
+          "min": 70620.6896551724,
+          "max": 79226.3056089989,
+          "samples": [
+            79226.3056089989,
+            79226.3056089989,
+            70620.6896551724
+          ]
+        },
+        "batch64": {
+          "median": 76275.60521388812,
+          "min": 75018.31501882685,
+          "max": 77283.01886792452,
+          "samples": [
+            76275.60521388812,
+            77283.01886792452,
+            75018.31501882685
+          ]
+        },
+        "group": {
+          "median": 117701.14942591735,
+          "min": 115056.17977648489,
+          "max": 121904.76190611348,
+          "samples": [
+            117701.14942591735,
+            121904.76190611348,
+            115056.17977648489
+          ]
+        },
+        "birpc": {
+          "median": 133856.2091519564,
+          "min": 125644.17177698745,
+          "max": 136533.33333333334,
+          "samples": [
+            133856.2091519564,
+            136533.33333333334,
+            125644.17177698745
+          ]
+        },
+        "penpal": {
+          "median": 132129.03225806452,
+          "min": 123373.49397521144,
+          "max": 147338.12949245414,
+          "samples": [
+            147338.12949245414,
+            132129.03225806452,
+            123373.49397521144
+          ]
+        }
+      }
+    },
+    {
+      "runtime": "chrome-worker",
+      "concurrency": 64,
+      "rates": {
+        "stock": {
+          "median": 117028.57142857142,
+          "min": 108359.78836032232,
+          "max": 118381.50289144799,
+          "samples": [
+            117028.57142857142,
+            118381.50289144799,
+            108359.78836032232
+          ]
+        },
+        "batch16": {
+          "median": 113462.60387636005,
+          "min": 111304.34782665032,
+          "max": 116695.1566932989,
+          "samples": [
+            111304.34782665032,
+            116695.1566932989,
+            113462.60387636005
+          ]
+        },
+        "batch64": {
+          "median": 84279.83539159253,
+          "min": 82580.64516035997,
+          "max": 90021.97802197802,
+          "samples": [
+            90021.97802197802,
+            84279.83539159253,
+            82580.64516035997
+          ]
+        },
+        "group": {
+          "median": 138847.45762711865,
+          "min": 132556.63430260902,
+          "max": 148945.45454545453,
+          "samples": [
+            148945.45454545453,
+            132556.63430260902,
+            138847.45762711865
+          ]
+        },
+        "birpc": {
+          "median": 162539.68254448817,
+          "min": 157538.46153846156,
+          "max": 167868.8524628608,
+          "samples": [
+            167868.8524628608,
+            157538.46153846156,
+            162539.68254448817
+          ]
+        },
+        "penpal": {
+          "median": 142717.7700385482,
+          "min": 132987.01298781723,
+          "max": 146285.7142857143,
+          "samples": [
+            142717.7700385482,
+            132987.01298781723,
+            146285.7142857143
+          ]
+        }
+      }
+    }
+  ],
+  "guards": [
+    {
+      "runtime": "node",
+      "textBytes": 0,
+      "concurrency": 1,
+      "groupRatio": {
+        "median": 0.9076732325227784,
+        "min": 0.8963786217159642,
+        "max": 0.9812741538925059,
+        "samples": [
+          0.8963786217159642,
+          0.9076732325227784,
+          0.9812741538925059
+        ]
+      }
+    },
+    {
+      "runtime": "node",
+      "textBytes": 0,
+      "concurrency": 64,
+      "groupRatio": {
+        "median": 1.42476606748456,
+        "min": 1.3091781888611906,
+        "max": 1.5770335056019997,
+        "samples": [
+          1.3091781888611906,
+          1.42476606748456,
+          1.5770335056019997
+        ]
+      }
+    },
+    {
+      "runtime": "node",
+      "textBytes": 65536,
+      "concurrency": 1,
+      "groupRatio": {
+        "median": 0.9782546083988836,
+        "min": 0.9706868372894608,
+        "max": 0.9840574230522453,
+        "samples": [
+          0.9706868372894608,
+          0.9840574230522453,
+          0.9782546083988836
+        ]
+      }
+    },
+    {
+      "runtime": "node",
+      "textBytes": 65536,
+      "concurrency": 64,
+      "groupRatio": {
+        "median": 0.6764450368064379,
+        "min": 0.6503151411669571,
+        "max": 0.6929728692026473,
+        "samples": [
+          0.6764450368064379,
+          0.6503151411669571,
+          0.6929728692026473
+        ]
+      }
+    },
+    {
+      "runtime": "bun",
+      "textBytes": 0,
+      "concurrency": 1,
+      "groupRatio": {
+        "median": 0.9551125043042951,
+        "min": 0.9222272160951939,
+        "max": 0.9805959259842851,
+        "samples": [
+          0.9551125043042951,
+          0.9805959259842851,
+          0.9222272160951939
+        ]
+      }
+    },
+    {
+      "runtime": "bun",
+      "textBytes": 0,
+      "concurrency": 64,
+      "groupRatio": {
+        "median": 1.4264505568719281,
+        "min": 1.3289249563572731,
+        "max": 1.5373482337093234,
+        "samples": [
+          1.3289249563572731,
+          1.4264505568719281,
+          1.5373482337093234
+        ]
+      }
+    },
+    {
+      "runtime": "bun",
+      "textBytes": 65536,
+      "concurrency": 1,
+      "groupRatio": {
+        "median": 1.0023461834900775,
+        "min": 0.9996910599117451,
+        "max": 1.0072034186106722,
+        "samples": [
+          1.0072034186106722,
+          1.0023461834900775,
+          0.9996910599117451
+        ]
+      }
+    },
+    {
+      "runtime": "bun",
+      "textBytes": 65536,
+      "concurrency": 64,
+      "groupRatio": {
+        "median": 4.535557960992232,
+        "min": 4.497921159427595,
+        "max": 4.701349271831247,
+        "samples": [
+          4.535557960992232,
+          4.497921159427595,
+          4.701349271831247
+        ]
+      }
+    },
+    {
+      "runtime": "chrome",
+      "textBytes": 0,
+      "concurrency": 1,
+      "groupRatio": {
+        "median": 1,
+        "min": 0.9641693810895076,
+        "max": 1.1100628930824057,
+        "samples": [
+          1,
+          0.9641693810895076,
+          1.1100628930824057
+        ]
+      }
+    },
+    {
+      "runtime": "chrome",
+      "textBytes": 0,
+      "concurrency": 64,
+      "groupRatio": {
+        "median": 1.9915966386087676,
+        "min": 1.896825396911044,
+        "max": 2.033613445411034,
+        "samples": [
+          1.9915966386087676,
+          1.896825396911044,
+          2.033613445411034
+        ]
+      }
+    },
+    {
+      "runtime": "chrome",
+      "textBytes": 65536,
+      "concurrency": 1,
+      "groupRatio": {
+        "median": 0.9816433566465234,
+        "min": 0.9589958159042575,
+        "max": 1.0142378559479142,
+        "samples": [
+          0.9816433566465234,
+          0.9589958159042575,
+          1.0142378559479142
+        ]
+      }
+    },
+    {
+      "runtime": "chrome",
+      "textBytes": 65536,
+      "concurrency": 64,
+      "groupRatio": {
+        "median": 0.8990306946686687,
+        "min": 0.8972809667634402,
+        "max": 0.9016393442649171,
+        "samples": [
+          0.8990306946686687,
+          0.8972809667634402,
+          0.9016393442649171
+        ]
+      }
+    },
+    {
+      "runtime": "chrome-worker",
+      "textBytes": 0,
+      "concurrency": 1,
+      "groupRatio": {
+        "median": 0.985507246370943,
+        "min": 0.969088098932122,
+        "max": 1.0059435364097122,
+        "samples": [
+          1.0059435364097122,
+          0.969088098932122,
+          0.985507246370943
+        ]
+      }
+    },
+    {
+      "runtime": "chrome-worker",
+      "textBytes": 0,
+      "concurrency": 64,
+      "groupRatio": {
+        "median": 1.16666666662355,
+        "min": 1.0506329113812132,
+        "max": 1.3030303029554722,
+        "samples": [
+          1.0506329113812132,
+          1.16666666662355,
+          1.3030303029554722
+        ]
+      }
+    },
+    {
+      "runtime": "chrome-worker",
+      "textBytes": 65536,
+      "concurrency": 1,
+      "groupRatio": {
+        "median": 0.9948415622751748,
+        "min": 0.9670722977770031,
+        "max": 1.0259552992042007,
+        "samples": [
+          0.9948415622751748,
+          0.9670722977770031,
+          1.0259552992042007
+        ]
+      }
+    },
+    {
+      "runtime": "chrome-worker",
+      "textBytes": 65536,
+      "concurrency": 64,
+      "groupRatio": {
+        "median": 0.5957926371222164,
+        "min": 0.5811638591050264,
+        "max": 0.6262295081921412,
+        "samples": [
+          0.5957926371222164,
+          0.6262295081921412,
+          0.5811638591050264
+        ]
+      }
+    }
+  ],
+  "hooks": [
+    {
+      "runtime": "node",
+      "concurrency": 16,
+      "groupRatio": {
+        "median": 0.9373246451997899,
+        "min": 0.9101728543898173,
+        "max": 0.9545601127685831,
+        "samples": [
+          0.9101728543898173,
+          0.9373246451997899,
+          0.9545601127685831
+        ]
+      }
+    },
+    {
+      "runtime": "node",
+      "concurrency": 64,
+      "groupRatio": {
+        "median": 0.9825209128478041,
+        "min": 0.9766991974896346,
+        "max": 0.9855470733011714,
+        "samples": [
+          0.9855470733011714,
+          0.9825209128478041,
+          0.9766991974896346
+        ]
+      }
+    },
+    {
+      "runtime": "chrome-worker",
+      "concurrency": 16,
+      "groupRatio": {
+        "median": 0.9602888086443538,
+        "min": 0.9163498098782569,
+        "max": 0.9891696750970498,
+        "samples": [
+          0.9163498098782569,
+          0.9602888086443538,
+          0.9891696750970498
+        ]
+      }
+    },
+    {
+      "runtime": "chrome-worker",
+      "concurrency": 64,
+      "groupRatio": {
+        "median": 0.9748743718597668,
+        "min": 0.9441860465029643,
+        "max": 0.9853658536221922,
+        "samples": [
+          0.9748743718597668,
+          0.9441860465029643,
+          0.9853658536221922
+        ]
+      }
+    }
+  ],
+  "lifecycle": {
+    "metadata": {
+      "timestamp": "2026-11-13T09:52:49.620Z",
+      "runtime": "v24.15.0",
+      "hashes": {
+        "dist/crossbus.min.js": "a4cbc5b9610d41a4c0d73b7b3221f75084909f7e3e1c9da3613f40a72e5caff3",
+        "experiments/rpc-batching/transport.js": "04f179bd755e96341e6f98c275fd17b07817edfd82a2344adef1719230b9e021",
+        "experiments/rpc-batching/group-transport.js": "7532b88a9327f12984ab9de52200d7c72514c598f049b94d03dc744db1a345cb",
+        "experiments/rpc-batching/lifecycle.js": "fe03de737c0d449293d8c1dfd36defd5809edde4c21c4dbea3b896f2d5731866"
+      }
+    },
+    "methodology": {
+      "rounds": 7,
+      "warmupRounds": 1,
+      "pairsPerRound": 20,
+      "pendingPerPair": 16,
+      "scope": "synchronous destruction and timer/queue cleanup; not universal leak freedom"
+    },
+    "results": [
+      {
+        "kind": "stock",
+        "round": 0,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      },
+      {
+        "kind": "stock",
+        "round": 1,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      },
+      {
+        "kind": "stock",
+        "round": 2,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      },
+      {
+        "kind": "stock",
+        "round": 3,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      },
+      {
+        "kind": "stock",
+        "round": 4,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      },
+      {
+        "kind": "stock",
+        "round": 5,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      },
+      {
+        "kind": "stock",
+        "round": 6,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      },
+      {
+        "kind": "batch16",
+        "round": 0,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      },
+      {
+        "kind": "batch16",
+        "round": 1,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      },
+      {
+        "kind": "batch16",
+        "round": 2,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      },
+      {
+        "kind": "batch16",
+        "round": 3,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      },
+      {
+        "kind": "batch16",
+        "round": 4,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      },
+      {
+        "kind": "batch16",
+        "round": 5,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      },
+      {
+        "kind": "batch16",
+        "round": 6,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      },
+      {
+        "kind": "group",
+        "round": 0,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      },
+      {
+        "kind": "group",
+        "round": 1,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      },
+      {
+        "kind": "group",
+        "round": 2,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      },
+      {
+        "kind": "group",
+        "round": 3,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      },
+      {
+        "kind": "group",
+        "round": 4,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      },
+      {
+        "kind": "group",
+        "round": 5,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      },
+      {
+        "kind": "group",
+        "round": 6,
+        "cancelled": 320,
+        "timeoutResources": 0,
+        "pendingAfter": 0,
+        "queuedAfter": 0
+      }
+    ]
+  }
+}
