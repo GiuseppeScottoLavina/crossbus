@@ -2,6 +2,10 @@
 
 Version **0.1.2** is [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.2). Version **0.1.3 is a prepared candidate**, not an npm publication. The commands below target that candidate. Publishing a GitHub release and publishing to npm are separate operations.
 
+The prepared GitHub release uses tag **`v0.1.3`** and attaches `crossbus-0.1.3.tgz`, `SHA256SUMS` and `release-manifest.json`. The manifest identifies the exact release commit, successful CI run, package integrity and measured runtime hash. Download the attached archive and verify its checksum before npm publication. Creating or pushing this tag does not trigger npm publication: the repository has no npm publishing workflow.
+
+The RPC grouping experiments and their tests/data remain in the repository, excluded from the npm archive and all 12 package exports. Release 0.1.3 keeps standard MessageChannel encoding as its default; the existing opt-in compact encoding is included. The bulk-RPC prototype is not a released API.
+
 ## Validate and pack
 
 Use Node 24 and Bun for development. Install the committed dependency versions:
