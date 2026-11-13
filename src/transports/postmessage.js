@@ -183,12 +183,13 @@ export class PostMessageTransport {
         // OR if the serializer is NOT JSON.
         let dataToSend = envelope;
         if (this.#contentType !== 'application/json') {
+            if (transfer?.length) throw new TypeError('Transfer lists require structured-clone PostMessage encoding');
             dataToSend = this.#serializer.serialize(envelope);
         }
 
         // Auto-detect transferables if enabled
         let transferables = transfer;
-        if (this.#autoTransfer && !transfer) {
+        if (this.#autoTransfer && !transfer && this.#contentType === 'application/json') {
             transferables = findTransferables(message);
             if (transferables.length === 0) {
                 transferables = undefined;
@@ -279,6 +280,15 @@ export class PostMessageTransport {
 
         // Get message data
         let data = event.data;
+
+        if (typeof data === 'string') {
+            // Authenticate the native event before spending work on JSON from
+            // another context; payload fields never establish source/origin.
+            if (event.origin && !this.#isOriginAllowed(event.origin)) return;
+            if (this.#target && 'postMessage' in this.#target && !this.#isWorker() && event.source !== this.#target) return;
+            try { data = this.#serializer.deserialize(data); }
+            catch { return; }
+        }
 
         // Skip non-protocol messages
         if (!isProtocolMessage(data)) return;

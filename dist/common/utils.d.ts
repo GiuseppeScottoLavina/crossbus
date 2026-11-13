@@ -1,6 +1,7 @@
 /**
  * Generates a UUID v4.
- * Uses crypto.randomUUID() when available, falls back to manual generation.
+ * Uses native cached UUIDs on Node/Bun and pooled Web Crypto bytes in browsers.
+ * Retains manual generation only when neither Web Crypto primitive is present.
  *
  * @returns {string} UUID v4 string.
  */

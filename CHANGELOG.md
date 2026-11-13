@@ -5,13 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.4] - Unreleased
 
-- Update ESLint to 10.14.0, Rollup to 4.68.2, Prettier to 3.9.10 and Puppeteer Core to 25.17.0 with a combined, clean-installable lockfile. Regenerate source maps and the bundle report; JavaScript bundle bytes remain unchanged.
+- Amortize browser UUID entropy calls using fresh Web Crypto byte slices and canonical UUID v4 formatting; retain native Node/Bun UUID generation and the existing no-Web-Crypto fallback. Performance scope is recorded separately from UUID-only diagnostics.
+- Decode the existing MessageChannel and PostMessage JSON-string serializer fallback before protocol validation. Authenticate window origin/source before decoding, preserve per-message guards, reject explicit JSON transfer lists and avoid detaching buffers omitted by serialization.
+- Discover actual typed-array/DataView backing storage without enumerating numeric indices or ignored custom properties. Opt-in `autoTransfer` moves eligible same-realm ArrayBuffers in full, detaching every sender alias; Node Buffers and shared storage keep their previous copy/share behavior.
+- Apply payload budgets to native buffer storage lengths even when public `buffer` or `byteLength` properties are shadowed.
+- Update ESLint to 10.14.0, Rollup to 4.68.2, Prettier to 3.9.10 and Puppeteer Core to 25.17.0 with a combined, clean-installable lockfile. Regenerate source maps and the bundle report.
 - Record the verified npm 0.1.3 publication in the README and release guide; keep the published archive and tag separate from post-release development changes.
 - Refresh development dependencies and their lockfile: @eslint/js 10.0.1, globals 17.14.0, @rollup/plugin-terser 1.0.2, rollup-plugin-visualizer 7.1.3 and TypeScript 6.0.3.
 - Preserve declaration output paths under TypeScript 6 with explicit source roots and Node type inclusion; use a separate strict configuration for consumer declaration checks and verify TypeScript 5.9 compatibility in CI.
-- Regenerate private helper declarations and the bundle visualization. Runtime source, package exports and JavaScript bundle bytes are unchanged; the tagged 0.1.3 archive remains separate from this post-release tooling refresh.
+- Regenerate private helper declarations and the bundle visualization. The package export map is unchanged; the tagged 0.1.3 archive remains separate from this development version.
 - Include @eslint packages and globals in the existing grouped minor/patch Dependabot updates; major upgrades still require separate review.
 
 ## [0.1.3] - 2026-11-13

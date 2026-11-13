@@ -1,4 +1,4 @@
-const documents = new Set(['GETTING_STARTED.md','API.md','ARCHITECTURE.md','ADVANCED.md','AGENTS.md','AI-GUIDE.md','EXAMPLES.md','PERFORMANCE.md','BENCHMARKS.md','CONTRIBUTING.md','DEVELOPMENT.md','AUDIT.md','RELEASING.md','PAPER.md','THIRD_PARTY.md','COMPETITOR_ANALYSIS.md','RPC_BATCHING.md']);
+const documents = new Set(['GETTING_STARTED.md','API.md','ARCHITECTURE.md','ADVANCED.md','AGENTS.md','AI-GUIDE.md','EXAMPLES.md','PERFORMANCE.md','BENCHMARKS.md','CONTRIBUTING.md','DEVELOPMENT.md','AUDIT.md','RELEASING.md','PAPER.md','THIRD_PARTY.md','COMPETITOR_ANALYSIS.md','RPC_BATCHING.md','WORKER_RPC.md']);
 export function documentationFile(requested) { return documents.has(requested) ? requested : 'GETTING_STARTED.md'; }
 export function rewriteDocumentationLinks(content) {
     const repository = 'https://github.com/GiuseppeScottoLavina/crossbus/blob/master/docs/';

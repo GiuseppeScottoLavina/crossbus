@@ -8,7 +8,7 @@ The RPC grouping experiments and their tests/data remain in the repository, excl
 
 ## Validate and pack a future release
 
-Use Node 24 and Bun for development. Current master contains post-release tooling updates; **advance package metadata to a new, unpublished version before preparing another npm release**. Install the committed dependency versions and validate that checkout:
+Use Node 24 and Bun for development. Package metadata is now **0.1.4, an unreleased development candidate** containing tooling and runtime changes. Review the [Worker RPC study](WORKER_RPC.md), ownership changes and qualification limits before preparing its release. For any subsequent version, advance metadata to a new, unpublished version first. Install the committed dependency versions and validate that checkout:
 
 ```sh
 npm ci --legacy-peer-deps

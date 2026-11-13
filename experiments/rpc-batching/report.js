@@ -23,7 +23,11 @@ assert.equal((await json(directory + 'runtime/manifest.json')).sha256, expectedC
 async function verifyHashes(report) {
     assert.equal(report.metadata.hashes['dist/crossbus.min.js'], expectedCore);
     for (const [file, hash] of Object.entries(report.metadata.hashes)) {
-        if (!cache.has(file)) cache.set(file, digest(await read(file)));
+        // This study measures 0.1.3. Verify its immutable inputs even when
+        // the current checkout contains a newer core; never rewrite raw data.
+        const archived = file === 'dist/crossbus.min.js' ? directory + 'runtime/crossbus.min.js'
+            : file === 'src/common/types.js' ? directory + 'runtime/types.js' : file;
+        if (!cache.has(file)) cache.set(file, digest(await read(archived)));
         assert.equal(cache.get(file), hash, 'Measured input changed: ' + file);
     }
 }
@@ -193,7 +197,7 @@ Counting starts only after timed throughput and latency, avoiding a batching adv
 
 ${table(['Concurrent calls', 'Stock client / server sends', 'Group client / server sends'], [1, 16, 64].map(c => [c, '1,024 / 1,024', (1024 / c) + ' / ' + (1024 / c)]))}
 
-The reduction in sends is not an equal multiplier in throughput: serialization, Promise settlement, timers, validation and scheduling remain. Every result's scalar/full text, result count and exact remote invocation count were checked. ${summary.checkedLogicalCalls.toLocaleString('en-US')} logical echo calls were checked across the 54 timing datasets. All 55 datasets' current source/runtime/dependency hashes and sample/count invariants are verified by [the report generator](${gh}experiments/rpc-batching/report.js).
+The reduction in sends is not an equal multiplier in throughput: serialization, Promise settlement, timers, validation and scheduling remain. Every result's scalar/full text, result count and exact remote invocation count were checked. ${summary.checkedLogicalCalls.toLocaleString('en-US')} logical echo calls were checked across the 54 timing datasets. All 55 datasets' source/runtime/dependency hashes and sample/count invariants are verified by [the report generator](${gh}experiments/rpc-batching/report.js). The measured 0.1.3 core and transfer-discovery source are checked against archived snapshots, so later core development does not rewrite this evidence.
 
 The Node lifecycle study performs one warmup and seven measured rounds for stock/strict16/group. Each measured round destroys 20 pairs with 16 pending requests each: all 320 requests cancel, pending/queued work is zero, and timeout resources return to zero after the event-loop checkpoint. This covers the measured teardown path, not universal leak freedom. The 40 prototype tests separately cover malformed/nested packets, failed hooks, wrong peers, budgets/rates, snapshot isolation, mixed slow/error replies, full groups, clone failure, direct ArrayBuffer ownership transfer, serialization-getter reentrancy and nested groups. Core source line coverage does not include these experimental files.
 
@@ -226,7 +230,7 @@ node experiments/rpc-batching/lifecycle.js
 bun run bench:batch:report
 \`\`\`
 
-Raw samples, timestamps, dependency versions, workload hashes, all rates and latency percentiles are retained under [benchmarks/rpc-batching](${gh}benchmarks/rpc-batching). The tree was dirty while recording because the tested prototype was uncommitted; its exact inputs are identified by hashes. Earlier provisional measurements from before the final reentrancy fixes are excluded. The measured core matches the archived approved master runtime; src/ and public exports are unchanged.
+Raw samples, timestamps, dependency versions, workload hashes, all rates and latency percentiles are retained under [benchmarks/rpc-batching](${gh}benchmarks/rpc-batching). The tree was dirty while recording because the tested prototype was uncommitted; its exact inputs are identified by hashes. Earlier provisional measurements from before the final reentrancy fixes are excluded. At measurement time the core matched the archived approved master runtime, with no changes to src/ or public exports. This historical study does not measure subsequent core versions.
 
 The original [competitor study](COMPETITOR_ANALYSIS.md) covers the approved runtime. This bulk experiment does not replace it. No Safari/Firefox, physical iOS/Android WebView, network, interaction/rendering or native bridge performance is established here. The experimental adapters do not yet provide protocol negotiation or a reviewed public bulk API. Further work must explicitly design those contracts and equivalent competitor bulk controls before making broader comparisons.
 `;

@@ -1,0 +1,42 @@
+{
+  "version": "0.1.4",
+  "status": "unreleased measured development candidate; not an npm release",
+  "files": {
+    "dist/crossbus.min.js": {
+      "snapshot": "crossbus.min.js",
+      "sha256": "b333dcdef51a41da7e4717efaaf537d9710c02679724ce338366882085c2a562"
+    },
+    "dist/crossbus.min.js.map": {
+      "snapshot": "crossbus.min.js.map",
+      "sha256": "74856702a1ef2a3e323d7ae605e01cd084f8fea302d49fc036f6130dcb74fb2f"
+    },
+    "dist/nano.min.js": {
+      "snapshot": "nano.min.js",
+      "sha256": "2d81ce9b9c8e9f55c36d5d13b876968fbc4e9aa6c59faae95b13c3776070e44d"
+    },
+    "src/common/uuid-pool.js": {
+      "snapshot": "uuid-pool.js",
+      "sha256": "787ef68917ec79f5d5043a59cd36385849179f8971161cfb4aff711227e882cc"
+    },
+    "src/common/buffer-storage.js": {
+      "snapshot": "buffer-storage.js",
+      "sha256": "bc55329106f78ef0f63b26dd1784df201d33f3350583e8912cf746cbce0586e3"
+    },
+    "src/common/utils.js": {
+      "snapshot": "utils.js",
+      "sha256": "b5b05ae2c13f5ddc9f8a7cdc727df30bc1d9b2bf5b4bf3605129007b8cc727fc"
+    },
+    "src/common/types.js": {
+      "snapshot": "types.js",
+      "sha256": "f0e05881664e9d8cab986c065fa672ffcec8ee5fe5068d7cbcee9de763186773"
+    },
+    "src/transports/message-channel.js": {
+      "snapshot": "message-channel.js",
+      "sha256": "69dedb2ca36f3e186330f00458791cef5675dccc978eef8306511a4119aa8430"
+    },
+    "src/transports/postmessage.js": {
+      "snapshot": "postmessage.js",
+      "sha256": "adcd725c3e91063aa8d39fecc80e09f914c85f55b7a33962efb90fd285756c06"
+    }
+  }
+}
