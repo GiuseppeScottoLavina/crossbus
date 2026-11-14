@@ -1,0 +1,36 @@
+{
+  "scope": "Incomplete attempts excluded from throughput data. Cause of target closure was not established.",
+  "attempts": [
+    {
+      "case": "rpc-primary-chrome-baseline-1",
+      "error": "TargetCloseError (Runtime.callFunctionOn): Target closed",
+      "validDatasetProduced": false
+    },
+    {
+      "case": "rpc-primary-chrome-baseline-1 retry",
+      "error": "TargetCloseError (Runtime.callFunctionOn): Target closed",
+      "validDatasetProduced": false
+    },
+    {
+      "case": "rpc-primary-chrome-baseline-3",
+      "error": "TargetCloseError (Runtime.callFunctionOn): Target closed",
+      "validDatasetProduced": false
+    },
+    {
+      "case": "rpc-guard-chrome-candidate-3",
+      "error": "TargetCloseError (Runtime.callFunctionOn): Target closed",
+      "validDatasetProduced": false
+    },
+    {
+      "case": "rpc-primary-chrome-worker-candidate-1",
+      "error": "TargetCloseError (Runtime.callFunctionOn): Target closed",
+      "validDatasetProduced": false
+    },
+    {
+      "case": "rpc-primary-chrome-worker-baseline-2",
+      "error": "TargetCloseError (Runtime.callFunctionOn): Target closed",
+      "validDatasetProduced": false
+    }
+  ],
+  "diagnosis": "Minimal and full baseline diagnostics passed. Diagnostics are excluded from samples. Missing official datasets were completed with the original runner; later Worker cases used a dedicated byte-identical browser copy. Root cause of earlier target closures was not established."
+}

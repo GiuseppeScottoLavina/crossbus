@@ -1,0 +1,70 @@
+{
+  "timestamp": "2026-11-14T09:27:00.736Z",
+  "runtime": "v24.15.0",
+  "gzipLevel": 9,
+  "sizes": [
+    {
+      "file": "dist/crossbus.js",
+      "rawBytes": 271214,
+      "gzipBytes": 57164,
+      "brotliBytes": 46864,
+      "sha256": "4cb676e62c7b814285fc237e94aa48a0dd1a738256d2e21096aafb9c875e1f73"
+    },
+    {
+      "file": "dist/crossbus.min.js",
+      "rawBytes": 73205,
+      "gzipBytes": 22003,
+      "brotliBytes": 19550,
+      "sha256": "a03f24df92d7d7ea94676720cc986975618985deb8c8b07b4e8e3d33f9bfa9e9"
+    },
+    {
+      "file": "dist/crossbus.core.js",
+      "rawBytes": 140440,
+      "gzipBytes": 31178,
+      "brotliBytes": 26231,
+      "sha256": "9fc891c5f80ad668c798424807ec48660db019a6a699d7e81bea513ef0fb0447"
+    },
+    {
+      "file": "dist/crossbus.core.min.js",
+      "rawBytes": 35598,
+      "gzipBytes": 11747,
+      "brotliBytes": 10383,
+      "sha256": "dc2a9a751239f081840e1c0453e36bbf6f5b30b26fcf48f5dbaf0d88b65e7bc2"
+    },
+    {
+      "file": "dist/nano.js",
+      "rawBytes": 963,
+      "gzipBytes": 467,
+      "brotliBytes": 439,
+      "sha256": "dc6730edeea832f6228429f8756e3acda7c402ab78c20c62adf22fdc003f9ac0"
+    },
+    {
+      "file": "dist/nano.min.js",
+      "rawBytes": 535,
+      "gzipBytes": 330,
+      "brotliBytes": 315,
+      "sha256": "7edab73ba90125520127a49c9f6840bb73c3d4a2e64b014b43e26d5ac0f12598"
+    },
+    {
+      "file": "dist/plugins/retry.js",
+      "rawBytes": 20112,
+      "gzipBytes": 5783,
+      "brotliBytes": 4869,
+      "sha256": "5fd0df0d5166568d3a65ac7d484fc80e2108241caf672b7fc6c92a12af0a1075"
+    },
+    {
+      "file": "dist/plugins/circuit-breaker.js",
+      "rawBytes": 22363,
+      "gzipBytes": 5608,
+      "brotliBytes": 4751,
+      "sha256": "bf271e77615a88c5d1a756bb2673fafb8e33e61580a4c77875e6e22138292846"
+    },
+    {
+      "file": "dist/plugins/schema-validation.js",
+      "rawBytes": 22485,
+      "gzipBytes": 5700,
+      "brotliBytes": 4836,
+      "sha256": "13914eba03f0a4774cb99c03862dc64b0a3ce37a16ec320eae203e877d9ecf22"
+    }
+  ]
+}

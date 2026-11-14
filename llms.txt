@@ -10,11 +10,12 @@ Cross-context signals and request/response for browser applications. No runtime 
 - Security controls: SECURITY.md
 - Reproducible measurements: docs/BENCHMARKS.md
 - 0.1.5 measurements: docs/NEXT_RELEASE.md
+- Unpublished 0.1.6 optimization evidence: docs/OPTIMIZATION_016.md
 - Bounded streaming and compatibility: docs/STREAMING.md
 - Browser and physical iPad/Pixel receipts: docs/QUALIFICATION.md
 - Local audit status and qualification limits: docs/AUDIT.md
 
-Import core first; dynamically load optional features:
+Import the APIs you use; dynamically load optional plugin subpaths. The root also exports transports and does not create a separate core-only chunk:
 
 ```js
 import { CrossBus } from 'crossbus';

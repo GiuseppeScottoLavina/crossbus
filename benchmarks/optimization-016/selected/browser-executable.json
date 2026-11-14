@@ -1,0 +1,7 @@
+{
+  "scope": "Dedicated copy of the same browser executable for process isolation; no executable bytes changed.",
+  "runtimeVersion": "HeadlessChrome/155.0.8059.79",
+  "originalSha256": "30d40266569d5ad10647f0447c509cb3d82601850a89b16989c80a79061c1722",
+  "isolatedSha256": "30d40266569d5ad10647f0447c509cb3d82601850a89b16989c80a79061c1722",
+  "resourceFilesCopiedUnchanged": true
+}

@@ -1,0 +1,9 @@
+{
+  "runtime": "v24.15.0",
+  "canonicalLengths": 6,
+  "atobParityCases": 4121,
+  "exactOwnedStorage": true,
+  "plainUint8Array": true,
+  "artifactSha256": "f96eae45eed69fe2ecca25595a4242dc2be0411f84400a0a04331879ef5cddc1",
+  "testInputSha256": "7c1a6e2b323a041c73eaed8a2d130a026ec8cbc444a122e3bc938eeb36993bdb"
+}

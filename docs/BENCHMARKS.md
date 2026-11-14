@@ -1,5 +1,7 @@
 # Reproducible performance measurements
 
+For the unpublished 0.1.6 candidate, see the [separate optimization study](OPTIMIZATION_016.md), including its frozen 0.1.5 baseline, raw samples, source snapshots and offline verifiers.
+
 Run after building, with other benchmark/test workloads stopped:
 
 ```sh

@@ -10,6 +10,15 @@ const nativeBase64Encode = /** @type {Uint8Array & {toBase64?:()=>string}} */ (U
 const nativeBase64Decode =
     /** @type {typeof Uint8Array & {fromBase64?:(value:string)=>Uint8Array}} */ (Uint8Array)
         .fromBase64;
+// Use Node's existing global only: browser bundles need no node:buffer import
+// or polyfill. Standard typed-array codecs still take precedence when present.
+const nodeBuffer =
+    typeof process !== 'undefined' &&
+    typeof process.versions?.node === 'string' &&
+    typeof Buffer !== 'undefined'
+        ? Buffer
+        : null;
+
 
 /**
  * @typedef {Object} StreamOptions
@@ -205,9 +214,9 @@ export class WritableSignalStream {
             /* Already terminal locally. */
         }
     }
-    async #send(payload) {
+    #send(payload) {
         if (this.#failure && payload.st !== 'error') throw this.#failure;
-        await this.#sendFn(streamFrame(this.#streamId, payload));
+        return this.#sendFn(streamFrame(this.#streamId, payload));
     }
 }
 
@@ -228,8 +237,6 @@ export class ReadableSignalStream {
     #options;
     /** @type {any[]} */
     #buffer = [];
-    /** @type {number[]} */
-    #bufferSizes = [];
     #readIndex = 0;
     #expected = 0;
     #consumed = 0;
@@ -321,13 +328,11 @@ export class ReadableSignalStream {
             this.#bufferedBytes += bytes;
             this.#bufferedChunks++;
             if (seq === this.#expected) {
-                this.#buffer.push(data);
-                this.#bufferSizes.push(bytes);
+                this.#buffer.push(data, bytes);
                 this.#expected++;
                 while (this.#pending.has(this.#expected)) {
                     const pending = this.#pending.get(this.#expected);
-                    this.#buffer.push(pending.data);
-                    this.#bufferSizes.push(pending.bytes);
+                    this.#buffer.push(pending.data, pending.bytes);
                     this.#pending.delete(this.#expected++);
                 }
             } else this.#pending.set(seq, { data, bytes });
@@ -364,7 +369,6 @@ export class ReadableSignalStream {
         this.#error = reason instanceof Error ? reason : new Error(reason);
         this.#ended = true;
         this.#buffer = [];
-        this.#bufferSizes = [];
         this.#pending.clear();
         this.#readIndex = 0;
         this.#bufferedBytes = this.#bufferedChunks = 0;
@@ -385,15 +389,14 @@ export class ReadableSignalStream {
                 while (this.#readIndex < this.#buffer.length) {
                     if (this.#error) throw this.#error;
                     const chunk = this.#buffer[this.#readIndex],
-                        bytes = this.#bufferSizes[this.#readIndex];
-                    this.#buffer[this.#readIndex] = undefined;
-                    this.#bufferSizes[this.#readIndex++] = 0;
+                        bytes = this.#buffer[this.#readIndex + 1];
+                    this.#buffer[this.#readIndex++] = undefined;
+                    this.#buffer[this.#readIndex++] = 0;
                     this.#bufferedBytes -= bytes;
                     this.#bufferedChunks--;
                     this.#consumed++;
-                    if (this.#readIndex >= 1024 && this.#readIndex * 2 >= this.#buffer.length) {
+                    if (this.#readIndex >= 2048 && this.#readIndex * 2 >= this.#buffer.length) {
                         this.#buffer = this.#buffer.slice(this.#readIndex);
-                        this.#bufferSizes = this.#bufferSizes.slice(this.#readIndex);
                         this.#readIndex = 0;
                     }
                     this.#refresh();
@@ -401,7 +404,6 @@ export class ReadableSignalStream {
                     yield chunk;
                 }
                 this.#buffer.length = 0;
-                this.#bufferSizes.length = 0;
                 this.#readIndex = 0;
                 if (this.#ended) {
                     if (this.#error) throw this.#error;
@@ -479,6 +481,7 @@ function chunkBytes(data) {
 }
 function encodeBase64(bytes) {
     if (typeof nativeBase64Encode === 'function') return nativeBase64Encode.call(bytes);
+    if (nodeBuffer) return nodeBuffer.from(bytes).toString('base64');
     let binary = '';
     for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
     return btoa(binary);
@@ -487,7 +490,8 @@ function decodeBase64(value) {
     if (typeof nativeBase64Decode === 'function') return nativeBase64Decode.call(Uint8Array, value);
     const binary = atob(value);
     const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    if (nodeBuffer) nodeBuffer.from(bytes.buffer).write(binary, 'latin1');
+    else for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     return bytes;
 }
 function streamFrame(sid, payload) {
@@ -677,7 +681,7 @@ export class StreamManager {
     }
     async #send(peerId, message) {
         if (this.#destroyed) throw new Error('Stream manager destroyed');
-        await this.#sendFn(peerId, message.id ? message : streamFrame(message.sid, message));
+        return this.#sendFn(peerId, message.id ? message : streamFrame(message.sid, message));
     }
     destroy() {
         if (this.#destroyed) return;

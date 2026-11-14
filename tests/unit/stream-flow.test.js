@@ -420,3 +420,29 @@ it('ignores impossible cumulative credits from the authenticated peer', async ()
     expect(sent.filter((m) => m.st === 'data').map((m) => m.d)).toEqual(['a']);
     manager.destroy();
 });
+
+it('releases the original byte charge after a reordered queued view is detached', async () => {
+    const reader = new ReadableSignalStream('bytes', 'bytes', {}, {
+        maxBufferedBytes: 10,
+        maxOutOfOrderChunks: 2
+    });
+    const queued = new Uint8Array(8);
+    reader.push({ seq: 1, d: queued });
+    structuredClone(queued.buffer, { transfer: [queued.buffer] });
+    expect(queued.byteLength).toBe(0);
+    reader.push({ seq: 0, d: 'a' });
+    expect(reader.bufferedBytes).toBe(10);
+    expect(reader.bufferedChunks).toBe(2);
+    const iterator = reader[Symbol.asyncIterator]();
+    expect((await iterator.next()).value).toBe('a');
+    expect(reader.bufferedBytes).toBe(8);
+    expect((await iterator.next()).value).toBe(queued);
+    expect(reader.bufferedBytes).toBe(0);
+    expect(reader.bufferedChunks).toBe(0);
+    const next = new Uint8Array(10);
+    reader.push({ seq: 2, d: next });
+    reader.end({}, 3);
+    expect((await iterator.next()).value).toBe(next);
+    expect(reader.bufferedBytes).toBe(0);
+    expect((await iterator.next()).done).toBe(true);
+});

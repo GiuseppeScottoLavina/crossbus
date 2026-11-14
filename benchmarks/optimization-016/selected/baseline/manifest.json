@@ -1,0 +1,11 @@
+{
+  "version": "0.1.5",
+  "sourceCommit": "1114ea83cfaff39cdf074ee5ff2812b032c64971",
+  "archiveSha256": "093d973dfd7393cb2895335fb4a656e54292342bbf52d2926772d4cd9cc612aa",
+  "sha256": {
+    "crossbus.js": "4cb676e62c7b814285fc237e94aa48a0dd1a738256d2e21096aafb9c875e1f73",
+    "crossbus.min.js": "a03f24df92d7d7ea94676720cc986975618985deb8c8b07b4e8e3d33f9bfa9e9",
+    "nano.min.js": "7edab73ba90125520127a49c9f6840bb73c3d4a2e64b014b43e26d5ac0f12598",
+    "package-lock.json": "a96b16a14a2a1d491e685f1a730553699345ed84cc3d4f34664e062ebd651e5b"
+  }
+}
