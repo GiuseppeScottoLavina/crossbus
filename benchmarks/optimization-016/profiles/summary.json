@@ -1,0 +1,3442 @@
+{
+  "runtime": "v24.15.0",
+  "cpu": "Apple M1 Max",
+  "hashes": {
+    "benchmarks/optimization-016/baseline/crossbus.js": "4cb676e62c7b814285fc237e94aa48a0dd1a738256d2e21096aafb9c875e1f73",
+    "experiments/optimization-016/profile.js": "13c9732d440bfd76565128076eb961096df146b14f11627d40c1510c4ee73f53",
+    "experiments/worker-rpc/workloads.js": "309a999ed4bbb6a4c1e64b1561a9943184225fe0d538a416ed35216a7e2a7447",
+    "experiments/next-release/stream-workloads.js": "018a7583023e430c9e985500015c50620446172b8e61ac31d3f78d66d52ecf8f",
+    "node_modules/birpc/dist/index.mjs": "c6da1d8c0b904eee09fa410bc162146bdc642ae39537c3658aab1082b6db35ce",
+    "node_modules/penpal/dist/penpal.mjs": "f354b6819a69c01254810ac9dda796ba2356c82802218f5ac7752a2a3f30fe75",
+    "package-lock.json": "a96b16a14a2a1d491e685f1a730553699345ed84cc3d4f34664e062ebd651e5b"
+  },
+  "scope": "100us Inspector sampling after a full workload warmup; new pair/setup and GC/idle included. Not benchmark rates or exact causal native-operation costs.",
+  "records": [
+    {
+      "name": "node-base64-stream",
+      "checked": {
+        "methodology": {
+          "samples": 7,
+          "iterations": 4,
+          "warmup": 2,
+          "chunkSize": 64000,
+          "order": 0,
+          "topology": "Raw MessageChannel, two endpoints in one event loop; no Worker/network/native host",
+          "scope": "Timed writer creation/open/data/end, receiver collection and full byte verification; ports/managers/input setup excluded. Caller input stays attached. Native modes change representation; flow modes add consumption ACKs.",
+          "nativeBase64Encode": false,
+          "nativeBase64Decode": false
+        },
+        "results": [
+          {
+            "bytes": 1048576,
+            "mode": "base64",
+            "checkedTransfers": 30,
+            "checksums": [
+              267386880,
+              534773760,
+              534773760,
+              534773760,
+              534773760,
+              534773760,
+              534773760,
+              534773760
+            ],
+            "frames": [
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 17,
+                "end": 1
+              }
+            ],
+            "mebibytesPerSecond": {
+              "median": 76.42442080463064,
+              "min": 64.50282064384395,
+              "max": 77.77505024997402,
+              "samples": [
+                77.77505024997402,
+                74.94993625320544,
+                64.50282064384395,
+                71.17157975053965,
+                77.02911490639178,
+                76.5229253023186,
+                76.42442080463064
+              ]
+            }
+          },
+          {
+            "bytes": 4194304,
+            "mode": "base64",
+            "checkedTransfers": 30,
+            "checksums": [
+              1069547520,
+              2139095040,
+              2139095040,
+              2139095040,
+              2139095040,
+              2139095040,
+              2139095040,
+              2139095040
+            ],
+            "frames": [
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              },
+              {
+                "open": 1,
+                "data": 66,
+                "end": 1
+              }
+            ],
+            "mebibytesPerSecond": {
+              "median": 81.6602029638827,
+              "min": 80.27411966245283,
+              "max": 82.08234369387625,
+              "samples": [
+                81.7297768082902,
+                80.98082968655994,
+                81.7048914405236,
+                80.27411966245283,
+                81.30430727556373,
+                81.6602029638827,
+                82.08234369387625
+              ]
+            }
+          }
+        ]
+      },
+      "frames": [
+        {
+          "name": "(anonymous)",
+          "url": "repo:/experiments/next-release/stream-workloads.js",
+          "line": 32,
+          "selfUs": 533327
+        },
+        {
+          "name": "btoa",
+          "url": "node:buffer",
+          "line": 1364,
+          "selfUs": 366166
+        },
+        {
+          "name": "(anonymous)",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 4677,
+          "selfUs": 316081
+        },
+        {
+          "name": "encodeBase64",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 5052,
+          "selfUs": 275466
+        },
+        {
+          "name": "push",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 4865,
+          "selfUs": 218546
+        },
+        {
+          "name": "runStreams",
+          "url": "repo:/experiments/next-release/stream-workloads.js",
+          "line": 2,
+          "selfUs": 145412
+        },
+        {
+          "name": "run",
+          "url": "repo:/experiments/next-release/stream-workloads.js",
+          "line": 56,
+          "selfUs": 80043
+        },
+        {
+          "name": "(garbage collector)",
+          "url": "",
+          "line": 0,
+          "selfUs": 75912
+        },
+        {
+          "name": "post",
+          "url": "node:inspector",
+          "line": 115,
+          "selfUs": 36000
+        },
+        {
+          "name": "(program)",
+          "url": "",
+          "line": 0,
+          "selfUs": 28380
+        },
+        {
+          "name": "atob",
+          "url": "",
+          "line": 0,
+          "selfUs": 17417
+        },
+        {
+          "name": "btoa",
+          "url": "",
+          "line": 0,
+          "selfUs": 11745
+        },
+        {
+          "name": "(anonymous)",
+          "url": "repo:/experiments/next-release/stream-workloads.js",
+          "line": 14,
+          "selfUs": 8709
+        },
+        {
+          "name": "post",
+          "url": "repo:/experiments/next-release/stream-workloads.js",
+          "line": 21,
+          "selfUs": 7836
+        },
+        {
+          "name": "atob",
+          "url": "node:buffer",
+          "line": 1378,
+          "selfUs": 7125
+        },
+        {
+          "name": "collect",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 4993,
+          "selfUs": 6293
+        },
+        {
+          "name": "streamFrame",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 5065,
+          "selfUs": 3418
+        },
+        {
+          "name": "btoa",
+          "url": "node:buffer",
+          "line": 1364,
+          "selfUs": 2375
+        },
+        {
+          "name": "(idle)",
+          "url": "",
+          "line": 0,
+          "selfUs": 2124
+        },
+        {
+          "name": "postMessage",
+          "url": "",
+          "line": 0,
+          "selfUs": 1999
+        },
+        {
+          "name": "port2.onmessage",
+          "url": "repo:/experiments/next-release/stream-workloads.js",
+          "line": 31,
+          "selfUs": 1375
+        },
+        {
+          "name": "#send",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 5250,
+          "selfUs": 1001
+        },
+        {
+          "name": "handleMessage",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 5143,
+          "selfUs": 1001
+        },
+        {
+          "name": "(anonymous)",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 4951,
+          "selfUs": 667
+        },
+        {
+          "name": "(anonymous)",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 4951,
+          "selfUs": 625
+        },
+        {
+          "name": "createStream",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 5117,
+          "selfUs": 625
+        },
+        {
+          "name": "measurePayload",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 714,
+          "selfUs": 500
+        },
+        {
+          "name": "(anonymous)",
+          "url": "repo:/experiments/next-release/stream-workloads.js",
+          "line": 28,
+          "selfUs": 459
+        },
+        {
+          "name": "#data",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 4704,
+          "selfUs": 416
+        },
+        {
+          "name": "(anonymous)",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 4744,
+          "selfUs": 416
+        }
+      ]
+    },
+    {
+      "name": "CrossBus-1",
+      "checked": {
+        "methodology": {
+          "samples": 1,
+          "iterations": 65536,
+          "warmupCalls": 4096,
+          "latencyGroups": 128,
+          "concurrencies": [
+            1
+          ],
+          "sizes": [
+            1024
+          ],
+          "names": [
+            "CrossBus"
+          ],
+          "order": "Rotate library order each round; repeat this suite in fresh processes",
+          "topology": "MessageChannel, two endpoints in one event loop; worker startup/scheduling excluded",
+          "payload": "Distinct preallocated objects per member; every returned scalar/full text and exact remote echo invocation count verified; burst completion RTT sampled separately",
+          "guarantees": "CrossBus retains default payload/request limits, peer binding and timeout. Comlink has no per-call timeout; birpc defaults to 60s; Penpal default has none, plus a cached 30s-timeout variant. API semantics differ."
+        },
+        "results": [
+          {
+            "library": "CrossBus",
+            "concurrency": 1,
+            "textBytes": 1024,
+            "callsPerSample": 65536,
+            "checkedCalls": 69760,
+            "opsPerSecond": {
+              "median": 106587.1107688724,
+              "min": 106587.1107688724,
+              "max": 106587.1107688724,
+              "samples": [
+                106587.1107688724
+              ]
+            },
+            "latencyMs": {
+              "p50": 0.009000000000014552,
+              "p95": 0.01337500000045111,
+              "p99": 0.014541999999892141,
+              "samples": [
+                0.008541000000150234,
+                0.008541999999579275,
+                0.00858299999981682,
+                0.00858299999981682,
+                0.00858299999981682,
+                0.00858299999981682,
+                0.00858299999981682,
+                0.008583000000726315,
+                0.008624999999483407,
+                0.008625000000392902,
+                0.008666000000630447,
+                0.008667000000059488,
+                0.008667000000059488,
+                0.008707999999387539,
+                0.008707999999387539,
+                0.008707999999387539,
+                0.008707999999387539,
+                0.008708000000297034,
+                0.008708000000297034,
+                0.008708000000297034,
+                0.008708000000297034,
+                0.00874999999996362,
+                0.00874999999996362,
+                0.008790999999291671,
+                0.008791999999630207,
+                0.008791999999630207,
+                0.008792000000539701,
+                0.008832999999867752,
+                0.008833000000777247,
+                0.008834000000206288,
+                0.008834000000206288,
+                0.008834000000206288,
+                0.008834000000206288,
+                0.008874999999534339,
+                0.008874999999534339,
+                0.008874999999534339,
+                0.008875000000443833,
+                0.008875000000443833,
+                0.008875000000443833,
+                0.008875000000443833,
+                0.008915999999771884,
+                0.008916000000681379,
+                0.008916999999200925,
+                0.00891700000011042,
+                0.00891700000011042,
+                0.00891700000011042,
+                0.00891700000011042,
+                0.00891700000011042,
+                0.00891700000011042,
+                0.00891700000011042,
+                0.008958000000347965,
+                0.008958000000347965,
+                0.008958999999777006,
+                0.008958999999777006,
+                0.008958999999777006,
+                0.008959000000686501,
+                0.008959000000686501,
+                0.009000000000014552,
+                0.009000000000014552,
+                0.009000000000014552,
+                0.009000000000014552,
+                0.009000000000014552,
+                0.009000000000014552,
+                0.009000000000014552,
+                0.009000000000014552,
+                0.009000000000014552,
+                0.009041000000252097,
+                0.009041000000252097,
+                0.009041000000252097,
+                0.009041000000252097,
+                0.009041999999681138,
+                0.009041999999681138,
+                0.009041999999681138,
+                0.009042000000590633,
+                0.009042000000590633,
+                0.009082999999918684,
+                0.009083000000828179,
+                0.00912499999958527,
+                0.00912499999958527,
+                0.00912499999958527,
+                0.00912499999958527,
+                0.00912499999958527,
+                0.009125000000494765,
+                0.009167000000161352,
+                0.009167000000161352,
+                0.009208999999827938,
+                0.009249999999155989,
+                0.009250000000065484,
+                0.009291000000303029,
+                0.009291000000303029,
+                0.00929199999973207,
+                0.00929199999973207,
+                0.009334000000308151,
+                0.009374999999636202,
+                0.009415999999873748,
+                0.009416999999302789,
+                0.009416999999302789,
+                0.009417000000212283,
+                0.009417000000212283,
+                0.009417000000212283,
+                0.009457999999540334,
+                0.009457999999540334,
+                0.009458000000449829,
+                0.00945899999987887,
+                0.009500000000116415,
+                0.009500000000116415,
+                0.009500000000116415,
+                0.009541999999783002,
+                0.009583000000020547,
+                0.009583000000020547,
+                0.009625000000596629,
+                0.00970800000050076,
+                0.009791999999833934,
+                0.009833000000071479,
+                0.010249999999359716,
+                0.010333000000173342,
+                0.01262499999938882,
+                0.0126669999999649,
+                0.012749999999869033,
+                0.012917000000015832,
+                0.01337500000045111,
+                0.01337500000045111,
+                0.01341599999977916,
+                0.01391700000021956,
+                0.014250000000174623,
+                0.014541999999892141,
+                0.021792000000459666,
+                0.05662499999925785
+              ]
+            }
+          }
+        ]
+      },
+      "frames": [
+        {
+          "name": "(program)",
+          "url": "",
+          "line": 0,
+          "selfUs": 233198
+        },
+        {
+          "name": "(idle)",
+          "url": "",
+          "line": 0,
+          "selfUs": 66919
+        },
+        {
+          "name": "send",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 6636,
+          "selfUs": 60292
+        },
+        {
+          "name": "send",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 6636,
+          "selfUs": 54329
+        },
+        {
+          "name": "postMessage",
+          "url": "",
+          "line": 0,
+          "selfUs": 42708
+        },
+        {
+          "name": "postMessage",
+          "url": "",
+          "line": 0,
+          "selfUs": 34079
+        },
+        {
+          "name": "post",
+          "url": "node:inspector",
+          "line": 115,
+          "selfUs": 23042
+        },
+        {
+          "name": "create",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 2210,
+          "selfUs": 14080
+        },
+        {
+          "name": "insert",
+          "url": "node:internal/timers",
+          "line": 387,
+          "selfUs": 10334
+        },
+        {
+          "name": "envelope",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 1654,
+          "selfUs": 10250
+        },
+        {
+          "name": "resolve",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 2318,
+          "selfUs": 10000
+        },
+        {
+          "name": "(anonymous)",
+          "url": "node:internal/event_target",
+          "line": 780,
+          "selfUs": 9126
+        },
+        {
+          "name": "(anonymous)",
+          "url": "node:internal/per_context/messageport",
+          "line": 19,
+          "selfUs": 7543
+        },
+        {
+          "name": "createFastMessageEvent",
+          "url": "node:internal/deps/undici/undici",
+          "line": 13850,
+          "selfUs": 6879
+        },
+        {
+          "name": "envelope",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 1654,
+          "selfUs": 6793
+        },
+        {
+          "name": "(garbage collector)",
+          "url": "",
+          "line": 0,
+          "selfUs": 6293
+        },
+        {
+          "name": "unenroll",
+          "url": "node:timers",
+          "line": 71,
+          "selfUs": 6289
+        },
+        {
+          "name": "createResponseMessage",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 1714,
+          "selfUs": 6127
+        },
+        {
+          "name": "#handleRequest",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 3933,
+          "selfUs": 5583
+        },
+        {
+          "name": "measurePayload",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 714,
+          "selfUs": 4875
+        },
+        {
+          "name": "run",
+          "url": "repo:/experiments/worker-rpc/workloads.js",
+          "line": 111,
+          "selfUs": 4250
+        },
+        {
+          "name": "#receiveMessage",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 3754,
+          "selfUs": 3709
+        },
+        {
+          "name": "now",
+          "url": "",
+          "line": 0,
+          "selfUs": 3542
+        },
+        {
+          "name": "handleMessage",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 3749,
+          "selfUs": 3500
+        },
+        {
+          "name": "#handleRequest",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 3933,
+          "selfUs": 3419
+        },
+        {
+          "name": "#sendRequest",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 3425,
+          "selfUs": 3332
+        },
+        {
+          "name": "_MessageEvent",
+          "url": "node:internal/deps/undici/undici",
+          "line": 13800,
+          "selfUs": 3291
+        },
+        {
+          "name": "measurePayload",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 714,
+          "selfUs": 2208
+        },
+        {
+          "name": "uuid",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 512,
+          "selfUs": 1918
+        },
+        {
+          "name": "now",
+          "url": "",
+          "line": 0,
+          "selfUs": 1876
+        }
+      ]
+    },
+    {
+      "name": "CrossBus-64",
+      "checked": {
+        "methodology": {
+          "samples": 1,
+          "iterations": 65536,
+          "warmupCalls": 4096,
+          "latencyGroups": 128,
+          "concurrencies": [
+            64
+          ],
+          "sizes": [
+            1024
+          ],
+          "names": [
+            "CrossBus"
+          ],
+          "order": "Rotate library order each round; repeat this suite in fresh processes",
+          "topology": "MessageChannel, two endpoints in one event loop; worker startup/scheduling excluded",
+          "payload": "Distinct preallocated objects per member; every returned scalar/full text and exact remote echo invocation count verified; burst completion RTT sampled separately",
+          "guarantees": "CrossBus retains default payload/request limits, peer binding and timeout. Comlink has no per-call timeout; birpc defaults to 60s; Penpal default has none, plus a cached 30s-timeout variant. API semantics differ."
+        },
+        "results": [
+          {
+            "library": "CrossBus",
+            "concurrency": 64,
+            "textBytes": 1024,
+            "callsPerSample": 65536,
+            "checkedCalls": 77824,
+            "opsPerSecond": {
+              "median": 149454.98872113816,
+              "min": 149454.98872113816,
+              "max": 149454.98872113816,
+              "samples": [
+                149454.98872113816
+              ]
+            },
+            "latencyMs": {
+              "p50": 0.40458399999988615,
+              "p95": 0.4429580000005444,
+              "p99": 0.4585830000005444,
+              "samples": [
+                0.3945000000003347,
+                0.3945000000003347,
+                0.39466600000014296,
+                0.39483300000028976,
+                0.39487499999995634,
+                0.39487499999995634,
+                0.3949579999998605,
+                0.3950830000003407,
+                0.39529099999981554,
+                0.3954999999996289,
+                0.39558300000044255,
+                0.39562500000010914,
+                0.39587500000016007,
+                0.3959580000000642,
+                0.39595900000040274,
+                0.39629100000001927,
+                0.3967499999998836,
+                0.39691599999969185,
+                0.3973329999998896,
+                0.39741699999922275,
+                0.39745899999979883,
+                0.3976250000005166,
+                0.3977080000004207,
+                0.3980840000003809,
+                0.39812499999970896,
+                0.3981659999999465,
+                0.3983750000006694,
+                0.3985000000002401,
+                0.39870800000062445,
+                0.3992079999998168,
+                0.3992500000003929,
+                0.39941600000020117,
+                0.39950000000044383,
+                0.39966700000059063,
+                0.39995899999939866,
+                0.40008399999987887,
+                0.4002920000002632,
+                0.40045900000041,
+                0.40054200000031415,
+                0.40066699999988487,
+                0.40066699999988487,
+                0.40083299999969313,
+                0.4012079999993148,
+                0.4012080000002243,
+                0.40129199999955745,
+                0.4015829999998459,
+                0.40170800000032614,
+                0.4017499999999927,
+                0.40229200000067067,
+                0.4023750000005748,
+                0.40241599999990285,
+                0.40262499999971624,
+                0.4026669999993828,
+                0.40279200000077253,
+                0.40304199999991397,
+                0.4036660000001575,
+                0.4037079999998241,
+                0.403917000000547,
+                0.40395799999987503,
+                0.4039580000007845,
+                0.40429199999925913,
+                0.4043339999998352,
+                0.4044999999996435,
+                0.40458399999988615,
+                0.4048750000001746,
+                0.405083999999988,
+                0.40516699999989214,
+                0.4052080000001297,
+                0.4052499999997963,
+                0.4052910000000338,
+                0.40529199999946286,
+                0.40558299999975134,
+                0.40566600000056496,
+                0.405957999999373,
+                0.40658299999995506,
+                0.4068749999996726,
+                0.4070000000001528,
+                0.40704099999948085,
+                0.40737499999977445,
+                0.407416000000012,
+                0.40750000000025466,
+                0.4075840000004973,
+                0.4076660000000629,
+                0.40812499999992724,
+                0.4082089999992604,
+                0.4090829999995549,
+                0.40912500000013097,
+                0.4094169999998485,
+                0.40945800000008603,
+                0.4096669999998994,
+                0.40979200000037963,
+                0.4102499999999054,
+                0.4108329999999114,
+                0.4109170000001541,
+                0.41179100000044855,
+                0.41225000000031287,
+                0.4127090000001772,
+                0.41275000000041473,
+                0.4128339999997479,
+                0.4133750000000873,
+                0.41383399999995163,
+                0.41433300000062445,
+                0.4144590000005337,
+                0.4148750000003929,
+                0.41512500000044383,
+                0.4151670000001104,
+                0.4162500000002183,
+                0.41629199999988487,
+                0.41679199999998673,
+                0.41841700000077253,
+                0.4190420000004451,
+                0.41908300000068266,
+                0.42312500000025466,
+                0.42391700000007404,
+                0.42820800000026793,
+                0.42833299999983865,
+                0.4290000000000873,
+                0.42925000000013824,
+                0.43308299999989686,
+                0.44037500000013097,
+                0.4429580000005444,
+                0.44454099999984464,
+                0.44487500000013824,
+                0.45274999999946886,
+                0.4542920000003505,
+                0.4585830000005444,
+                0.4617920000000595,
+                1.133625000000393
+              ]
+            }
+          }
+        ]
+      },
+      "frames": [
+        {
+          "name": "(program)",
+          "url": "",
+          "line": 0,
+          "selfUs": 213540
+        },
+        {
+          "name": "send",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 6636,
+          "selfUs": 60283
+        },
+        {
+          "name": "send",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 6636,
+          "selfUs": 53794
+        },
+        {
+          "name": "post",
+          "url": "node:inspector",
+          "line": 115,
+          "selfUs": 32125
+        },
+        {
+          "name": "(idle)",
+          "url": "",
+          "line": 0,
+          "selfUs": 27333
+        },
+        {
+          "name": "postMessage",
+          "url": "",
+          "line": 0,
+          "selfUs": 18838
+        },
+        {
+          "name": "postMessage",
+          "url": "",
+          "line": 0,
+          "selfUs": 15788
+        },
+        {
+          "name": "create",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 2210,
+          "selfUs": 14959
+        },
+        {
+          "name": "resolve",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 2318,
+          "selfUs": 11206
+        },
+        {
+          "name": "(anonymous)",
+          "url": "node:internal/event_target",
+          "line": 780,
+          "selfUs": 9543
+        },
+        {
+          "name": "envelope",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 1654,
+          "selfUs": 9250
+        },
+        {
+          "name": "createResponseMessage",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 1714,
+          "selfUs": 7706
+        },
+        {
+          "name": "envelope",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 1654,
+          "selfUs": 7128
+        },
+        {
+          "name": "(garbage collector)",
+          "url": "",
+          "line": 0,
+          "selfUs": 6915
+        },
+        {
+          "name": "measurePayload",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 714,
+          "selfUs": 5750
+        },
+        {
+          "name": "#handleRequest",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 3933,
+          "selfUs": 4169
+        },
+        {
+          "name": "run",
+          "url": "repo:/experiments/worker-rpc/workloads.js",
+          "line": 111,
+          "selfUs": 3918
+        },
+        {
+          "name": "#receiveMessage",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 3754,
+          "selfUs": 3834
+        },
+        {
+          "name": "#sendRequest",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 3425,
+          "selfUs": 3749
+        },
+        {
+          "name": "handleMessage",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 3749,
+          "selfUs": 3084
+        },
+        {
+          "name": "createFastMessageEvent",
+          "url": "node:internal/deps/undici/undici",
+          "line": 13850,
+          "selfUs": 2876
+        },
+        {
+          "name": "now",
+          "url": "",
+          "line": 0,
+          "selfUs": 2835
+        },
+        {
+          "name": "#handleRequest",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 3933,
+          "selfUs": 2710
+        },
+        {
+          "name": "measurePayload",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 714,
+          "selfUs": 2334
+        },
+        {
+          "name": "uuid",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 512,
+          "selfUs": 2125
+        },
+        {
+          "name": "now",
+          "url": "",
+          "line": 0,
+          "selfUs": 2125
+        },
+        {
+          "name": "_MessageEvent",
+          "url": "node:internal/deps/undici/undici",
+          "line": 13800,
+          "selfUs": 2084
+        },
+        {
+          "name": "#handleMessage",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 6726,
+          "selfUs": 1960
+        },
+        {
+          "name": "measurePayload",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 714,
+          "selfUs": 1875
+        },
+        {
+          "name": "route",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 1914,
+          "selfUs": 1792
+        }
+      ]
+    },
+    {
+      "name": "CrossBus-compact-wire-1",
+      "checked": {
+        "methodology": {
+          "samples": 1,
+          "iterations": 65536,
+          "warmupCalls": 4096,
+          "latencyGroups": 128,
+          "concurrencies": [
+            1
+          ],
+          "sizes": [
+            1024
+          ],
+          "names": [
+            "CrossBus compact wire"
+          ],
+          "order": "Rotate library order each round; repeat this suite in fresh processes",
+          "topology": "MessageChannel, two endpoints in one event loop; worker startup/scheduling excluded",
+          "payload": "Distinct preallocated objects per member; every returned scalar/full text and exact remote echo invocation count verified; burst completion RTT sampled separately",
+          "guarantees": "CrossBus retains default payload/request limits, peer binding and timeout. Comlink has no per-call timeout; birpc defaults to 60s; Penpal default has none, plus a cached 30s-timeout variant. API semantics differ."
+        },
+        "results": [
+          {
+            "library": "CrossBus compact wire",
+            "concurrency": 1,
+            "textBytes": 1024,
+            "callsPerSample": 65536,
+            "checkedCalls": 69760,
+            "opsPerSecond": {
+              "median": 123652.83018867925,
+              "min": 123652.83018867925,
+              "max": 123652.83018867925,
+              "samples": [
+                123652.83018867925
+              ]
+            },
+            "latencyMs": {
+              "p50": 0.007834000000002561,
+              "p95": 0.011666999999761174,
+              "p99": 0.012584000000060769,
+              "samples": [
+                0.007416000000375789,
+                0.007416000000375789,
+                0.007458000000042375,
+                0.007458000000042375,
+                0.007458000000042375,
+                0.007499999999708962,
+                0.007499999999708962,
+                0.007499999999708962,
+                0.007499999999708962,
+                0.007499999999708962,
+                0.007500000000618456,
+                0.007540999999946507,
+                0.007540999999946507,
+                0.007541999999375548,
+                0.007542000000285043,
+                0.007542000000285043,
+                0.007542000000285043,
+                0.007542000000285043,
+                0.007582999999613094,
+                0.007583000000522588,
+                0.0075839999999516294,
+                0.0075839999999516294,
+                0.00762499999927968,
+                0.00762499999927968,
+                0.00762499999927968,
+                0.00762499999927968,
+                0.007625000000189175,
+                0.007625000000189175,
+                0.007625000000189175,
+                0.007665999999517226,
+                0.007665999999517226,
+                0.00766600000042672,
+                0.00766600000042672,
+                0.00766600000042672,
+                0.007666999999855761,
+                0.007666999999855761,
+                0.007667000000765256,
+                0.007708000000093307,
+                0.007708000000093307,
+                0.007708999999522348,
+                0.007709000000431843,
+                0.007749999999759893,
+                0.007749999999759893,
+                0.007749999999759893,
+                0.007749999999759893,
+                0.007749999999759893,
+                0.007749999999759893,
+                0.007750000000669388,
+                0.007750000000669388,
+                0.007790999999997439,
+                0.007790999999997439,
+                0.00779199999942648,
+                0.007792000000335975,
+                0.007792000000335975,
+                0.007792000000335975,
+                0.007792000000335975,
+                0.007792000000335975,
+                0.007832999999664025,
+                0.007832999999664025,
+                0.007832999999664025,
+                0.007834000000002561,
+                0.007834000000002561,
+                0.007834000000002561,
+                0.007834000000002561,
+                0.007875000000240107,
+                0.007875000000240107,
+                0.007875000000240107,
+                0.007915999999568157,
+                0.007915999999568157,
+                0.007915999999568157,
+                0.007916000000477652,
+                0.007916999999906693,
+                0.007916999999906693,
+                0.007917000000816188,
+                0.007957999999234744,
+                0.007958000000144239,
+                0.007958000000144239,
+                0.007958000000144239,
+                0.007959000000482774,
+                0.007959000000482774,
+                0.007999999999810825,
+                0.007999999999810825,
+                0.007999999999810825,
+                0.00804100000004837,
+                0.00804100000004837,
+                0.008042000000386906,
+                0.008042000000386906,
+                0.008082999999714957,
+                0.008084000000053493,
+                0.008084000000053493,
+                0.008084000000053493,
+                0.008084000000053493,
+                0.008084000000053493,
+                0.008125000000291038,
+                0.008166999999957625,
+                0.008166999999957625,
+                0.008207999999285676,
+                0.008207999999285676,
+                0.00820800000019517,
+                0.00820800000019517,
+                0.00820800000019517,
+                0.00820800000019517,
+                0.008249999999861757,
+                0.008291999999528343,
+                0.008332999999765889,
+                0.008334000000104425,
+                0.008334000000104425,
+                0.00841599999967002,
+                0.008458000000246102,
+                0.008499999999912689,
+                0.008499999999912689,
+                0.008541000000150234,
+                0.00854200000048877,
+                0.008624999999483407,
+                0.008624999999483407,
+                0.00874999999996362,
+                0.008791999999630207,
+                0.008874999999534339,
+                0.009166999999251857,
+                0.011666000000332133,
+                0.011666999999761174,
+                0.011709000000337255,
+                0.0117500000005748,
+                0.012374999999337888,
+                0.012542000000394182,
+                0.012584000000060769,
+                0.0126669999999649,
+                0.013292000000546977
+              ]
+            }
+          }
+        ]
+      },
+      "frames": [
+        {
+          "name": "(program)",
+          "url": "",
+          "line": 0,
+          "selfUs": 139151
+        },
+        {
+          "name": "(idle)",
+          "url": "",
+          "line": 0,
+          "selfUs": 69044
+        },
+        {
+          "name": "send",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 6636,
+          "selfUs": 44583
+        },
+        {
+          "name": "send",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 6636,
+          "selfUs": 43544
+        },
+        {
+          "name": "postMessage",
+          "url": "",
+          "line": 0,
+          "selfUs": 41874
+        },
+        {
+          "name": "postMessage",
+          "url": "",
+          "line": 0,
+          "selfUs": 41833
+        },
+        {
+          "name": "post",
+          "url": "node:inspector",
+          "line": 115,
+          "selfUs": 29750
+        },
+        {
+          "name": "resolve",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 2318,
+          "selfUs": 12792
+        },
+        {
+          "name": "create",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 2210,
+          "selfUs": 12541
+        },
+        {
+          "name": "envelope",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 1654,
+          "selfUs": 12296
+        },
+        {
+          "name": "insert",
+          "url": "node:internal/timers",
+          "line": 387,
+          "selfUs": 9501
+        },
+        {
+          "name": "(anonymous)",
+          "url": "node:internal/event_target",
+          "line": 780,
+          "selfUs": 7667
+        },
+        {
+          "name": "unenroll",
+          "url": "node:timers",
+          "line": 71,
+          "selfUs": 6709
+        },
+        {
+          "name": "envelope",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 1654,
+          "selfUs": 6459
+        },
+        {
+          "name": "run",
+          "url": "repo:/experiments/worker-rpc/workloads.js",
+          "line": 111,
+          "selfUs": 6252
+        },
+        {
+          "name": "createFastMessageEvent",
+          "url": "node:internal/deps/undici/undici",
+          "line": 13850,
+          "selfUs": 6125
+        },
+        {
+          "name": "createResponseMessage",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 1714,
+          "selfUs": 5918
+        },
+        {
+          "name": "#receiveMessage",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 3754,
+          "selfUs": 5749
+        },
+        {
+          "name": "#handleRequest",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 3933,
+          "selfUs": 5459
+        },
+        {
+          "name": "(garbage collector)",
+          "url": "",
+          "line": 0,
+          "selfUs": 5419
+        },
+        {
+          "name": "now",
+          "url": "",
+          "line": 0,
+          "selfUs": 5041
+        },
+        {
+          "name": "(anonymous)",
+          "url": "node:internal/per_context/messageport",
+          "line": 19,
+          "selfUs": 4916
+        },
+        {
+          "name": "encodeCompact",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 6418,
+          "selfUs": 4668
+        },
+        {
+          "name": "#sendRequest",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 3425,
+          "selfUs": 4538
+        },
+        {
+          "name": "#handleMessage",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 6726,
+          "selfUs": 4418
+        },
+        {
+          "name": "measurePayload",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 714,
+          "selfUs": 4122
+        },
+        {
+          "name": "_MessageEvent",
+          "url": "node:internal/deps/undici/undici",
+          "line": 13800,
+          "selfUs": 4085
+        },
+        {
+          "name": "encodeCompact",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 6418,
+          "selfUs": 3751
+        },
+        {
+          "name": "uuid",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 512,
+          "selfUs": 3627
+        },
+        {
+          "name": "#handleRequest",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 3933,
+          "selfUs": 3625
+        }
+      ]
+    },
+    {
+      "name": "CrossBus-compact-wire-64",
+      "checked": {
+        "methodology": {
+          "samples": 1,
+          "iterations": 65536,
+          "warmupCalls": 4096,
+          "latencyGroups": 128,
+          "concurrencies": [
+            64
+          ],
+          "sizes": [
+            1024
+          ],
+          "names": [
+            "CrossBus compact wire"
+          ],
+          "order": "Rotate library order each round; repeat this suite in fresh processes",
+          "topology": "MessageChannel, two endpoints in one event loop; worker startup/scheduling excluded",
+          "payload": "Distinct preallocated objects per member; every returned scalar/full text and exact remote echo invocation count verified; burst completion RTT sampled separately",
+          "guarantees": "CrossBus retains default payload/request limits, peer binding and timeout. Comlink has no per-call timeout; birpc defaults to 60s; Penpal default has none, plus a cached 30s-timeout variant. API semantics differ."
+        },
+        "results": [
+          {
+            "library": "CrossBus compact wire",
+            "concurrency": 64,
+            "textBytes": 1024,
+            "callsPerSample": 65536,
+            "checkedCalls": 77824,
+            "opsPerSecond": {
+              "median": 184275.9970801748,
+              "min": 184275.9970801748,
+              "max": 184275.9970801748,
+              "samples": [
+                184275.9970801748
+              ]
+            },
+            "latencyMs": {
+              "p50": 0.3297920000004524,
+              "p95": 0.3579589999999371,
+              "p99": 0.43700000000080763,
+              "samples": [
+                0.3141249999998763,
+                0.3166670000000522,
+                0.3177080000004935,
+                0.31958399999984977,
+                0.3199170000007143,
+                0.3199580000000424,
+                0.32000000000061846,
+                0.3200829999996131,
+                0.32020900000043184,
+                0.320292000000336,
+                0.32062499999938154,
+                0.3212499999999636,
+                0.3213339999992968,
+                0.32154199999968114,
+                0.3215829999999187,
+                0.3218749999996362,
+                0.32195800000044983,
+                0.322041999999783,
+                0.32208300000002055,
+                0.32237499999973807,
+                0.32237499999973807,
+                0.32241700000031415,
+                0.32295800000065356,
+                0.3229590000000826,
+                0.3230830000002243,
+                0.3232500000003711,
+                0.3234999999995125,
+                0.32387500000004366,
+                0.3240409999998519,
+                0.32441599999947357,
+                0.3245839999999589,
+                0.3248329999996713,
+                0.32491699999991397,
+                0.3250420000003942,
+                0.32549999999991996,
+                0.3255829999998241,
+                0.3256250000004002,
+                0.32583299999987503,
+                0.3258749999995416,
+                0.32658400000036636,
+                0.32670799999959854,
+                0.3267919999998412,
+                0.32691699999941193,
+                0.3270830000001297,
+                0.32729099999960454,
+                0.3273749999998472,
+                0.3274999999994179,
+                0.32762499999989814,
+                0.32779200000004494,
+                0.32779200000004494,
+                0.32791700000052515,
+                0.32804200000009587,
+                0.3280830000003334,
+                0.3282499999995707,
+                0.32850000000053114,
+                0.3285839999998643,
+                0.3288329999995767,
+                0.32891599999948085,
+                0.3289999999997235,
+                0.3290420000002996,
+                0.32924999999977445,
+                0.32937499999934516,
+                0.32954199999949196,
+                0.3297920000004524,
+                0.329874999999447,
+                0.3300419999995938,
+                0.3302079999994021,
+                0.33041700000012497,
+                0.3307089999998425,
+                0.33083299999998417,
+                0.33087500000056025,
+                0.33091700000022684,
+                0.3309589999998934,
+                0.3310830000000351,
+                0.33116700000027777,
+                0.3312500000001819,
+                0.33133300000008603,
+                0.33141599999999016,
+                0.33145800000056624,
+                0.33150000000023283,
+                0.3315419999998994,
+                0.331583999999566,
+                0.33162499999980355,
+                0.33191700000043056,
+                0.3324579999998605,
+                0.3329999999996289,
+                0.3330839999998716,
+                0.3331660000003467,
+                0.33345900000040274,
+                0.3335829999996349,
+                0.3335829999996349,
+                0.33370900000045367,
+                0.33399999999983265,
+                0.33412499999940337,
+                0.3341659999996409,
+                0.3343750000003638,
+                0.3344170000000304,
+                0.3344999999999345,
+                0.3348340000002281,
+                0.3352499999991778,
+                0.3355420000007143,
+                0.33562499999970896,
+                0.3357910000004267,
+                0.33579199999985576,
+                0.335917000000336,
+                0.3359580000005735,
+                0.3360000000002401,
+                0.3360000000002401,
+                0.33608299999923474,
+                0.3367920000000595,
+                0.3368749999999636,
+                0.33729200000016135,
+                0.3373750000000655,
+                0.33995799999956944,
+                0.34025000000019645,
+                0.34162500000002183,
+                0.3422499999996944,
+                0.34333299999980227,
+                0.34562499999992724,
+                0.34662500000013097,
+                0.3579589999999371,
+                0.36895800000002055,
+                0.3690839999999298,
+                0.36920900000041,
+                0.37687499999992724,
+                0.43700000000080763,
+                1.5450419999997393,
+                1.5717920000006416
+              ]
+            }
+          }
+        ]
+      },
+      "frames": [
+        {
+          "name": "(program)",
+          "url": "",
+          "line": 0,
+          "selfUs": 115921
+        },
+        {
+          "name": "send",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 6636,
+          "selfUs": 46672
+        },
+        {
+          "name": "send",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 6636,
+          "selfUs": 39047
+        },
+        {
+          "name": "(idle)",
+          "url": "",
+          "line": 0,
+          "selfUs": 30082
+        },
+        {
+          "name": "post",
+          "url": "node:inspector",
+          "line": 115,
+          "selfUs": 30000
+        },
+        {
+          "name": "(garbage collector)",
+          "url": "",
+          "line": 0,
+          "selfUs": 18498
+        },
+        {
+          "name": "postMessage",
+          "url": "",
+          "line": 0,
+          "selfUs": 17712
+        },
+        {
+          "name": "create",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 2210,
+          "selfUs": 17458
+        },
+        {
+          "name": "postMessage",
+          "url": "",
+          "line": 0,
+          "selfUs": 17206
+        },
+        {
+          "name": "resolve",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 2318,
+          "selfUs": 11833
+        },
+        {
+          "name": "envelope",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 1654,
+          "selfUs": 9502
+        },
+        {
+          "name": "createResponseMessage",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 1714,
+          "selfUs": 6750
+        },
+        {
+          "name": "(anonymous)",
+          "url": "node:internal/event_target",
+          "line": 780,
+          "selfUs": 6708
+        },
+        {
+          "name": "envelope",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 1654,
+          "selfUs": 6247
+        },
+        {
+          "name": "#handleRequest",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 3933,
+          "selfUs": 4875
+        },
+        {
+          "name": "#sendRequest",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 3425,
+          "selfUs": 4749
+        },
+        {
+          "name": "encodeCompact",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 6418,
+          "selfUs": 4669
+        },
+        {
+          "name": "#handleMessage",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 6726,
+          "selfUs": 4125
+        },
+        {
+          "name": "measurePayload",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 714,
+          "selfUs": 4041
+        },
+        {
+          "name": "createFastMessageEvent",
+          "url": "node:internal/deps/undici/undici",
+          "line": 13850,
+          "selfUs": 3918
+        },
+        {
+          "name": "#receiveMessage",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 3754,
+          "selfUs": 3875
+        },
+        {
+          "name": "measurePayload",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 714,
+          "selfUs": 3207
+        },
+        {
+          "name": "decodeCompact",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 6442,
+          "selfUs": 3000
+        },
+        {
+          "name": "#handleRequest",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 3933,
+          "selfUs": 2833
+        },
+        {
+          "name": "encodeCompact",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 6418,
+          "selfUs": 2750
+        },
+        {
+          "name": "uuid",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 512,
+          "selfUs": 2457
+        },
+        {
+          "name": "measurePayload",
+          "url": "repo:/benchmarks/optimization-016/baseline/crossbus.js",
+          "line": 714,
+          "selfUs": 2417
+        },
+        {
+          "name": "now",
+          "url": "",
+          "line": 0,
+          "selfUs": 2415
+        },
+        {
+          "name": "run",
+          "url": "repo:/experiments/worker-rpc/workloads.js",
+          "line": 111,
+          "selfUs": 2415
+        },
+        {
+          "name": "(anonymous)",
+          "url": "node:internal/per_context/messageport",
+          "line": 19,
+          "selfUs": 2373
+        }
+      ]
+    },
+    {
+      "name": "birpc-cached-1",
+      "checked": {
+        "methodology": {
+          "samples": 1,
+          "iterations": 65536,
+          "warmupCalls": 4096,
+          "latencyGroups": 128,
+          "concurrencies": [
+            1
+          ],
+          "sizes": [
+            1024
+          ],
+          "names": [
+            "birpc cached"
+          ],
+          "order": "Rotate library order each round; repeat this suite in fresh processes",
+          "topology": "MessageChannel, two endpoints in one event loop; worker startup/scheduling excluded",
+          "payload": "Distinct preallocated objects per member; every returned scalar/full text and exact remote echo invocation count verified; burst completion RTT sampled separately",
+          "guarantees": "CrossBus retains default payload/request limits, peer binding and timeout. Comlink has no per-call timeout; birpc defaults to 60s; Penpal default has none, plus a cached 30s-timeout variant. API semantics differ."
+        },
+        "results": [
+          {
+            "library": "birpc cached",
+            "concurrency": 1,
+            "textBytes": 1024,
+            "callsPerSample": 65536,
+            "checkedCalls": 69760,
+            "opsPerSecond": {
+              "median": 143905.37325813025,
+              "min": 143905.37325813025,
+              "max": 143905.37325813025,
+              "samples": [
+                143905.37325813025
+              ]
+            },
+            "latencyMs": {
+              "p50": 0.006666999999652035,
+              "p95": 0.010166000000026543,
+              "p99": 0.011000000000422006,
+              "samples": [
+                0.006207999999787717,
+                0.006249999999454303,
+                0.006249999999454303,
+                0.006249999999454303,
+                0.006250000000363798,
+                0.006250000000363798,
+                0.006250000000363798,
+                0.006250000000363798,
+                0.006290999999691849,
+                0.006291000000601343,
+                0.006291000000601343,
+                0.006292000000030384,
+                0.00633300000026793,
+                0.00633300000026793,
+                0.00633300000026793,
+                0.00633300000026793,
+                0.006374999999934516,
+                0.006374999999934516,
+                0.006374999999934516,
+                0.006375000000844011,
+                0.006416000000172062,
+                0.006416999999601103,
+                0.006417000000510598,
+                0.006417000000510598,
+                0.006417000000510598,
+                0.006457999999838648,
+                0.006457999999838648,
+                0.006457999999838648,
+                0.006457999999838648,
+                0.006457999999838648,
+                0.006458000000748143,
+                0.006458000000748143,
+                0.006459000000177184,
+                0.006459000000177184,
+                0.006499999999505235,
+                0.006499999999505235,
+                0.00650000000041473,
+                0.00650000000041473,
+                0.00650000000041473,
+                0.00650000000041473,
+                0.00650000000041473,
+                0.00650000000041473,
+                0.00650000000041473,
+                0.00654099999974278,
+                0.00654099999974278,
+                0.00654099999974278,
+                0.006542000000081316,
+                0.006542000000081316,
+                0.006542000000081316,
+                0.006542000000081316,
+                0.006582999999409367,
+                0.006583000000318862,
+                0.006583000000318862,
+                0.006583000000318862,
+                0.006583999999747903,
+                0.006584000000657397,
+                0.006624999999985448,
+                0.006624999999985448,
+                0.006624999999985448,
+                0.006624999999985448,
+                0.006624999999985448,
+                0.0066660000002229935,
+                0.0066660000002229935,
+                0.006666999999652035,
+                0.006666999999652035,
+                0.006666999999652035,
+                0.006667000000561529,
+                0.006667000000561529,
+                0.00670799999988958,
+                0.00670799999988958,
+                0.00670799999988958,
+                0.006708000000799075,
+                0.006709000000228116,
+                0.006709000000228116,
+                0.006709000000228116,
+                0.006709000000228116,
+                0.006749999999556167,
+                0.006749999999556167,
+                0.006749999999556167,
+                0.006749999999556167,
+                0.006750000000465661,
+                0.006750000000465661,
+                0.006750000000465661,
+                0.006790999999793712,
+                0.006792000000132248,
+                0.006792000000132248,
+                0.006792000000132248,
+                0.006832999999460299,
+                0.006832999999460299,
+                0.006833000000369793,
+                0.006833000000369793,
+                0.006833999999798834,
+                0.00687500000003638,
+                0.00687500000003638,
+                0.00687500000003638,
+                0.0069159999993644306,
+                0.0069159999993644306,
+                0.006916000000273925,
+                0.006916999999702966,
+                0.006916999999702966,
+                0.006916999999702966,
+                0.006917000000612461,
+                0.006957999999940512,
+                0.006957999999940512,
+                0.006999999999607098,
+                0.006999999999607098,
+                0.0070420000001831795,
+                0.007124999999177817,
+                0.0071250000000873115,
+                0.0071250000000873115,
+                0.007166999999753898,
+                0.007250000000567525,
+                0.00729100000080507,
+                0.007292000000234111,
+                0.007375000000138243,
+                0.007375000000138243,
+                0.00741699999980483,
+                0.007749999999759893,
+                0.008832999999867752,
+                0.009957999999642198,
+                0.010166000000026543,
+                0.010374999999839929,
+                0.010416000000077474,
+                0.010583999999653315,
+                0.01062499999989086,
+                0.011000000000422006,
+                0.011250000000472937,
+                0.02170899999964604
+              ]
+            }
+          }
+        ]
+      },
+      "frames": [
+        {
+          "name": "(program)",
+          "url": "",
+          "line": 0,
+          "selfUs": 166910
+        },
+        {
+          "name": "(idle)",
+          "url": "",
+          "line": 0,
+          "selfUs": 67502
+        },
+        {
+          "name": "postMessage",
+          "url": "",
+          "line": 0,
+          "selfUs": 41920
+        },
+        {
+          "name": "postMessage",
+          "url": "",
+          "line": 0,
+          "selfUs": 38423
+        },
+        {
+          "name": "post",
+          "url": "repo:/experiments/worker-rpc/workloads.js",
+          "line": 36,
+          "selfUs": 37711
+        },
+        {
+          "name": "post",
+          "url": "repo:/experiments/worker-rpc/workloads.js",
+          "line": 36,
+          "selfUs": 30742
+        },
+        {
+          "name": "post",
+          "url": "node:inspector",
+          "line": 115,
+          "selfUs": 29208
+        },
+        {
+          "name": "onMessage",
+          "url": "repo:/node_modules/birpc/dist/index.mjs",
+          "line": 152,
+          "selfUs": 17539
+        },
+        {
+          "name": "_call",
+          "url": "repo:/node_modules/birpc/dist/index.mjs",
+          "line": 45,
+          "selfUs": 11912
+        },
+        {
+          "name": "sendCall",
+          "url": "repo:/node_modules/birpc/dist/index.mjs",
+          "line": 123,
+          "selfUs": 7543
+        },
+        {
+          "name": "handler",
+          "url": "repo:/node_modules/birpc/dist/index.mjs",
+          "line": 67,
+          "selfUs": 6919
+        },
+        {
+          "name": "(anonymous)",
+          "url": "node:internal/event_target",
+          "line": 780,
+          "selfUs": 6583
+        },
+        {
+          "name": "onMessage",
+          "url": "repo:/node_modules/birpc/dist/index.mjs",
+          "line": 152,
+          "selfUs": 6252
+        },
+        {
+          "name": "(anonymous)",
+          "url": "node:internal/per_context/messageport",
+          "line": 19,
+          "selfUs": 6000
+        },
+        {
+          "name": "nanoid",
+          "url": "repo:/node_modules/birpc/dist/index.mjs",
+          "line": 27,
+          "selfUs": 5585
+        },
+        {
+          "name": "now",
+          "url": "",
+          "line": 0,
+          "selfUs": 3333
+        },
+        {
+          "name": "Event",
+          "url": "node:internal/event_target",
+          "line": 115,
+          "selfUs": 3125
+        },
+        {
+          "name": "(anonymous)",
+          "url": "node:internal/worker/io",
+          "line": 135,
+          "selfUs": 3043
+        },
+        {
+          "name": "port.onmessage",
+          "url": "repo:/experiments/worker-rpc/workloads.js",
+          "line": 36,
+          "selfUs": 2584
+        },
+        {
+          "name": "(garbage collector)",
+          "url": "",
+          "line": 0,
+          "selfUs": 2459
+        },
+        {
+          "name": "run",
+          "url": "repo:/experiments/worker-rpc/workloads.js",
+          "line": 111,
+          "selfUs": 2375
+        },
+        {
+          "name": "_MessageEvent",
+          "url": "node:internal/deps/undici/undici",
+          "line": 13800,
+          "selfUs": 2374
+        },
+        {
+          "name": "setTimeout",
+          "url": "node:timers",
+          "line": 115,
+          "selfUs": 2001
+        },
+        {
+          "name": "call",
+          "url": "repo:/experiments/worker-rpc/workloads.js",
+          "line": 40,
+          "selfUs": 1541
+        },
+        {
+          "name": "eventHandler",
+          "url": "node:internal/event_target",
+          "line": 1124,
+          "selfUs": 1458
+        },
+        {
+          "name": "toggleTimerRef",
+          "url": "",
+          "line": 0,
+          "selfUs": 1458
+        },
+        {
+          "name": "lazyMessageEvent",
+          "url": "node:internal/worker/io",
+          "line": 98,
+          "selfUs": 1250
+        },
+        {
+          "name": "clearTimeout",
+          "url": "node:timers",
+          "line": 136,
+          "selfUs": 1125
+        },
+        {
+          "name": "Timeout",
+          "url": "node:internal/timers",
+          "line": 179,
+          "selfUs": 1000
+        },
+        {
+          "name": "getLibuvNow",
+          "url": "",
+          "line": 0,
+          "selfUs": 792
+        }
+      ]
+    },
+    {
+      "name": "birpc-cached-64",
+      "checked": {
+        "methodology": {
+          "samples": 1,
+          "iterations": 65536,
+          "warmupCalls": 4096,
+          "latencyGroups": 128,
+          "concurrencies": [
+            64
+          ],
+          "sizes": [
+            1024
+          ],
+          "names": [
+            "birpc cached"
+          ],
+          "order": "Rotate library order each round; repeat this suite in fresh processes",
+          "topology": "MessageChannel, two endpoints in one event loop; worker startup/scheduling excluded",
+          "payload": "Distinct preallocated objects per member; every returned scalar/full text and exact remote echo invocation count verified; burst completion RTT sampled separately",
+          "guarantees": "CrossBus retains default payload/request limits, peer binding and timeout. Comlink has no per-call timeout; birpc defaults to 60s; Penpal default has none, plus a cached 30s-timeout variant. API semantics differ."
+        },
+        "results": [
+          {
+            "library": "birpc cached",
+            "concurrency": 64,
+            "textBytes": 1024,
+            "callsPerSample": 65536,
+            "checkedCalls": 77824,
+            "opsPerSecond": {
+              "median": 190542.85422502022,
+              "min": 190542.85422502022,
+              "max": 190542.85422502022,
+              "samples": [
+                190542.85422502022
+              ]
+            },
+            "latencyMs": {
+              "p50": 0.3139160000000629,
+              "p95": 0.3913750000001528,
+              "p99": 0.4736250000005384,
+              "samples": [
+                0.298584000000119,
+                0.2992500000000291,
+                0.3008749999999054,
+                0.3012079999998605,
+                0.30187500000010914,
+                0.3024170000007871,
+                0.3031670000000304,
+                0.3034590000006574,
+                0.30354199999965203,
+                0.3037500000000364,
+                0.3037910000002739,
+                0.3038749999996071,
+                0.3040000000000873,
+                0.30483300000014424,
+                0.3049169999994774,
+                0.3049590000000535,
+                0.3050410000005286,
+                0.30525000000034197,
+                0.30529200000000856,
+                0.3054999999994834,
+                0.3059160000002521,
+                0.3060830000003989,
+                0.30608399999982794,
+                0.3061250000000655,
+                0.30620900000030815,
+                0.3062499999996362,
+                0.30633299999954033,
+                0.30662499999925785,
+                0.30662500000016735,
+                0.30674999999973807,
+                0.3069580000001224,
+                0.306999999999789,
+                0.3071669999999358,
+                0.3074580000002243,
+                0.3077919999996084,
+                0.30808299999989686,
+                0.3081670000001395,
+                0.30825000000004366,
+                0.3085829999999987,
+                0.3085829999999987,
+                0.30858399999942776,
+                0.3086249999996653,
+                0.30870800000047893,
+                0.30904199999986304,
+                0.3090830000001006,
+                0.3093330000001515,
+                0.30945900000006077,
+                0.31045799999992596,
+                0.3107499999996435,
+                0.3108329999995476,
+                0.3109169999997903,
+                0.31137500000022555,
+                0.31170899999960966,
+                0.3118750000003274,
+                0.31195800000023155,
+                0.312207999999373,
+                0.3122909999992771,
+                0.31241599999975733,
+                0.31241700000009587,
+                0.3129580000004353,
+                0.3136670000003505,
+                0.3137909999995827,
+                0.31387500000073487,
+                0.3139160000000629,
+                0.31395900000006804,
+                0.31395900000006804,
+                0.3140000000003056,
+                0.3140000000003056,
+                0.31420799999978044,
+                0.3144169999995938,
+                0.31454200000007404,
+                0.3145840000006501,
+                0.31462499999997817,
+                0.31466700000055425,
+                0.31479099999978644,
+                0.31504099999983737,
+                0.31537500000013097,
+                0.31541699999979755,
+                0.3154580000000351,
+                0.3154580000000351,
+                0.31554099999993923,
+                0.3155829999996058,
+                0.31558399999994435,
+                0.31566599999950995,
+                0.3160840000000462,
+                0.3166250000003856,
+                0.3166250000003856,
+                0.3170829999999114,
+                0.31716599999981554,
+                0.31733299999996234,
+                0.31758300000001327,
+                0.3182090000000244,
+                0.31837499999983265,
+                0.3186249999998836,
+                0.31908300000031886,
+                0.31908300000031886,
+                0.3203749999993306,
+                0.322917000000416,
+                0.32316699999955745,
+                0.3247080000001006,
+                0.32475000000067666,
+                0.32700000000022555,
+                0.3270409999995536,
+                0.3270830000001297,
+                0.3273749999998472,
+                0.32754099999965547,
+                0.3276670000004742,
+                0.3291250000002037,
+                0.3298750000003565,
+                0.33083299999998417,
+                0.33233300000028976,
+                0.3350000000000364,
+                0.33849999999983993,
+                0.3418329999994967,
+                0.3459999999995489,
+                0.35016600000017206,
+                0.3525420000005397,
+                0.3578749999996944,
+                0.3635839999997188,
+                0.37612500000068394,
+                0.3913750000001528,
+                0.40587500000037835,
+                0.4357910000007905,
+                0.4387079999996786,
+                0.46283299999959127,
+                0.4736250000005384,
+                0.5591249999997672,
+                0.6773330000005444
+              ]
+            }
+          }
+        ]
+      },
+      "frames": [
+        {
+          "name": "(program)",
+          "url": "",
+          "line": 0,
+          "selfUs": 149369
+        },
+        {
+          "name": "post",
+          "url": "repo:/experiments/worker-rpc/workloads.js",
+          "line": 36,
+          "selfUs": 42248
+        },
+        {
+          "name": "(idle)",
+          "url": "",
+          "line": 0,
+          "selfUs": 30957
+        },
+        {
+          "name": "post",
+          "url": "node:inspector",
+          "line": 115,
+          "selfUs": 29209
+        },
+        {
+          "name": "post",
+          "url": "repo:/experiments/worker-rpc/workloads.js",
+          "line": 36,
+          "selfUs": 28045
+        },
+        {
+          "name": "onMessage",
+          "url": "repo:/node_modules/birpc/dist/index.mjs",
+          "line": 152,
+          "selfUs": 21043
+        },
+        {
+          "name": "postMessage",
+          "url": "",
+          "line": 0,
+          "selfUs": 18294
+        },
+        {
+          "name": "handler",
+          "url": "repo:/node_modules/birpc/dist/index.mjs",
+          "line": 67,
+          "selfUs": 16166
+        },
+        {
+          "name": "_call",
+          "url": "repo:/node_modules/birpc/dist/index.mjs",
+          "line": 45,
+          "selfUs": 16126
+        },
+        {
+          "name": "postMessage",
+          "url": "",
+          "line": 0,
+          "selfUs": 15961
+        },
+        {
+          "name": "sendCall",
+          "url": "repo:/node_modules/birpc/dist/index.mjs",
+          "line": 123,
+          "selfUs": 7542
+        },
+        {
+          "name": "onMessage",
+          "url": "repo:/node_modules/birpc/dist/index.mjs",
+          "line": 152,
+          "selfUs": 7376
+        },
+        {
+          "name": "now",
+          "url": "",
+          "line": 0,
+          "selfUs": 5627
+        },
+        {
+          "name": "nanoid",
+          "url": "repo:/node_modules/birpc/dist/index.mjs",
+          "line": 27,
+          "selfUs": 4915
+        },
+        {
+          "name": "(anonymous)",
+          "url": "node:internal/event_target",
+          "line": 780,
+          "selfUs": 4876
+        },
+        {
+          "name": "(garbage collector)",
+          "url": "",
+          "line": 0,
+          "selfUs": 4249
+        },
+        {
+          "name": "_call",
+          "url": "repo:/node_modules/birpc/dist/index.mjs",
+          "line": 45,
+          "selfUs": 3707
+        },
+        {
+          "name": "run",
+          "url": "repo:/experiments/worker-rpc/workloads.js",
+          "line": 111,
+          "selfUs": 3375
+        },
+        {
+          "name": "(anonymous)",
+          "url": "node:internal/per_context/messageport",
+          "line": 19,
+          "selfUs": 3000
+        },
+        {
+          "name": "(anonymous)",
+          "url": "node:internal/worker/io",
+          "line": 135,
+          "selfUs": 2542
+        },
+        {
+          "name": "setTimeout",
+          "url": "node:timers",
+          "line": 115,
+          "selfUs": 2374
+        },
+        {
+          "name": "handler",
+          "url": "repo:/node_modules/birpc/dist/index.mjs",
+          "line": 67,
+          "selfUs": 2333
+        },
+        {
+          "name": "Event",
+          "url": "node:internal/event_target",
+          "line": 115,
+          "selfUs": 2249
+        },
+        {
+          "name": "getLibuvNow",
+          "url": "",
+          "line": 0,
+          "selfUs": 2168
+        },
+        {
+          "name": "_MessageEvent",
+          "url": "node:internal/deps/undici/undici",
+          "line": 13800,
+          "selfUs": 2041
+        },
+        {
+          "name": "eventHandler",
+          "url": "node:internal/event_target",
+          "line": 1124,
+          "selfUs": 1501
+        },
+        {
+          "name": "clearTimeout",
+          "url": "node:timers",
+          "line": 136,
+          "selfUs": 1292
+        },
+        {
+          "name": "Timeout",
+          "url": "node:internal/timers",
+          "line": 179,
+          "selfUs": 1167
+        },
+        {
+          "name": "port.onmessage",
+          "url": "repo:/experiments/worker-rpc/workloads.js",
+          "line": 36,
+          "selfUs": 1082
+        },
+        {
+          "name": "lazyMessageEvent",
+          "url": "node:internal/worker/io",
+          "line": 98,
+          "selfUs": 958
+        }
+      ]
+    },
+    {
+      "name": "Penpal-cached---timeout-1",
+      "checked": {
+        "methodology": {
+          "samples": 1,
+          "iterations": 65536,
+          "warmupCalls": 4096,
+          "latencyGroups": 128,
+          "concurrencies": [
+            1
+          ],
+          "sizes": [
+            1024
+          ],
+          "names": [
+            "Penpal cached + timeout"
+          ],
+          "order": "Rotate library order each round; repeat this suite in fresh processes",
+          "topology": "MessageChannel, two endpoints in one event loop; worker startup/scheduling excluded",
+          "payload": "Distinct preallocated objects per member; every returned scalar/full text and exact remote echo invocation count verified; burst completion RTT sampled separately",
+          "guarantees": "CrossBus retains default payload/request limits, peer binding and timeout. Comlink has no per-call timeout; birpc defaults to 60s; Penpal default has none, plus a cached 30s-timeout variant. API semantics differ."
+        },
+        "results": [
+          {
+            "library": "Penpal cached + timeout",
+            "concurrency": 1,
+            "textBytes": 1024,
+            "callsPerSample": 65536,
+            "checkedCalls": 69760,
+            "opsPerSecond": {
+              "median": 129337.88089185435,
+              "min": 129337.88089185435,
+              "max": 129337.88089185435,
+              "samples": [
+                129337.88089185435
+              ]
+            },
+            "latencyMs": {
+              "p50": 0.007332999999562162,
+              "p95": 0.01074999999946158,
+              "p99": 0.011958000000959146,
+              "samples": [
+                0.007042000001092674,
+                0.007042000001092674,
+                0.007082999998601736,
+                0.007082999998601736,
+                0.007083000000420725,
+                0.007083000000420725,
+                0.007083000000420725,
+                0.007084000000759261,
+                0.007084000000759261,
+                0.007084000000759261,
+                0.0071250000000873115,
+                0.0071250000000873115,
+                0.0071250000000873115,
+                0.0071250000000873115,
+                0.0071250000000873115,
+                0.0071250000000873115,
+                0.0071250000000873115,
+                0.0071250000000873115,
+                0.0071250000000873115,
+                0.007165999999415362,
+                0.007165999999415362,
+                0.007165999999415362,
+                0.007166000001234352,
+                0.007166000001234352,
+                0.007166000001234352,
+                0.007166999999753898,
+                0.007166999999753898,
+                0.007166999999753898,
+                0.007166999999753898,
+                0.007166999999753898,
+                0.007166999999753898,
+                0.007207999999081949,
+                0.007207999999081949,
+                0.007208000000900938,
+                0.007208000000900938,
+                0.0072089999994204845,
+                0.0072089999994204845,
+                0.007209000001239474,
+                0.007249999998748535,
+                0.007249999998748535,
+                0.007249999998748535,
+                0.007249999998748535,
+                0.007249999998748535,
+                0.007249999998748535,
+                0.007250000000567525,
+                0.007250000000567525,
+                0.0072909999998955755,
+                0.0072909999998955755,
+                0.0072909999998955755,
+                0.0072909999998955755,
+                0.007292000000234111,
+                0.007292000000234111,
+                0.007292000000234111,
+                0.007292000000234111,
+                0.007292000000234111,
+                0.007292000000234111,
+                0.007292000000234111,
+                0.007292000000234111,
+                0.007292000000234111,
+                0.007292000000234111,
+                0.007292000000234111,
+                0.007332999999562162,
+                0.007332999999562162,
+                0.007332999999562162,
+                0.007332999999562162,
+                0.007333000001381151,
+                0.007333000001381151,
+                0.007333000001381151,
+                0.007333999999900698,
+                0.007333999999900698,
+                0.0073749999992287485,
+                0.0073749999992287485,
+                0.0073749999992287485,
+                0.0073749999992287485,
+                0.007375000001047738,
+                0.007375000001047738,
+                0.007416999998895335,
+                0.007417000000714324,
+                0.007417000000714324,
+                0.007417000000714324,
+                0.007417000000714324,
+                0.007417000000714324,
+                0.007458000000042375,
+                0.007458000000042375,
+                0.007458000000042375,
+                0.007459000000380911,
+                0.007459000000380911,
+                0.007459000000380911,
+                0.007499999999708962,
+                0.007499999999708962,
+                0.007500000001527951,
+                0.007500000001527951,
+                0.0075409999990370125,
+                0.0075409999990370125,
+                0.007541000000856002,
+                0.007541999999375548,
+                0.007542000001194538,
+                0.007583000000522588,
+                0.007583999999042135,
+                0.007625000000189175,
+                0.007625000000189175,
+                0.007625000000189175,
+                0.007665999999517226,
+                0.007666000001336215,
+                0.007666999999855761,
+                0.007666999999855761,
+                0.007666999999855761,
+                0.007707999999183812,
+                0.007708000001002802,
+                0.007708999999522348,
+                0.007750000000669388,
+                0.007874999999330612,
+                0.007916999998997198,
+                0.007999999999810825,
+                0.008125000000291038,
+                0.008166999999957625,
+                0.008207999999285676,
+                0.008374999999432475,
+                0.010083999999551452,
+                0.010583000001133769,
+                0.01074999999946158,
+                0.011042000000088592,
+                0.01133300000037707,
+                0.011375000000043656,
+                0.011624999999185093,
+                0.011958000000959146,
+                0.01224999999976717,
+                0.014458000001468463
+              ]
+            }
+          }
+        ]
+      },
+      "frames": [
+        {
+          "name": "(program)",
+          "url": "",
+          "line": 0,
+          "selfUs": 171629
+        },
+        {
+          "name": "(idle)",
+          "url": "",
+          "line": 0,
+          "selfUs": 70870
+        },
+        {
+          "name": "sendMessage",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 719,
+          "selfUs": 53043
+        },
+        {
+          "name": "sendMessage",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 719,
+          "selfUs": 41537
+        },
+        {
+          "name": "postMessage",
+          "url": "",
+          "line": 0,
+          "selfUs": 38414
+        },
+        {
+          "name": "postMessage",
+          "url": "",
+          "line": 0,
+          "selfUs": 37046
+        },
+        {
+          "name": "post",
+          "url": "node:inspector",
+          "line": 115,
+          "selfUs": 19792
+        },
+        {
+          "name": "handleMessage",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 202,
+          "selfUs": 13669
+        },
+        {
+          "name": "insert",
+          "url": "node:internal/timers",
+          "line": 387,
+          "selfUs": 10292
+        },
+        {
+          "name": "(anonymous)",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 214,
+          "selfUs": 10042
+        },
+        {
+          "name": "(anonymous)",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 221,
+          "selfUs": 9501
+        },
+        {
+          "name": "(anonymous)",
+          "url": "node:internal/event_target",
+          "line": 780,
+          "selfUs": 8332
+        },
+        {
+          "name": "(anonymous)",
+          "url": "node:internal/per_context/messageport",
+          "line": 19,
+          "selfUs": 7794
+        },
+        {
+          "name": "#handleMessage",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 733,
+          "selfUs": 7415
+        },
+        {
+          "name": "handleCallMessage",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 105,
+          "selfUs": 7209
+        },
+        {
+          "name": "unenroll",
+          "url": "node:timers",
+          "line": 71,
+          "selfUs": 5042
+        },
+        {
+          "name": "run",
+          "url": "repo:/experiments/worker-rpc/workloads.js",
+          "line": 111,
+          "selfUs": 4833
+        },
+        {
+          "name": "Event",
+          "url": "node:internal/event_target",
+          "line": 115,
+          "selfUs": 3625
+        },
+        {
+          "name": "(anonymous)",
+          "url": "node:internal/worker/io",
+          "line": 135,
+          "selfUs": 3624
+        },
+        {
+          "name": "(anonymous)",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 77,
+          "selfUs": 3500
+        },
+        {
+          "name": "now",
+          "url": "",
+          "line": 0,
+          "selfUs": 3376
+        },
+        {
+          "name": "randomUUID",
+          "url": "node:internal/crypto/webcrypto",
+          "line": 91,
+          "selfUs": 3085
+        },
+        {
+          "name": "lazyMessageEvent",
+          "url": "node:internal/worker/io",
+          "line": 98,
+          "selfUs": 3042
+        },
+        {
+          "name": "handleMessage",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 143,
+          "selfUs": 2833
+        },
+        {
+          "name": "apply",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 186,
+          "selfUs": 2458
+        },
+        {
+          "name": "_MessageEvent",
+          "url": "node:internal/deps/undici/undici",
+          "line": 13800,
+          "selfUs": 2167
+        },
+        {
+          "name": "(garbage collector)",
+          "url": "",
+          "line": 0,
+          "selfUs": 2083
+        },
+        {
+          "name": "call",
+          "url": "repo:/experiments/worker-rpc/workloads.js",
+          "line": 49,
+          "selfUs": 1875
+        },
+        {
+          "name": "handleMessage",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 402,
+          "selfUs": 1750
+        },
+        {
+          "name": "insert",
+          "url": "node:internal/timers",
+          "line": 387,
+          "selfUs": 1665
+        }
+      ]
+    },
+    {
+      "name": "Penpal-cached---timeout-64",
+      "checked": {
+        "methodology": {
+          "samples": 1,
+          "iterations": 65536,
+          "warmupCalls": 4096,
+          "latencyGroups": 128,
+          "concurrencies": [
+            64
+          ],
+          "sizes": [
+            1024
+          ],
+          "names": [
+            "Penpal cached + timeout"
+          ],
+          "order": "Rotate library order each round; repeat this suite in fresh processes",
+          "topology": "MessageChannel, two endpoints in one event loop; worker startup/scheduling excluded",
+          "payload": "Distinct preallocated objects per member; every returned scalar/full text and exact remote echo invocation count verified; burst completion RTT sampled separately",
+          "guarantees": "CrossBus retains default payload/request limits, peer binding and timeout. Comlink has no per-call timeout; birpc defaults to 60s; Penpal default has none, plus a cached 30s-timeout variant. API semantics differ."
+        },
+        "results": [
+          {
+            "library": "Penpal cached + timeout",
+            "concurrency": 64,
+            "textBytes": 1024,
+            "callsPerSample": 65536,
+            "checkedCalls": 77824,
+            "opsPerSecond": {
+              "median": 173778.5780424138,
+              "min": 173778.5780424138,
+              "max": 173778.5780424138,
+              "samples": [
+                173778.5780424138
+              ]
+            },
+            "latencyMs": {
+              "p50": 0.35695900000064285,
+              "p95": 0.47150000000146974,
+              "p99": 0.5101250000006985,
+              "samples": [
+                0.3300410000010743,
+                0.3314590000009048,
+                0.3332090000003518,
+                0.3343330000006972,
+                0.3343750000003638,
+                0.334499999999025,
+                0.3354159999998956,
+                0.3357090000008611,
+                0.3361669999994774,
+                0.3374999999996362,
+                0.33816699999988487,
+                0.33983399999851827,
+                0.34041699999943376,
+                0.3415000000004511,
+                0.3417910000007396,
+                0.342583999999988,
+                0.3427499999997963,
+                0.3437080000003334,
+                0.34375,
+                0.3439170000001468,
+                0.34395799999947485,
+                0.3441670000011072,
+                0.3442909999994299,
+                0.34520899999915855,
+                0.3452500000003056,
+                0.3453749999989668,
+                0.345500000001266,
+                0.3457089999992604,
+                0.3460419999992155,
+                0.3462500000005093,
+                0.3462920000001759,
+                0.3468749999992724,
+                0.34724999999889405,
+                0.3477920000004815,
+                0.34808300000076997,
+                0.34858300000087183,
+                0.3490409999994881,
+                0.3490830000009737,
+                0.3492499999993015,
+                0.3492499999993015,
+                0.34991599999921164,
+                0.35020799999983865,
+                0.35024999999950523,
+                0.3502919999991718,
+                0.3507079999999405,
+                0.3509170000015729,
+                0.3510000000005675,
+                0.35108299999956216,
+                0.3512080000000424,
+                0.3513330000005226,
+                0.3522080000002461,
+                0.35233399999924586,
+                0.3535409999985859,
+                0.35362499999973807,
+                0.35362500000155705,
+                0.35370900000089023,
+                0.35412499999983993,
+                0.35412499999983993,
+                0.35420800000065356,
+                0.3546249999999418,
+                0.3547920000000886,
+                0.35529200000019046,
+                0.3568750000013097,
+                0.35695900000064285,
+                0.35724999999911233,
+                0.3580409999995027,
+                0.3581670000003214,
+                0.35824999999931606,
+                0.35841700000128185,
+                0.35887499999989814,
+                0.359666999998808,
+                0.35974999999962165,
+                0.3602080000000569,
+                0.3605829999996786,
+                0.36199999999917054,
+                0.3624579999996058,
+                0.362542000000758,
+                0.3629579999997077,
+                0.3632080000006681,
+                0.3643339999998716,
+                0.365166000001409,
+                0.36595799999849987,
+                0.3672499999993306,
+                0.3678749999999127,
+                0.3687499999996362,
+                0.37049999999908323,
+                0.37154200000077253,
+                0.37195900000006077,
+                0.37195900000006077,
+                0.3736669999998412,
+                0.3744170000009035,
+                0.374708000001192,
+                0.37550000000010186,
+                0.3774169999996957,
+                0.37850000000071304,
+                0.38012499999967986,
+                0.3857499999994616,
+                0.3866669999988517,
+                0.3866669999988517,
+                0.38770800000020245,
+                0.39116699999976845,
+                0.39175000000068394,
+                0.39533399999891117,
+                0.3961669999989681,
+                0.3963340000009339,
+                0.3967499999998836,
+                0.3989590000001044,
+                0.4029580000005808,
+                0.403083000001061,
+                0.40483300000050804,
+                0.410874999999578,
+                0.41333299999860174,
+                0.41741600000023027,
+                0.4187500000007276,
+                0.42674999999871943,
+                0.4299169999994774,
+                0.4332089999988966,
+                0.4546250000003056,
+                0.45799999999871943,
+                0.46654099999977916,
+                0.47150000000146974,
+                0.47374999999919964,
+                0.47445800000059535,
+                0.489000000001397,
+                0.4917089999999007,
+                0.5101250000006985,
+                0.5729170000013255,
+                0.5754159999996773
+              ]
+            }
+          }
+        ]
+      },
+      "frames": [
+        {
+          "name": "(program)",
+          "url": "",
+          "line": 0,
+          "selfUs": 166131
+        },
+        {
+          "name": "sendMessage",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 719,
+          "selfUs": 52329
+        },
+        {
+          "name": "sendMessage",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 719,
+          "selfUs": 41456
+        },
+        {
+          "name": "(idle)",
+          "url": "",
+          "line": 0,
+          "selfUs": 34834
+        },
+        {
+          "name": "post",
+          "url": "node:inspector",
+          "line": 115,
+          "selfUs": 29000
+        },
+        {
+          "name": "postMessage",
+          "url": "",
+          "line": 0,
+          "selfUs": 21501
+        },
+        {
+          "name": "postMessage",
+          "url": "",
+          "line": 0,
+          "selfUs": 18708
+        },
+        {
+          "name": "(anonymous)",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 221,
+          "selfUs": 18579
+        },
+        {
+          "name": "handleMessage",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 202,
+          "selfUs": 14917
+        },
+        {
+          "name": "(anonymous)",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 214,
+          "selfUs": 9418
+        },
+        {
+          "name": "(anonymous)",
+          "url": "node:internal/event_target",
+          "line": 780,
+          "selfUs": 7000
+        },
+        {
+          "name": "#handleMessage",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 733,
+          "selfUs": 5918
+        },
+        {
+          "name": "handleCallMessage",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 105,
+          "selfUs": 5751
+        },
+        {
+          "name": "now",
+          "url": "",
+          "line": 0,
+          "selfUs": 4208
+        },
+        {
+          "name": "(anonymous)",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 77,
+          "selfUs": 3624
+        },
+        {
+          "name": "handleMessage",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 143,
+          "selfUs": 3292
+        },
+        {
+          "name": "(garbage collector)",
+          "url": "",
+          "line": 0,
+          "selfUs": 2958
+        },
+        {
+          "name": "apply",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 186,
+          "selfUs": 2873
+        },
+        {
+          "name": "getLibuvNow",
+          "url": "",
+          "line": 0,
+          "selfUs": 2625
+        },
+        {
+          "name": "lazyMessageEvent",
+          "url": "node:internal/worker/io",
+          "line": 98,
+          "selfUs": 2624
+        },
+        {
+          "name": "call",
+          "url": "repo:/experiments/worker-rpc/workloads.js",
+          "line": 49,
+          "selfUs": 2500
+        },
+        {
+          "name": "randomUUID",
+          "url": "node:internal/crypto/webcrypto",
+          "line": 91,
+          "selfUs": 2125
+        },
+        {
+          "name": "(anonymous)",
+          "url": "node:internal/per_context/messageport",
+          "line": 19,
+          "selfUs": 2125
+        },
+        {
+          "name": "handleMessage",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 402,
+          "selfUs": 2042
+        },
+        {
+          "name": "insert",
+          "url": "node:internal/timers",
+          "line": 387,
+          "selfUs": 2041
+        },
+        {
+          "name": "run",
+          "url": "repo:/experiments/worker-rpc/workloads.js",
+          "line": 111,
+          "selfUs": 1876
+        },
+        {
+          "name": "Event",
+          "url": "node:internal/event_target",
+          "line": 115,
+          "selfUs": 1792
+        },
+        {
+          "name": "handleCallMessage",
+          "url": "repo:/node_modules/penpal/dist/penpal.mjs",
+          "line": 105,
+          "selfUs": 1708
+        },
+        {
+          "name": "run",
+          "url": "",
+          "line": 0,
+          "selfUs": 1667
+        },
+        {
+          "name": "setTimeout",
+          "url": "node:timers",
+          "line": 115,
+          "selfUs": 1667
+        }
+      ]
+    }
+  ]
+}

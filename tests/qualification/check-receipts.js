@@ -4,7 +4,17 @@ import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 const directory = 'benchmarks/qualification/2026-11-14/';
 const sha = (value) => createHash('sha256').update(value).digest('hex');
-const version = JSON.parse(await readFile('package.json', 'utf8')).version;
+const archived = JSON.parse(await readFile(directory + 'inputs.json', 'utf8'));
+const version = archived.version;
+assert.equal(version, '0.1.5');
+assert.equal(archived.sourceCommit, '1114ea83cfaff39cdf074ee5ff2812b032c64971');
+const checkCurrent = process.argv.includes('--check-current');
+if (checkCurrent) assert.equal(JSON.parse(await readFile('package.json', 'utf8')).version, version);
+const input = async (path) => {
+    assert.equal(typeof archived.inputs[path], 'string', 'Missing historical input: ' + path);
+    if (checkCurrent) assert.equal(sha(await readFile(path)), sha(archived.inputs[path]), path);
+    return archived.inputs[path];
+};
 const expectedCases = [
     'standard RPC, graph cloning, async hooks and handler guards',
     'compact RPC, graph cloning, async hooks and handler guards',
@@ -32,10 +42,10 @@ for (const name of [
     assert.ok(receipt.timestamp.startsWith('2026-11-14'));
     assert.equal(
         receipt.hashes['dist/crossbus.min.js'],
-        sha(await readFile('dist/crossbus.min.js'))
+        sha(await input('dist/crossbus.min.js'))
     );
     for (const [path, hash] of Object.entries(receipt.hashes)) {
-        if (!expectedHashes.has(path)) expectedHashes.set(path, sha(await readFile(path)));
+        if (!expectedHashes.has(path)) expectedHashes.set(path, sha(await input(path)));
         assert.equal(
             hash,
             expectedHashes.get(path),
@@ -98,3 +108,5 @@ for (const name of [
     }
     console.log(name, 'verified against', receipt.hashes['dist/crossbus.min.js']);
 }
+
+console.log('Historical 0.1.5 receipts verified; no current-device qualification implied.');

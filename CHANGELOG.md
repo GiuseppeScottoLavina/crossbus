@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.6] - Unreleased
+
+- Accelerate the Node base64 stream fallback using the existing Buffer global, preserving canonical chunks, strict atob decoding, exact owned storage and standard typed-array codec precedence.
+- Store queued stream data and captured byte charges in one FIFO; remove redundant private async wrappers while preserving public promise/error/cancellation behavior.
+- Retain the RPC implementation and core runtime after rejecting small bundle reductions with unfavorable measured RPC tradeoffs.
+- Retain separate 0.1.5/candidate process-paired stream/RPC evidence, source snapshots, controls and rejected experiments in docs/OPTIMIZATION_016.md. The 0.1.5 physical-device receipts remain historical evidence.
+
 ## [0.1.5] - 2026-11-14
 
 - Add opt-in stream consumption acknowledgements, bounded credit windows, acknowledgement/lifetime deadlines, cancellation, native binary chunks and serialized concurrent writes/end. Default base64 framing remains compatible with 0.1.4; flow mode requires compatible 0.1.5 endpoints and does not silently downgrade.

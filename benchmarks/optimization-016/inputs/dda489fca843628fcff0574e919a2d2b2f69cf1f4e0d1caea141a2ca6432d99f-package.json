@@ -1,0 +1,173 @@
+{
+    "name": "crossbus",
+    "version": "0.1.6",
+    "description": "Modern cross-context messaging for browsers - iframes, workers, tabs, and native bridges",
+    "type": "module",
+    "main": "dist/crossbus.cjs",
+    "module": "dist/crossbus.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/crossbus.js",
+            "require": "./dist/crossbus.cjs"
+        },
+        "./core": {
+            "types": "./dist/core/cross-bus.d.ts",
+            "import": "./dist/crossbus.core.js"
+        },
+        "./nano": {
+            "types": "./dist/nano.d.ts",
+            "import": "./dist/nano.js"
+        },
+        "./plugins/retry": {
+            "types": "./dist/plugins/retry.d.ts",
+            "import": "./dist/plugins/retry.js"
+        },
+        "./plugins/circuit-breaker": {
+            "types": "./dist/plugins/circuit-breaker.d.ts",
+            "import": "./dist/plugins/circuit-breaker.js"
+        },
+        "./plugins/encryption": {
+            "types": "./dist/plugins/encryption.d.ts",
+            "import": "./dist/plugins/encryption.js"
+        },
+        "./plugins/rate-limiter": {
+            "types": "./dist/plugins/rate-limiter.d.ts",
+            "import": "./dist/plugins/rate-limiter.js"
+        },
+        "./plugins/compression": {
+            "types": "./dist/plugins/compression.d.ts",
+            "import": "./dist/plugins/compression.js"
+        },
+        "./plugins/batch": {
+            "types": "./dist/plugins/batch.d.ts",
+            "import": "./dist/plugins/batch.js"
+        },
+        "./plugins/schema-validation": {
+            "types": "./dist/plugins/schema-validation.d.ts",
+            "import": "./dist/plugins/schema-validation.js"
+        },
+        "./enterprise": {
+            "types": "./dist/enterprise/index.d.ts",
+            "import": "./dist/enterprise.js"
+        },
+        "./testing": {
+            "types": "./dist/testing/index.d.ts",
+            "import": "./dist/testing.js"
+        }
+    },
+    "files": [
+        "dist",
+        "schemas",
+        "examples",
+        "README.md",
+        "AGENTS.md",
+        "CHANGELOG.md",
+        "CLAUDE.md",
+        "GEMINI.md",
+        "LICENSE",
+        "native",
+        "Package.swift",
+        "CrossBusNative.podspec",
+        "SECURITY.md",
+        "llms.txt",
+        "agent.json",
+        "docs/*.md",
+        "docs/vendor/marked-LICENSE.md"
+    ],
+    "scripts": {
+        "build": "node scripts/clean-dist.js && bun run tsc && bun run rollup -c && node scripts/sync-docs.js",
+        "build:watch": "bun run rollup -c -w",
+        "build:bun": "bun build src/index.js --outdir dist/bun --target=bun --minify --sourcemap=external",
+        "build:bun:bytecode": "bun build src/index.js --outdir dist/bun --target=bun --minify --bytecode",
+        "test": "bun test tests/unit/ tests/package/",
+        "test:coverage": "bun test tests/unit/ --coverage --coverage-reporter=text --coverage-reporter=lcov && node tests/coverage-check.js",
+        "test:integration": "bun test tests/integration/",
+        "bench": "node tests/benchmarks/verified.js",
+        "bench:compare": "node tests/benchmarks/verified.js",
+        "bench:fast": "node tests/benchmarks/verified.js",
+        "bench:signal": "node tests/benchmarks/verified.js",
+        "bench:router": "node tests/benchmarks/verified.js",
+        "bench:emitter": "node tests/benchmarks/verified.js",
+        "lint": "bun run eslint src/",
+        "typecheck": "bun run tsc --noEmit",
+        "prepublishOnly": "bun run release:check",
+        "test:unit": "bun test tests/unit/",
+        "test:e2e": "bun test tests/e2e/",
+        "test:all": "bun test tests/unit/ tests/package/ tests/e2e/ tests/integration/ tests/docs/",
+        "bench:bun": "bun tests/benchmarks/verified.js",
+        "bench:browser": "node tests/benchmarks/verified.js --browser",
+        "test:types": "tsc --project tests/package/tsconfig.json",
+        "test:native": "python3 tests/native/check.py",
+        "bench:memory": "node --expose-gc tests/benchmarks/memory.js",
+        "test:docs": "bun test tests/docs/",
+        "bench:paired": "node tests/benchmarks/verified.js --paired",
+        "bench:rpc": "node tests/benchmarks/verified.js --rpc-compare",
+        "bench:report": "node tests/benchmarks/report.js",
+        "bench:isolated": "node tests/benchmarks/isolated.js",
+        "release:check": "bun run lint && bun run typecheck && bun run build && bun run test && bun run test:types && bun run test:coverage",
+        "bench:study": "node tests/benchmarks/study-isolated.js --runtime node",
+        "bench:study:bun": "node tests/benchmarks/study-isolated.js --runtime bun",
+        "bench:study:browser": "node tests/benchmarks/study-isolated.js --runtime chrome",
+        "bench:study:workers": "node tests/benchmarks/study-isolated.js --runtime chrome --worker",
+        "bench:study:report": "node tests/benchmarks/study-report.js",
+        "bench:study:memory": "node tests/benchmarks/study-memory.js",
+        "test:experiments": "bun test tests/experiments/",
+        "bench:batch": "node experiments/rpc-batching/isolated.js --runtime node",
+        "bench:batch:browser": "node experiments/rpc-batching/isolated.js --runtime chrome",
+        "bench:batch:workers": "node experiments/rpc-batching/isolated.js --runtime chrome --worker",
+        "bench:batch:bun": "node experiments/rpc-batching/isolated.js --runtime bun",
+        "bench:batch:report": "node experiments/rpc-batching/report.js"
+    },
+    "keywords": [
+        "postmessage",
+        "iframe",
+        "worker",
+        "service-worker",
+        "messaging",
+        "cross-origin",
+        "pub-sub",
+        "event-emitter",
+        "browser"
+    ],
+    "author": "Giuseppe Scotto Lavina",
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/giuseppescottolavina/crossbus.git"
+    },
+    "bugs": {
+        "url": "https://github.com/giuseppescottolavina/crossbus/issues"
+    },
+    "homepage": "https://github.com/giuseppescottolavina/crossbus#readme",
+    "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "@rollup/plugin-terser": "^1.0.0",
+        "@types/node": "^25.0.10",
+        "birpc": "4.2.0",
+        "comlink": "^4.4.2",
+        "eslint": "^10.0.0",
+        "eslint-config-prettier": "^10.1.8",
+        "eventemitter3": "^5.0.4",
+        "globals": "^17.4.0",
+        "linkedom": "^0.18.12",
+        "marked": "18.2.0",
+        "mitt": "^3.0.1",
+        "nanoevents": "10.0.0",
+        "penpal": "8.0.1",
+        "prettier": "^3.8.1",
+        "puppeteer-core": "^25.16.0",
+        "rollup": "^4.56.0",
+        "rollup-plugin-visualizer": "^7.0.1",
+        "typescript": "^6.0.2"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "sideEffects": false,
+    "publishConfig": {
+        "registry": "https://registry.npmjs.org/",
+        "access": "public"
+    }
+}

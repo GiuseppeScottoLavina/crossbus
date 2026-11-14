@@ -60,7 +60,7 @@ jobs:
       run: node tests/qualification/run-browser.js chrome
 
     - name: Verify retained performance evidence
-      run: node experiments/next-release/report.js && node experiments/next-release/stream-report.js
+      run: node experiments/next-release/report.js && node experiments/next-release/stream-report.js && node experiments/optimization-016/report.js && node experiments/optimization-016/selected-report.js && node experiments/optimization-016/selected-sizes.js && node tests/qualification/check-receipts.js
 
     - name: Upload focused browser qualification
       uses: actions/upload-artifact@v4
