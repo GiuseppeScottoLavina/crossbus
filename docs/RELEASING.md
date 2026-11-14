@@ -1,5 +1,15 @@
 # Releasing CrossBus
 
+## 0.1.5 publication — 14 November 2026
+
+Version **0.1.5 is [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.5)** and is the `latest` tag. Its registry tarball was downloaded and compared byte for byte with the archive from [CI 43585215006](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43585215006), which passed all seven jobs, including packaged consumers on Node 18/20/22/24. The same registry version passed isolated consumers on Node 18.20.8 and 24.15.0, covering all 12 exports, declaration-file inclusion, ESM/CommonJS/minified RPC and base64/native flow streams.
+
+Annotated tag **`v0.1.5`** pins tested source commit `1114ea83cfaff39cdf074ee5ff2812b032c64971`. The [GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.5) preserves `crossbus-0.1.5.tgz`, `SHA256SUMS` and `release-manifest.json`. Its archive SHA-256 is `093d973dfd7393cb2895335fb4a656e54292342bbf52d2926772d4cd9cc612aa`; registry integrity is `sha512-ViUYR9RIqJRu5ir36XZZYQNhutftKG1JUkYrrc1qAVKNspcKaHL5qbNLDBWfpGjemKb07A9ateKjc0/0b3hQ/g==`. Later publication-documentation commits do not replace that tag or those bytes. The archive's documentation describes the qualified release; the live publication record is maintained here after registry verification.
+
+CocoaPods and Maven Central are not published by this npm release. SwiftPM source is available at the versioned Git tag; the Android AAR can be built locally using the included configuration.
+
+## Earlier publication records
+
 Version **0.1.4 is [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.4)**. Its reported registry integrity was verified on 13 November 2026 against the exact CI archive attached to the GitHub release. Publishing a GitHub release and publishing to npm are separate operations; creating a tag alone does not publish a package.
 
 The [0.1.4 GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.4) preserves the exact CI archive, checksum and release manifest. The downloaded npm tarball was compared byte for byte with that archive. Its tested source commit is `309b040f2e48d52d88a21cbe34c005d479f89077`; later publication-documentation commits do not replace its bytes.
