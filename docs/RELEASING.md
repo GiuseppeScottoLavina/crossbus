@@ -10,7 +10,7 @@ The RPC grouping experiments and their tests/data remain in the repository, excl
 
 ## Validate and pack a future release
 
-Use Node 24 and Bun for development. Package metadata is **0.1.4, already published**. Do not republish it or replace its release archive. For a subsequent release, advance metadata to a new, unpublished version first, and review the [Worker RPC study](WORKER_RPC.md), ownership changes and qualification limits. Install the committed dependency versions and validate that checkout:
+Use Node 24 and Bun for development. Package metadata is **0.1.5, unreleased**; npm 0.1.4 and its release archive remain unchanged. Review the [candidate study](NEXT_RELEASE.md), [stream compatibility](STREAMING.md) and [qualification receipts](QUALIFICATION.md) before releasing. Install the committed dependency versions and validate that checkout:
 
 ```sh
 npm ci --legacy-peer-deps
@@ -25,6 +25,8 @@ shasum -a 256 "artifacts/crossbus-${RELEASE_VERSION}.tgz"
 ```
 
 `release:check` runs lint, source type checking, the build, unit/package tests, consumer declaration checks and the source coverage gate. Browser tests require Chrome and local HTTP servers. Native checks compile the source adapters; they do not qualify physical WebViews.
+
+Run `node tests/qualification/check-receipts.js` to verify the retained 0.1.5 browser/device receipts against the current library and fixture bytes. Runtime requalification requires the configured devices, development signing and local fixture access described in [QUALIFICATION.md](QUALIFICATION.md). CI additionally builds SwiftPM and packages the Android AAR, verifies its source/license/POM and compiles an isolated consumer. These SDK checks do not publish to Maven Central or CocoaPods. No 0.1.5 Git tag or npm publication is implied by the development version bump.
 
 Install the archive in a separate directory and copy `tests/package/consumer-smoke.mjs` beside its `node_modules`. Run `node consumer-smoke.mjs` with that archive's version as its argument. CI repeats the packed-consumer check on Node 18, 20, 22 and 24, taking the expected version from package.json. The smoke test checks standard and compact MessageChannel RPC in ESM, CommonJS and minified artifacts.
 

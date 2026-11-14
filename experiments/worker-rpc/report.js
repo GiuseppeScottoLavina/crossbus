@@ -28,7 +28,7 @@ const candidate = await json(directory+'candidate/manifest.json');
 assert.equal(candidate.version,'0.1.4');
 for (const [file,entry] of Object.entries(candidate.files)) {
     assert.equal(sha(await read(directory+'candidate/'+entry.snapshot)),entry.sha256);
-    assert.equal(sha(await read(file)),entry.sha256,'Candidate source/output changed: '+file);
+    if (process.argv.includes('--check-current')) assert.equal(sha(await read(file)),entry.sha256,'Candidate source/output changed: '+file);
 }
 
 const runtimes = ['node','bun','chrome','chrome-worker'];
@@ -44,7 +44,7 @@ for (const profile of ['primary','guard']) for (const runtime of runtimes) for (
         'package-lock.json','tests/e2e/puppeteer-helper.js','node_modules/puppeteer-core/package.json',
         'node_modules/birpc/dist/index.mjs','node_modules/penpal/dist/penpal.mjs','node_modules/comlink/dist/esm/comlink.mjs'];
     assert.deepEqual(Object.keys(meta.hashes).sort(),expectedInputs.sort());
-    await verifyHashes(meta.hashes);
+    await verifyHashes(meta.hashes,{'package-lock.json':directory+'candidate/package-lock.json'});
     assert.equal(meta.artifact, directory+variant+'/crossbus.min.js');
     assert.equal(meta.artifactVersion,variant==='baseline'?'0.1.3':'0.1.4');
     assert.equal(meta.cpu,'Apple M1 Max');
@@ -191,6 +191,6 @@ node experiments/worker-rpc/isolated.js --runtime node --profile primary
 node experiments/worker-rpc/isolated.js --runtime bun --profile primary
 # Repeat all four selections with --profile guard.
 node experiments/worker-rpc/report.js
-\`\`\`\n\nThe coordinator deliberately measures the frozen baseline/candidate snapshots, not whichever dist was most recently built. To measure new code, explicitly replace the candidate snapshot and manifest, collect a complete new matrix and rerun the verifier. The [report generator](${gh}experiments/worker-rpc/report.js) verifies artifact/source/dependency hashes, counts, raw samples, latency percentiles, all 48 timing datasets, 24 diagnostic profiles and three UUID diagnostics. Baseline profiles map their historical lockfile to an archived copy. Dirty-tree metadata reflects uncommitted measured inputs; exact bytes are identified by SHA-256. Published v0.1.3 and its npm archive are unchanged.\n`;
+\`\`\`\n\nThese commands describe the original 0.1.4 study checkout. Preserve its snapshots, manifests and data; do not write newer measurements into this directory. The [0.1.5 comparison](NEXT_RELEASE.md) uses a separate directory and coordinator. The [report generator](${gh}experiments/worker-rpc/report.js) verifies artifact/source/dependency hashes, counts, raw samples, latency percentiles, all 48 timing datasets, 24 diagnostic profiles and three UUID diagnostics. Both timing and baseline-profile lockfiles map to archived copies. \`--check-current\` additionally requires the live sources/dist to match 0.1.4 and is only appropriate in that checkout. Dirty-tree metadata reflects uncommitted measured inputs; exact bytes are identified by SHA-256. Published v0.1.3/v0.1.4 and their npm archives are unchanged.\n`;
 await writeFile(new URL('docs/WORKER_RPC.md',root),text);
 console.log(`Verified 48 datasets, 24 profiles, 3 UUID diagnostics; ${summary.checkedCalls} checked calls.`);

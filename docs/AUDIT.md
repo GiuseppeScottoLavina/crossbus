@@ -1,4 +1,16 @@
-# Local audit — 13 November 2026
+# Local audit — 14 November 2026
+
+## 0.1.5 development qualification (unreleased)
+
+The candidate passes **1,199 library tests / 81 files** and **43 experimental tests / five files**, with zero failures/skips. Lint, source types, build, packaged documentation/exports and consumer declarations pass. Source line coverage is **5,011 / 5,208 (96.22%)**, not branch coverage or proof of bug freedom. The release coverage gate remains 90%.
+
+The runtime adds a shared default RPC deadline scheduler and bounded streaming with opt-in consumption credits, native binary chunks, cancellation, sequence reassembly and deadlines. A base64 review caught a callback-based decoding regression before release; the final codec uses optional standard typed-array base64 APIs and preserves tight-loop fallbacks on older engines. Default base64 interoperation with 0.1.4 is tested; flow mode requires compatible endpoints and does not silently downgrade.
+
+Focused [browser/device qualification](QUALIFICATION.md) now includes ten cases each on Chrome, Firefox, desktop Safari and **physical iPad Safari**, plus eleven JavaScript assertions and native ledgers/guards on a **physical iPad and Pixel 7 Pro**. Navigation, denied-origin/subframe rejection, bidirectional valid RPC and teardown are covered. The physical iOS test exposed boolean NSNumber acceptance as protocol marker `1`; the fixed bridge rejects it. Receipts identify the exact final library/host/fixture hashes and are verified separately from compile checks.
+
+SwiftPM, strict local CocoaPods lint for iOS/macOS, Android AAR/source/POM/license verification and a consumer of that local AAR passed. CI adds Swift and Android packaging jobs alongside the Node consumer matrix. Native SDK registries and npm 0.1.5 have not been published. Historical v0.1.3/v0.1.4 tags and release archives remain unchanged.
+
+The [candidate study](NEXT_RELEASE.md) retains a separate paired-process RPC matrix and one-way binary stream comparison. Resource tests observe 128 pending default RPCs using one native timeout and zero after destruction. Throughput, binary representation changes, bundle growth and functional mobile qualification have separate scopes; no universal performance/completeness lead is established.
 
 ## 0.1.4 publication record
 
@@ -77,9 +89,9 @@ The packed npm candidate includes the generated schema-validation runtime/declar
 
 See [BENCHMARKS.md](BENCHMARKS.md) and the JSON artifacts in `benchmarks/` for repeated Node, Bun and headless Chrome measurements, raw samples, runtime/CPU details and artifact hashes. The runner verifies callback counts/checksums and actual MessageChannel round trips. A separate seven-round memory/lifecycle run cancelled all 200 pending requests per round and observed timeout resources return from 200 to zero after destruction; its heap deltas are process observations, not exact object sizes. It aborts on correctness failures rather than publishing their timings. Bundle sizes distinguish default unminified exports from minified variants.
 
-## Outstanding qualification
+## Historical qualification limits (0.1.2)
 
-Physical iOS/Android WebView tests, navigation/teardown checks on those devices, Safari/Firefox qualification remain pending. Local package qualification covers Node 18.20.8 and 24.15.0; the [release CI matrix](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43196537107) also passed on Node 18, 20, 22 and 24. Native sources are not published CocoaPods/Maven packages and do not include an application-level native RPC handler registry or pending-request manager. JSON Schema support is a subset; full standards compliance is not claimed.
+At the 0.1.2 audit, physical iOS/Android navigation/teardown and Safari/Firefox qualification were pending; the 0.1.5 record above adds focused checks for specific devices/versions. Local package qualification covered Node 18.20.8 and 24.15.0; the [release CI matrix](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43196537107) also passed on Node 18, 20, 22 and 24. Native sources were not published CocoaPods/Maven packages and did not include an application-level native RPC handler registry or pending-request manager. The 0.1.5 packaging work still does not publish those registries or add those application facilities. JSON Schema support remains a subset; full standards compliance is not claimed.
 
 Shared/service worker persistence, offline message delivery, automatic mesh routing, distributed locks and turnkey AI-framework adapters are not provided by merely enabling a transport or importing utilities. They need application design or additional implementation. No workload-independent performance or completeness leadership has been established.
 

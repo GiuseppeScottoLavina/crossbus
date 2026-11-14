@@ -56,6 +56,18 @@ jobs:
     - name: Test browser integrations
       run: bun run test:e2e && bun run test:integration && bun run test:docs
 
+    - name: Qualify browser RPC and bounded streaming
+      run: node tests/qualification/run-browser.js chrome
+
+    - name: Verify retained performance evidence
+      run: node experiments/next-release/report.js && node experiments/next-release/stream-report.js
+
+    - name: Upload focused browser qualification
+      uses: actions/upload-artifact@v4
+      with:
+        name: chrome-qualification
+        path: artifacts/qualification-chrome.json
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
@@ -101,3 +113,39 @@ jobs:
           npm init -y
           npm install --ignore-scripts --no-audit --no-fund "$PACKAGE_ARCHIVE"
           node check.mjs "$PACKAGE_VERSION"
+
+  native-swift:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Swift package for macOS
+        run: swift build --scratch-path artifacts/swift-package
+      - name: Type-check iOS adapter
+        run: |
+          SDK_PATH="$(xcrun --sdk iphonesimulator --show-sdk-path)"
+          xcrun swiftc -typecheck -sdk "$SDK_PATH" -target arm64-apple-ios15.0-simulator native/ios/CrossBusBridge.swift
+
+  native-android:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Prepare Android platform
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0"'
+      - name: Package Android SDK in local Maven repository
+        run: native/android/gradlew -p native/android --no-daemon publishReleasePublicationToQualificationRepository
+      - name: Verify AAR, source and license
+        run: python3 tests/native/check-artifact.py artifacts/native-maven/io/github/giuseppescottolavina/crossbus-native/0.1.5-SNAPSHOT
+      - name: Build isolated AAR consumer
+        run: native/android/gradlew -p tests/native/android-host --no-daemon -PusePublishedBridge=true :app:assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-native-sdk
+          path: |
+            artifacts/native-maven/**/*.aar
+            artifacts/native-maven/**/*-sources.jar
+            artifacts/native-maven/**/*.pom

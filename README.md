@@ -99,7 +99,7 @@ Remote signal listeners receive the payload at `event.data.payload` and the send
 | WebSocketTransport | Browser and server | A compatible server |
 | NativeBridgeTransport | JavaScript and a native WebView host | The [Swift or Java source adapter](native/README.md) integrated into your app |
 
-SharedWorker and ServiceWorker transports do not implement persistent storage or an offline message queue. The iOS/Android adapters are source integrations; CocoaPods/Maven packages and physical-device runtime qualification are not provided.
+SharedWorker and ServiceWorker transports do not implement persistent storage or an offline message queue. Native integration requires an application host. The unreleased 0.1.5 checkout adds SwiftPM/CocoaPods configuration and an Android AAR build, with [physical iPad/Pixel qualification](docs/QUALIFICATION.md). These SDKs are not published to CocoaPods or Maven Central.
 
 ## Performance and release status
 
@@ -112,6 +112,10 @@ The study found RPC improvements on Node/Bun and faster local stream buffering. 
 A separate [explicit RPC grouping prototype](docs/RPC_BATCHING.md) explores further gains without changing the package API. For 64 concurrent 1 KiB echo calls, paired-process median group/stock ratios were 1.34× on Node, 1.91× on Bun and 2.00× in same-page headless Chrome. Worker results were variable, and large payloads regressed in several runtimes. The prototype is excluded from npm and uses shared group-graph semantics; it is not a transparent replacement for individual calls or evidence of a universal lead.
 
 Version [0.1.4 is published on npm](https://www.npmjs.com/package/crossbus/v/0.1.4). It adds browser UUID generation using pooled fresh Web Crypto bytes and fixes serialized transport reception, typed-view transfer discovery and buffer-budget accounting. In headless Chrome Worker tests with 64 concurrent 1 KiB calls, paired-process median throughput ratios against 0.1.3 were 1.15× standard and 1.21× compact. Node/Bun showed no general gain; some hook/large-payload cases regressed, and the minified gzip bundle grew by 822 bytes. See the [Worker RPC study](docs/WORKER_RPC.md) for all samples, controls and limits. With opt-in `autoTransfer`, typed views now move their entire eligible backing ArrayBuffer and detach all sender aliases; JSON-string mode rejects explicit transfer lists. These measurements compare the exact frozen 0.1.3 and 0.1.4 runtimes; the published 0.1.3 package is unchanged.
+
+The **0.1.5 development candidate is not published on npm**. It adds [bounded streaming](docs/STREAMING.md), optional consumption acknowledgements and native binary chunks, shared default RPC timeout scheduling, and stricter iOS protocol-marker validation. The [candidate comparison](docs/NEXT_RELEASE.md) records measured gains, regressions and bundle cost separately from functional qualification.
+
+In that comparison, default base64 streaming over same-event-loop MessageChannels improves by paired medians of 3.90×/7.19× in Chrome and 5.12×/5.95× in Bun for 1/4 MiB transfers; Node regresses about 4–5%. Standard 64-concurrent / 1 KiB RPC improves 1.11× in same-page Chrome, with mixed results elsewhere. These are distinct workloads, not native-device or universal superiority claims; all samples, controls and the +3,015-byte minified gzip cost are retained in the report.
 
 ## Optional features
 
@@ -132,18 +136,17 @@ For local synchronous events, `crossbus/nano` provides `createNanoEmitter()`. Th
 
 ## Verification and performance evidence
 
-The [0.1.2 release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.2) was checked on 12 November 2026:
+The 0.1.5 checkout was checked locally on 14 November 2026. These results apply to the retained candidate bytes; npm 0.1.4 and earlier releases have their own [historical audit records](docs/AUDIT.md).
 
 | Check | Evidence and scope |
 |---|---|
-| Published npm archive | [Registry metadata](https://registry.npmjs.org/crossbus/0.1.2); its SHA-256 matches the release's `SHA256SUMS` |
-| Package consumers | [Passing CI](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43196537107): Node 18/20/22/24, all 12 exports, declarations, ESM/CommonJS and minified MessageChannel RPC |
-| Source and browser behavior | 1,093 local tests passed with zero failures/skips; lint, type checking, build and Chrome integration also passed in that release's CI |
-| Source line coverage | 95.64% (4,322/4,519) for that release; [methodology and limits](docs/AUDIT.md) |
-| Native adapters | Swift iOS and Java Android compilation passed locally; device runtime tests remain pending |
-| Performance | [Repeated Node/Bun/Chrome measurements](docs/BENCHMARKS.md), with raw samples and exact measured bundles; these measurements predate the final 0.1.2 compatibility/banner changes |
+| Library checks | 1,199 tests across 81 files, plus 43 experimental tests across five files; zero failures/skips |
+| Source line coverage | 96.22% (5,011/5,208); this is line coverage, not branch coverage or proof of bug freedom |
+| Browser qualification | Ten focused cases on Chrome 155, Firefox 160, desktop Safari 27.2 and physical iPad Safari 27.2; [receipts and scope](docs/QUALIFICATION.md) |
+| Native WebViews | Eleven JavaScript assertions plus native invocation/guard checks on physical iPadOS 27.2.1 and Pixel 7 Pro / Android 17, including navigation and teardown |
+| Performance | [Repeated candidate/baseline RPC study](docs/NEXT_RELEASE.md); complete samples and unchanged competitor controls are retained |
 
-The current iframe demo has its own [executable documentation tests](https://github.com/GiuseppeScottoLavina/crossbus/blob/master/tests/docs/readme.test.js). Historical release counts above do not describe every later revision. These are project checks, not an independent security certification. Safari/Firefox and physical mobile WebViews remain unqualified. The measurements do not establish that CrossBus is the fastest or most complete library in every workload.
+The iframe demo has its own [executable documentation tests](https://github.com/GiuseppeScottoLavina/crossbus/blob/master/tests/docs/readme.test.js). Browser/device qualification covers the tested cases and versions, rather than every transport or OS release. These are project checks, not an independent security certification. The measurements do not establish that CrossBus is the fastest or most complete library in every workload.
 
 To check the current repository, use Node 24 and Bun for development:
 
@@ -151,7 +154,7 @@ To check the current repository, use Node 24 and Bun for development:
 npm ci --legacy-peer-deps
 bun run release:check
 bun run test:all
-bun run test:experiments # repository-only RPC grouping prototypes
+bun run test:experiments # RPC grouping prototypes and timeout-resource checks
 # On a Mac configured with the required native SDKs:
 bun run test:native
 ```

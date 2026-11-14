@@ -1,6 +1,6 @@
 {
     "name": "crossbus",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "description": "Modern cross-context messaging for browsers - iframes, workers, tabs, and native bridges",
     "type": "module",
     "main": "dist/crossbus.cjs",
@@ -68,6 +68,8 @@
         "GEMINI.md",
         "LICENSE",
         "native",
+        "Package.swift",
+        "CrossBusNative.podspec",
         "SECURITY.md",
         "llms.txt",
         "agent.json",

@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - Unreleased
+
+- Add opt-in stream consumption acknowledgements, bounded credit windows, acknowledgement/lifetime deadlines, cancellation, native binary chunks and serialized concurrent writes/end. Default base64 framing remains compatible with 0.1.4; flow mode requires compatible 0.1.5 endpoints and does not silently downgrade.
+- Use optional standard typed-array base64 encode/decode methods when available, retaining canonical padded chunks and tight-loop btoa/atob fallbacks on older engines. Verify empty/all-byte/chunk-boundary compatibility and measure binary delivery separately from RPC.
+- Bound stream queues, reorder windows, control messages and manager stream counts. Reassemble bounded out-of-order chunks, reject invalid end sequences and release queues on cancellation. Applications buffering more than 1,024 chunks or 8 MiB must consume incrementally or explicitly configure their limits.
+- Share one timer across default-timeout RPC requests on each CrossBus instance. Custom deadlines retain individual timers; peer matching, pending quotas and timeout behavior remain enforced. Record resource savings separately from throughput results.
+- Reject boolean protocol markers in the Swift adapter; Foundation's NSNumber bridging previously let `true` pass as numeric `1`.
+- Add local SwiftPM/CocoaPods configuration and a Gradle Android AAR/source/POM build, including license verification and an AAR consumer. Native registries are not published by these changes.
+- Retain focused Chrome/Firefox/Safari/iPad browser and physical iPad/Pixel WebView receipts with exact input hashes; add native compile/package jobs and Chrome qualification to CI.
+- Preserve older benchmark locks/artifacts and record a separate 0.1.4/0.1.5 paired-process RPC comparison. Historical releases and tags are unchanged.
+
 ## [0.1.4] - 2026-11-13
 
 - Amortize browser UUID entropy calls using fresh Web Crypto byte slices and canonical UUID v4 formatting; retain native Node/Bun UUID generation and the existing no-Web-Crypto fallback. Performance scope is recorded separately from UUID-only diagnostics.

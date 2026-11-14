@@ -1,0 +1,68 @@
+{
+  "timestamp": "2026-11-14T09:27:05.430Z",
+  "kind": "firefox",
+  "runtime": "firefox/160.0",
+  "hashes": {
+    "dist/crossbus.min.js": "a03f24df92d7d7ea94676720cc986975618985deb8c8b07b4e8e3d33f9bfa9e9",
+    "tests/qualification/browser-suite.js": "24edd855b502b387f650b6dd07f79c82cf36c5cbb9363385a55ad6b46371b3fc",
+    "tests/qualification/window.html": "346aa0121b813a2a8d6099e74e46b65eff76915398a9ae48716a179ba9f66265",
+    "tests/qualification/worker.js": "a7a5eb16efaf2e9f1e1b6c9417ee6e845db30f017ccadbd3a20410b665b74d9b",
+    "tests/qualification/run-browser.js": "c5ac9045c8a6a82dc6ec077c2215ac8d47f2376dc594294075faffdff36a5d96",
+    "package-lock.json": "a96b16a14a2a1d491e685f1a730553699345ed84cc3d4f34664e062ebd651e5b"
+  },
+  "scope": "Functional browser qualification; elapsed times are diagnostics, not performance evidence.",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:160.0) Gecko/20100101 Firefox/160.0",
+  "cases": [
+    {
+      "name": "standard RPC, graph cloning, async hooks and handler guards",
+      "passed": true,
+      "elapsedMs": 4
+    },
+    {
+      "name": "compact RPC, graph cloning, async hooks and handler guards",
+      "passed": true,
+      "elapsedMs": 4
+    },
+    {
+      "name": "JSON fallback decodes valid RPC and retains handler authorization",
+      "passed": true,
+      "elapsedMs": 0
+    },
+    {
+      "name": "typed-view ownership and receiver backing-storage budget",
+      "passed": true,
+      "elapsedMs": 1
+    },
+    {
+      "name": "coalesced default deadlines and destruction settle pending RPCs",
+      "passed": true,
+      "elapsedMs": 211
+    },
+    {
+      "name": "cross-origin window application/json with real source binding",
+      "passed": true,
+      "elapsedMs": 32
+    },
+    {
+      "name": "cross-origin window application/json; charset=utf-8 with real source binding",
+      "passed": true,
+      "elapsedMs": 27
+    },
+    {
+      "name": "real module Worker RPC and flow-controlled native binary streaming",
+      "passed": true,
+      "elapsedMs": 17
+    },
+    {
+      "name": "base64 stream preserves all byte values and independent chunk padding",
+      "passed": true,
+      "elapsedMs": 4
+    },
+    {
+      "name": "stream reorder, idle timeout and UUID v4 conformance",
+      "passed": true,
+      "elapsedMs": 22
+    }
+  ],
+  "checkedCases": 10
+}

@@ -1,0 +1,51 @@
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.file.DirectoryProperty
+
+plugins {
+    id 'com.android.library'
+    id 'maven-publish'
+}
+
+group = 'io.github.giuseppescottolavina'
+version = '0.1.5-SNAPSHOT'
+
+android {
+    namespace 'io.crossbus'
+    compileSdk 35
+    defaultConfig { minSdk 23 }
+    publishing { singleVariant('release') { withSourcesJar() } }
+}
+dependencies { api 'androidx.webkit:webkit:1.14.0' }
+// Keep the shipped source path stable and declare generated-source ownership.
+abstract class StageCrossBusSource extends DefaultTask {
+    @InputFile abstract RegularFileProperty getSourceFile()
+    @OutputDirectory abstract DirectoryProperty getOutputDirectory()
+    @TaskAction void stage() {
+        def target = outputDirectory.file('io/crossbus/CrossBusBridge.java').get().asFile
+        target.parentFile.mkdirs()
+        target.bytes = sourceFile.get().asFile.bytes
+    }
+}
+def stagedSource = tasks.register('stageCrossBusSource', StageCrossBusSource) {
+    sourceFile.set(layout.projectDirectory.file('CrossBusBridge.java'))
+    outputDirectory.set(layout.buildDirectory.dir('generated/crossbus'))
+}
+androidComponents.onVariants(androidComponents.selector().all()) { variant ->
+    variant.sources.java.addGeneratedSourceDirectory(stagedSource) { task -> task.outputDirectory }
+}
+publishing {
+    publications {
+        release(MavenPublication) {
+            artifactId = 'crossbus-native'
+            afterEvaluate { from components.release }
+            pom {
+                name = 'CrossBus Native'
+                description = 'Origin-restricted AndroidX WebView transport for CrossBus.'
+                url = 'https://github.com/GiuseppeScottoLavina/crossbus'
+                licenses { license { name = 'Apache License 2.0'; url = 'https://www.apache.org/licenses/LICENSE-2.0' } }
+                scm { url = 'https://github.com/GiuseppeScottoLavina/crossbus' }
+            }
+        }
+    }
+    repositories { maven { name = 'Qualification'; url = uri('../../artifacts/native-maven') } }
+}

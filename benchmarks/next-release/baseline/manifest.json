@@ -1,0 +1,9 @@
+{
+  "version": "0.1.4",
+  "sourceCommit": "309b040f2e48d52d88a21cbe34c005d479f89077",
+  "sha256": {
+    "crossbus.min.js": "b333dcdef51a41da7e4717efaaf537d9710c02679724ce338366882085c2a562",
+    "package-lock.json": "1560ad0100040f2993870022b0cd360611b649a32ea7b87feaecb1de503bf492",
+    "nano.min.js": "2d81ce9b9c8e9f55c36d5d13b876968fbc4e9aa6c59faae95b13c3776070e44d"
+  }
+}

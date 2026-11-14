@@ -146,4 +146,4 @@ TypeScript 6 requires explicit `types: ["node"]` and `rootDir: "./src"` for this
 
 The additional tooling refresh resolves ESLint 10.14.0, Rollup 4.68.2, Prettier 3.9.10 and Puppeteer Core 25.17.0. Browser integrations are checked against the complete combined lockfile.
 
-The tagged `v0.1.3` release and its published npm archive remain immutable. Current master includes post-release tooling changes and regenerated declarations/maps; use the release attachment described in [RELEASING.md](RELEASING.md) when checking the published package. A future publication needs a new version and its own qualification.
+The tagged `v0.1.3` and `v0.1.4` releases and their npm archives remain immutable. The current checkout prepares unreleased 0.1.5 with bounded streaming and native packaging/qualification; see [the candidate comparison](NEXT_RELEASE.md) and [device receipts](QUALIFICATION.md). Use the exact release attachment described in [RELEASING.md](RELEASING.md) when checking a published package. A future publication needs explicit release authorization and its own qualified archive.

@@ -1,0 +1,10 @@
+<!doctype html><meta charset="utf-8"><script type="module">
+const envelope={_cb:1,id:'forbidden-origin',type:'req',payload:{name:'protected',data:{},source:'denied',dest:'native'}};
+if(window.CrossBus?.postMessage)window.CrossBus.postMessage(JSON.stringify(envelope));
+else window.webkit?.messageHandlers?.crossbus?.postMessage(envelope);
+setTimeout(()=>{
+ const report={phase:'denied',origin:location.origin,androidObjectExposed:!!window.CrossBus};
+ console.log('CROSSBUS_QUAL:'+JSON.stringify(report));
+ window.webkit?.messageHandlers?.qualification?.postMessage(report);
+},100);
+</script>

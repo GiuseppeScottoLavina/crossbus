@@ -1,0 +1,35 @@
+name: CrossBusQualification
+options:
+  bundleIdPrefix: io.crossbus
+targets:
+  CrossBusQualification:
+    type: application
+    platform: iOS
+    deploymentTarget: '15.0'
+    sources:
+      - Main.swift
+      - ../../../native/ios/CrossBusBridge.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.crossbus.qualification
+        SWIFT_VERSION: '5.0'
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: '1,2'
+    info:
+      path: Info.plist
+      properties:
+        CFBundleDisplayName: CrossBus Tests
+        NSLocalNetworkUsageDescription: Connect to the temporary CrossBus fixture server on this Mac for bridge qualification.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        CrossBusOrigin: $(CROSSBUS_TEST_ORIGIN)
+        CrossBusDeniedOrigin: $(CROSSBUS_DENIED_ORIGIN)
+        CrossBusCertificateSHA256: $(CROSSBUS_CERT_SHA256)
+        CrossBusRunID: $(CROSSBUS_RUN_ID)
