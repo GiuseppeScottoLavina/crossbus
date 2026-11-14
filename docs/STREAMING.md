@@ -1,6 +1,6 @@
-# Bounded streams — 0.1.5 candidate
+# Bounded streams — 0.1.5
 
-These options belong to the unreleased 0.1.5 checkout, not npm 0.1.4. `StreamManager`, `WritableSignalStream` and `ReadableSignalStream` are explicit utilities exported from `crossbus`. Applications wire their frames to authenticated channels; the bus does not dispatch streams or apply RPC handler authorization to them automatically.
+These options are available in 0.1.5; 0.1.4 does not provide them. `StreamManager`, `WritableSignalStream` and `ReadableSignalStream` are explicit utilities exported from `crossbus`. Applications wire their frames to authenticated channels; the bus does not dispatch streams or apply RPC handler authorization to them automatically.
 
 ## Connect both endpoints
 

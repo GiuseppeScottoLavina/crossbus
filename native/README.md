@@ -2,7 +2,7 @@
 
 The npm package ships `native/ios/CrossBusBridge.swift` and `native/android/CrossBusBridge.java` as source integrations. Both deliver JSON envelopes to `NativeBridgeTransport`, receive protocol messages, restrict the host to configured HTTPS origins and main frames, and provide a reply helper for JavaScript-initiated RPC. These are transport adapters: application authorization, handler dispatch, native-initiated request tracking and durable queues remain application responsibilities.
 
-The unreleased 0.1.5 checkout adds SwiftPM/CocoaPods configuration and a Gradle AAR build. Focused runtime tests passed on physical iPadOS 27.2.1 and Pixel 7 Pro / Android 17, including bidirectional RPC, origin/frame rejection, navigation and teardown. See [exact receipts, cases and limits](../docs/QUALIFICATION.md). Compile/package checks remain distinct from those runtime tests. These SDKs have not been published to CocoaPods or Maven Central; npm 0.1.4 does not include the new packaging configuration.
+Version 0.1.5 adds SwiftPM/CocoaPods configuration and a Gradle AAR build. Focused runtime tests passed on physical iPadOS 27.2.1 and Pixel 7 Pro / Android 17, including bidirectional RPC, origin/frame rejection, navigation and teardown. See [exact receipts, cases and limits](../docs/QUALIFICATION.md). Compile/package checks remain distinct from those runtime tests. These SDKs have not been published to CocoaPods or Maven Central; npm 0.1.4 does not include the new packaging configuration.
 
 ## Build the candidate SDKs locally
 
@@ -22,7 +22,7 @@ native/android/gradlew -p tests/native/android-host --no-daemon \
 
 The wrapper pins Gradle 9.6.1 and its distribution checksum. The Android build uses AndroidX WebKit 1.14.0, minimum API 23, and writes the AAR, source JAR and POM into this checkout's `artifacts/native-maven` repository. `check-artifact.py` verifies the actual bridge class, canonical source, Apache license and dependency metadata.
 
-In Xcode, add this checkout as a **local Swift package** and link `CrossBusNative`; use `import CrossBusNative`. Minimum targets are iOS 15 and macOS 12, with Swift tools 5.9. A CocoaPods consumer can use `pod 'CrossBusNative', :path => '/absolute/path/to/this/checkout'` in its own Podfile. Replace that path with the actual checkout. The podspec's future `v0.1.5` source tag is release metadata, not an available published SDK.
+In Xcode, add this checkout as a **local Swift package** and link `CrossBusNative`; use `import CrossBusNative`. Minimum targets are iOS 15 and macOS 12, with Swift tools 5.9. A CocoaPods consumer can use `pod 'CrossBusNative', :path => '/absolute/path/to/this/checkout'` in its own Podfile. Replace that path with the actual checkout. Release tag `v0.1.5` identifies the Swift package source; a Git tag does not register a CocoaPod or publish to Maven Central.
 
 An Android consumer can add the local repository URL and `implementation 'io.github.giuseppescottolavina:crossbus-native:0.1.5-SNAPSHOT'`; the [dedicated AAR consumer](https://github.com/GiuseppeScottoLavina/crossbus/tree/master/tests/native/android-host) supplies a working Gradle example. Alternatively, copy the canonical Swift/Java source as below. Packaging does not add a native handler registry, persistent queue or application authentication.
 
