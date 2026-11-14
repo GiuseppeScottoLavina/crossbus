@@ -10,6 +10,8 @@ Focused [browser/device qualification](QUALIFICATION.md) now includes ten cases 
 
 SwiftPM, strict local CocoaPods lint for iOS/macOS, Android AAR/source/POM/license verification and a consumer of that local AAR passed. CI adds Swift and Android packaging jobs alongside the Node consumer matrix. Native SDK registries and npm 0.1.5 have not been published. Historical v0.1.3/v0.1.4 tags and release archives remain unchanged.
 
+The package regression test creates a real native build-cache fixture and checks npm's file list. It excludes `native/android/artifacts/` as well as ordinary Gradle/build directories; an earlier local qualification cache under that custom path was caught by comparing the local and clean-CI tarballs. The source adapters, SDK configuration and documentation link targets remain included.
+
 The [candidate study](NEXT_RELEASE.md) retains a separate paired-process RPC matrix and one-way binary stream comparison. Resource tests observe 128 pending default RPCs using one native timeout and zero after destruction. Throughput, binary representation changes, bundle growth and functional mobile qualification have separate scopes; no universal performance/completeness lead is established.
 
 ## 0.1.4 publication record
