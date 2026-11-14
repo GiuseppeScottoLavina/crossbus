@@ -1,6 +1,6 @@
 # Browser and native qualification — 14 November 2026
 
-This record covers the **unreleased 0.1.5 candidate**, identified by the library SHA-256 in every receipt. It does not extend the published 0.1.4 archive. Receipts under [benchmarks/qualification/2026-11-14](https://github.com/GiuseppeScottoLavina/crossbus/tree/master/benchmarks/qualification/2026-11-14) retain exact runtime and input hashes. Functional elapsed times are diagnostics, not throughput or physical interaction measurements.
+This record covers the **0.1.5 runtime qualified before publication**, identified by the library SHA-256 in every receipt. It does not extend the published 0.1.4 archive. Receipts under [benchmarks/qualification/2026-11-14](https://github.com/GiuseppeScottoLavina/crossbus/tree/master/benchmarks/qualification/2026-11-14) retain exact runtime and input hashes. Functional elapsed times are diagnostics, not throughput or physical interaction measurements.
 
 ## Focused browser cases
 

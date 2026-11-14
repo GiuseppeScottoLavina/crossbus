@@ -208,5 +208,5 @@
   "license": "Apache-2.0",
   "lastUpdated": "2026-11-14",
   "kind": "library-metadata",
-  "qualification": "Unreleased 0.1.5: focused Chrome/Firefox/Safari and physical iPad/Pixel native runtime receipts in docs/QUALIFICATION.md. Native compilation, functional tests and throughput evidence have separate scopes. npm 0.1.4 remains the published release."
+  "qualification": "Version 0.1.5: focused Chrome/Firefox/Safari and physical iPad/Pixel native runtime receipts in docs/QUALIFICATION.md. Native compilation, functional tests and throughput evidence have separate scopes. Publication records are in docs/RELEASING.md."
 }

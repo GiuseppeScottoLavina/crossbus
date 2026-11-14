@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.5] - Unreleased
+## [0.1.5] - 2026-11-14
 
 - Add opt-in stream consumption acknowledgements, bounded credit windows, acknowledgement/lifetime deadlines, cancellation, native binary chunks and serialized concurrent writes/end. Default base64 framing remains compatible with 0.1.4; flow mode requires compatible 0.1.5 endpoints and does not silently downgrade.
 - Use optional standard typed-array base64 encode/decode methods when available, retaining canonical padded chunks and tight-loop btoa/atob fallbacks on older engines. Verify empty/all-byte/chunk-boundary compatibility and measure binary delivery separately from RPC.

@@ -1,6 +1,6 @@
 # 0.1.5 candidate: timeout resources and RPC comparison
 
-This comparison measures the **unreleased 0.1.5 candidate** against the exact minified runtime from published npm 0.1.4. Its baseline SHA-256 is `b333dcdef51a41da7e4717efaaf537d9710c02679724ce338366882085c2a562`. Both bundles, dependency locks, input/source snapshots, process samples and the [complete generated tables](https://github.com/GiuseppeScottoLavina/crossbus/blob/master/benchmarks/next-release/RESULTS.md) are retained in [benchmarks/next-release](https://github.com/GiuseppeScottoLavina/crossbus/tree/master/benchmarks/next-release).
+This comparison measures the **0.1.5 runtime qualified before publication** against the exact minified runtime from published npm 0.1.4. Its baseline SHA-256 is `b333dcdef51a41da7e4717efaaf537d9710c02679724ce338366882085c2a562`. Both bundles, dependency locks, input/source snapshots, process samples and the [complete generated tables](https://github.com/GiuseppeScottoLavina/crossbus/blob/master/benchmarks/next-release/RESULTS.md) are retained in [benchmarks/next-release](https://github.com/GiuseppeScottoLavina/crossbus/tree/master/benchmarks/next-release).
 
 ## What changed
 

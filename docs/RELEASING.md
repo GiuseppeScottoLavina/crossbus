@@ -10,7 +10,7 @@ The RPC grouping experiments and their tests/data remain in the repository, excl
 
 ## Validate and pack a future release
 
-Use Node 24 and Bun for development. Package metadata is **0.1.5, unreleased**; npm 0.1.4 and its release archive remain unchanged. Review the [candidate study](NEXT_RELEASE.md), [stream compatibility](STREAMING.md) and [qualification receipts](QUALIFICATION.md) before releasing. Install the committed dependency versions and validate that checkout:
+Use Node 24 and Bun for development. Package metadata is **0.1.5**. Its [release assets](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.5) identify the exact tested archive. npm 0.1.4 and its release archive remain unchanged. Qualification and tagging are separate from registry publication; check the publication record and registry availability before declaring completion. Review the [candidate study](NEXT_RELEASE.md), [stream compatibility](STREAMING.md) and [qualification receipts](QUALIFICATION.md) before releasing. Install the committed dependency versions and validate that checkout:
 
 ```sh
 npm ci --legacy-peer-deps

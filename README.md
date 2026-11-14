@@ -99,7 +99,7 @@ Remote signal listeners receive the payload at `event.data.payload` and the send
 | WebSocketTransport | Browser and server | A compatible server |
 | NativeBridgeTransport | JavaScript and a native WebView host | The [Swift or Java source adapter](native/README.md) integrated into your app |
 
-SharedWorker and ServiceWorker transports do not implement persistent storage or an offline message queue. Native integration requires an application host. The unreleased 0.1.5 checkout adds SwiftPM/CocoaPods configuration and an Android AAR build, with [physical iPad/Pixel qualification](docs/QUALIFICATION.md). These SDKs are not published to CocoaPods or Maven Central.
+SharedWorker and ServiceWorker transports do not implement persistent storage or an offline message queue. Native integration requires an application host. Version 0.1.5 adds SwiftPM/CocoaPods configuration and an Android AAR build, with [physical iPad/Pixel qualification](docs/QUALIFICATION.md). These SDKs are not published to CocoaPods or Maven Central.
 
 ## Performance and release status
 
@@ -113,7 +113,7 @@ A separate [explicit RPC grouping prototype](docs/RPC_BATCHING.md) explores furt
 
 Version [0.1.4 is published on npm](https://www.npmjs.com/package/crossbus/v/0.1.4). It adds browser UUID generation using pooled fresh Web Crypto bytes and fixes serialized transport reception, typed-view transfer discovery and buffer-budget accounting. In headless Chrome Worker tests with 64 concurrent 1 KiB calls, paired-process median throughput ratios against 0.1.3 were 1.15× standard and 1.21× compact. Node/Bun showed no general gain; some hook/large-payload cases regressed, and the minified gzip bundle grew by 822 bytes. See the [Worker RPC study](docs/WORKER_RPC.md) for all samples, controls and limits. With opt-in `autoTransfer`, typed views now move their entire eligible backing ArrayBuffer and detach all sender aliases; JSON-string mode rejects explicit transfer lists. These measurements compare the exact frozen 0.1.3 and 0.1.4 runtimes; the published 0.1.3 package is unchanged.
 
-The **0.1.5 development candidate is not published on npm**. It adds [bounded streaming](docs/STREAMING.md), optional consumption acknowledgements and native binary chunks, shared default RPC timeout scheduling, and stricter iOS protocol-marker validation. The [candidate comparison](docs/NEXT_RELEASE.md) records measured gains, regressions and bundle cost separately from functional qualification.
+**Version 0.1.5** adds [bounded streaming](docs/STREAMING.md), optional consumption acknowledgements and native binary chunks, shared default RPC timeout scheduling, and stricter iOS protocol-marker validation. The [candidate comparison](docs/NEXT_RELEASE.md) records measured gains, regressions and bundle cost separately from functional qualification.
 
 In that comparison, default base64 streaming over same-event-loop MessageChannels improves by paired medians of 3.90×/7.19× in Chrome and 5.12×/5.95× in Bun for 1/4 MiB transfers; Node regresses about 4–5%. Standard 64-concurrent / 1 KiB RPC improves 1.11× in same-page Chrome, with mixed results elsewhere. These are distinct workloads, not native-device or universal superiority claims; all samples, controls and the +3,015-byte minified gzip cost are retained in the report.
 
@@ -136,7 +136,7 @@ For local synchronous events, `crossbus/nano` provides `createNanoEmitter()`. Th
 
 ## Verification and performance evidence
 
-The 0.1.5 checkout was checked locally on 14 November 2026. These results apply to the retained candidate bytes; npm 0.1.4 and earlier releases have their own [historical audit records](docs/AUDIT.md).
+The 0.1.5 checkout was checked locally on 14 November 2026. These results apply to the retained 0.1.5 runtime bytes; earlier releases have their own [historical audit records](docs/AUDIT.md).
 
 | Check | Evidence and scope |
 |---|---|

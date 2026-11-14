@@ -1,6 +1,6 @@
 # Local audit — 14 November 2026
 
-## 0.1.5 development qualification (unreleased)
+## 0.1.5 release qualification
 
 The candidate passes **1,199 library tests / 81 files** and **43 experimental tests / five files**, with zero failures/skips. Lint, source types, build, packaged documentation/exports and consumer declarations pass. Source line coverage is **5,011 / 5,208 (96.22%)**, not branch coverage or proof of bug freedom. The release coverage gate remains 90%.
 
@@ -8,7 +8,7 @@ The runtime adds a shared default RPC deadline scheduler and bounded streaming w
 
 Focused [browser/device qualification](QUALIFICATION.md) now includes ten cases each on Chrome, Firefox, desktop Safari and **physical iPad Safari**, plus eleven JavaScript assertions and native ledgers/guards on a **physical iPad and Pixel 7 Pro**. Navigation, denied-origin/subframe rejection, bidirectional valid RPC and teardown are covered. The physical iOS test exposed boolean NSNumber acceptance as protocol marker `1`; the fixed bridge rejects it. Receipts identify the exact final library/host/fixture hashes and are verified separately from compile checks.
 
-SwiftPM, strict local CocoaPods lint for iOS/macOS, Android AAR/source/POM/license verification and a consumer of that local AAR passed. CI adds Swift and Android packaging jobs alongside the Node consumer matrix. Native SDK registries and npm 0.1.5 have not been published. Historical v0.1.3/v0.1.4 tags and release archives remain unchanged.
+SwiftPM, strict local CocoaPods lint for iOS/macOS, Android AAR/source/POM/license verification and a consumer of that local AAR passed. CI adds Swift and Android packaging jobs alongside the Node consumer matrix. These checks do not publish native SDK registries or npm; registry publication is recorded separately in [RELEASING.md](RELEASING.md). Historical v0.1.3/v0.1.4 tags and release archives remain unchanged.
 
 The package regression test creates a real native build-cache fixture and checks npm's file list. It excludes `native/android/artifacts/` as well as ordinary Gradle/build directories; an earlier local qualification cache under that custom path was caught by comparing the local and clean-CI tarballs. The source adapters, SDK configuration and documentation link targets remain included.
 
