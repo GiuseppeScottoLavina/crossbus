@@ -38,7 +38,9 @@ it('rejects a stream reader on manager destruction and releases state',async()=>
 });
 it('drains a large buffered stream in order while allowing pushes during reads',async()=>{
  const { ReadableSignalStream }=await import('../../src/core/stream.js');
- const stream=new ReadableSignalStream('buffered','data');
+ // Reserve the intended large-queue workload explicitly; the new default cap
+ // is tested separately rather than bypassed in this compaction regression.
+ const stream=new ReadableSignalStream('buffered','data',{}, {maxBufferedChunks:4096});
  for(let i=0;i<2500;i++)stream.push({d:String(i)+','});
  const chunks=[];
  for await(const chunk of stream){

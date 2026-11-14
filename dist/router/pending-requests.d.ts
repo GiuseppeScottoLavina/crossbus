@@ -5,10 +5,15 @@
  * @property {string} handlerName - Name of the handler.
  * @property {number} createdAt - When request was created.
  * @property {number} timeout - Timeout in ms.
- * @property {ReturnType<typeof setTimeout>} timer - Owned timeout resource.
+ * @property {ReturnType<typeof setTimeout>} timer - Timer at registration; pooled handles are scheduler-owned. Use tracker cancellation methods.
  * @property {Function} resolve - Promise resolve function.
  * @property {Function} reject - Promise reject function.
  * @property {*} [defaultValue] - Value to return on timeout.
+ * @property {boolean} pooled - Whether the default deadline scheduler owns this request.
+ * @property {number} deadline - Monotonic expiration time for a pooled request.
+ * @property {PendingRequest|null} previous - Previous pooled request.
+ * @property {PendingRequest|null} next - Next pooled request.
+ * @property {RequestOptions} options - Original timeout options.
  */
 /**
  * @typedef {Object} RequestOptions
@@ -55,10 +60,12 @@ export class PendingRequests {
      * @param {Object} [options={}]
      * @param {number} [options.defaultTimeout=30000] - Default timeout in ms.
      * @param {number} [options.maxPending=1000] - Maximum pending requests (0 = unlimited).
+     * @param {boolean} [options.coalesceTimeouts=false] - Share a timer for equal default deadlines; custom deadlines remain independent.
      */
     constructor(options?: {
         defaultTimeout?: number | undefined;
         maxPending?: number | undefined;
+        coalesceTimeouts?: boolean | undefined;
     });
     /**
      * Creates a new pending request.
@@ -169,7 +176,7 @@ export type PendingRequest = {
      */
     timeout: number;
     /**
-     * - Owned timeout resource.
+     * - Timer at registration; pooled handles are scheduler-owned. Use tracker cancellation methods.
      */
     timer: ReturnType<typeof setTimeout>;
     /**
@@ -184,6 +191,26 @@ export type PendingRequest = {
      * - Value to return on timeout.
      */
     defaultValue?: any;
+    /**
+     * - Whether the default deadline scheduler owns this request.
+     */
+    pooled: boolean;
+    /**
+     * - Monotonic expiration time for a pooled request.
+     */
+    deadline: number;
+    /**
+     * - Previous pooled request.
+     */
+    previous: PendingRequest | null;
+    /**
+     * - Next pooled request.
+     */
+    next: PendingRequest | null;
+    /**
+     * - Original timeout options.
+     */
+    options: RequestOptions;
 };
 export type RequestOptions = {
     /**

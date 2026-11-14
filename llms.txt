@@ -9,7 +9,10 @@ Cross-context signals and request/response for browser applications. No runtime 
 - Native iOS/Android host source adapters: native/README.md
 - Security controls: SECURITY.md
 - Reproducible measurements: docs/BENCHMARKS.md
-- Local audit status and pending qualification: docs/AUDIT.md
+- Unreleased 0.1.5 candidate measurements: docs/NEXT_RELEASE.md
+- Bounded streaming and compatibility: docs/STREAMING.md
+- Browser and physical iPad/Pixel receipts: docs/QUALIFICATION.md
+- Local audit status and qualification limits: docs/AUDIT.md
 
 Import core first; dynamically load optional features:
 
@@ -25,4 +28,4 @@ Local events: await bus.emit(name, payload); listener reads event.data.
 Connections: bus.addTransport(transport, {peerId, origin}) returns cleanup.
 Lifecycle: bus.destroy() closes attached transports and registered resources.
 
-Use explicit origins and transport source checks. Manually receiving messages requires authenticated channel identities. Hook errors reject processing. Service/shared workers need application scripts and do not imply persistence. Native adapters require application integration and still need device runtime qualification. Local emitter throughput and cross-context RPC latency are separate measurements; no universal fastest-library or independent security certification claim is established.
+Use explicit origins and transport source checks. Manually receiving messages requires authenticated channel identities. Hook errors reject processing. Service/shared workers need application scripts and do not imply persistence. Native adapters require application integration; focused physical-device receipts qualify only their tested configurations. Stream managers require explicit authenticated routing and do not inherit bus RPC authorization automatically. Local emitter throughput and cross-context RPC latency are separate measurements; no universal fastest-library or independent security certification claim is established. npm 0.1.4 is published; the 0.1.5 checkout remains unreleased.

@@ -1,0 +1,69 @@
+{
+  "timestamp": "2026-11-14T09:27:20.471817+00:00",
+  "platform": "android",
+  "physicalDevice": true,
+  "scope": "Focused native bridge runtime qualification; 11 JavaScript assertions plus native invocation/guard checks. Not a throughput benchmark.",
+  "libraryVersion": "0.1.5",
+  "hashes": {
+    "dist/crossbus.min.js": "a03f24df92d7d7ea94676720cc986975618985deb8c8b07b4e8e3d33f9bfa9e9",
+    "package-lock.json": "a96b16a14a2a1d491e685f1a730553699345ed84cc3d4f34664e062ebd651e5b",
+    "tests/native/qualify.py": "f5aac8b3f764b1d9431ec50377284f3877b63856c03aff4dd6ecdf46e500141f",
+    "tests/native/fixtures/qualification.js": "7a26b47958920a44bb2d22f8e5dc107b7e5c1199951fbbc95993ce6f7158bac3",
+    "tests/native/fixtures/qualification.html": "ffa7b7c32df04705fe4a7eb404f524108ac715b7ea5b20a254c277e8fd6b58af",
+    "tests/native/fixtures/frame.html": "65d151afada17b2edace7c7ecc5554a5fff81bb27ac4c90b294c19acfda546b6",
+    "tests/native/fixtures/denied.html": "6cb514a9d5fd3760fcb6c81238e916a996a9481c105bfe28577f3682324fd91a",
+    "native/android/CrossBusBridge.java": "082de7c47aceea363de32f487b45391ee0d151a88b1d3e7d23936ff96fffdb13",
+    "native/android/build.gradle": "515db7ff5c8d39a3c8746459cc9b04d8460f27aa25b7a4ddc9c9f4d9fe97e1ae",
+    "native/android/settings.gradle": "dba925667359948431256453a568715dfcf37371908559b1d10186ad4e27313d",
+    "tests/native/android-host/app/src/main/java/io/crossbus/qualification/MainActivity.java": "0cfbe6548a0a35d6fd6c74e46fe02de6f667250e64dc537dd9d09e3dd8b90f96",
+    "tests/native/android-host/app/build.gradle": "c2da013e5ac23bbbd65df27e4fd9acc8c36ba1b3af7c9584d207e1401b243d84"
+  },
+  "redactedFields": [
+    "phases[].origin"
+  ],
+  "testApkSha256": "78e8ccb0690fe911f739dd32dc7af75b659377f442ca44e18ac21fcaae5fd155",
+  "consumedMavenAar": true,
+  "report": {
+    "passed": true,
+    "phases": [
+      {
+        "phase": "first",
+        "checks": [
+          "native echo preserves scalar and Unicode",
+          "native handler error propagates",
+          "native-initiated RPC returns through actual bridge",
+          "malformed/oversized/subframe messages never run protected handler"
+        ],
+        "userAgent": "Mozilla/5.0 (Linux; Android 17; Pixel 7 Pro Build/CP3A.261005.002.A1; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/157.0.8103.38 Mobile Safari/537.36"
+      },
+      {
+        "phase": "denied",
+        "origin": "<denied fixture origin>",
+        "androidObjectExposed": false
+      },
+      {
+        "phase": "complete",
+        "checks": [
+          "native echo preserves scalar and Unicode",
+          "native handler error propagates",
+          "native-initiated RPC returns through actual bridge",
+          "wrong-origin navigation never runs protected handler",
+          "RPC reinitializes after allowed navigation",
+          "destroy cancels pending RPC",
+          "destroy removes JavaScript receive callback"
+        ]
+      }
+    ],
+    "echoCalls": 2,
+    "protectedCalls": 0,
+    "nativeReplies": 2,
+    "nativeReplyValid": true,
+    "deniedSendBlocked": true,
+    "closedSendBlocked": true,
+    "androidApi": 37,
+    "androidVersion": "17",
+    "model": "Pixel 7 Pro",
+    "webViewVersion": "157.0.8103.38",
+    "runId": "1dbc223f-d0e9-46e6-a20b-3f68a9678929"
+  }
+}

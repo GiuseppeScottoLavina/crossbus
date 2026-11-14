@@ -21,3 +21,23 @@ const compact = new MessageChannelTransport({ wireFormat: 'compact' });
 const selected: 'standard' | 'compact' = compact.wireFormat;
 new StreamManager(async () => {}).destroy();
 void selected;
+
+const streams = new StreamManager(async (_peer: string, _message: object) => {}, {
+    maxIncomingStreams: 4, maxOutgoingStreams: 4, maxControlBytes: 65536,
+    maxBufferedChunks: 16, maxBufferedBytes: 1048576, maxOutOfOrderChunks: 8, idleTimeout: 30000
+});
+const controller = new AbortController();
+const writer = streams.createStream('binary', 'peer', {
+    flowControl: true, windowSize: 4, ackTimeout: 1000, timeout: 10000,
+    binaryEncoding: 'native', signal: controller.signal, onClose(error) { void error?.message; }
+});
+const outgoing: number = streams.outgoingStreamCount;
+streams.onStream('binary', async reader => {
+    const pendingBytes: number = reader.bufferedBytes;
+    const pendingChunks: number = reader.bufferedChunks;
+    const value = await reader.collect();
+    if (typeof value !== 'string') value.byteLength.toFixed();
+    void [pendingBytes, pendingChunks];
+});
+void [writer, outgoing];
+streams.destroy();

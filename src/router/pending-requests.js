@@ -14,10 +14,15 @@ import { deferred } from '../common/utils.js';
  * @property {string} handlerName - Name of the handler.
  * @property {number} createdAt - When request was created.
  * @property {number} timeout - Timeout in ms.
- * @property {ReturnType<typeof setTimeout>} timer - Owned timeout resource.
+ * @property {ReturnType<typeof setTimeout>} timer - Timer at registration; pooled handles are scheduler-owned. Use tracker cancellation methods.
  * @property {Function} resolve - Promise resolve function.
  * @property {Function} reject - Promise reject function.
  * @property {*} [defaultValue] - Value to return on timeout.
+ * @property {boolean} pooled - Whether the default deadline scheduler owns this request.
+ * @property {number} deadline - Monotonic expiration time for a pooled request.
+ * @property {PendingRequest|null} previous - Previous pooled request.
+ * @property {PendingRequest|null} next - Next pooled request.
+ * @property {RequestOptions} options - Original timeout options.
  */
 
 /**
@@ -73,16 +78,45 @@ export class PendingRequests {
     /** @type {number} Maximum pending requests */
     #maxPending;
 
+    #coalesceTimeouts;
+    /** @type {PendingRequest|null} */
+    #head = null;
+    /** @type {PendingRequest|null} */
+    #tail = null;
+    /** @type {ReturnType<typeof setTimeout>|null} */
+    #deadlineTimer = null;
+    #expireDeadlines = () => {
+        this.#deadlineTimer = null;
+        try {
+            const now = performance.now();
+            while (this.#head && this.#head.deadline <= now) {
+                const pending = this.#head;
+                this.#pending.delete(pending.id);
+                this.#release(pending);
+                this.#expire(pending);
+            }
+        } finally {
+            if (this.#head && this.#deadlineTimer === null) {
+                this.#deadlineTimer = setTimeout(
+                    this.#expireDeadlines,
+                    Math.max(1, Math.ceil(this.#head.deadline - performance.now()))
+                );
+            }
+        }
+    };
+
     /**
      * Creates a new pending requests tracker.
      *
      * @param {Object} [options={}]
      * @param {number} [options.defaultTimeout=30000] - Default timeout in ms.
      * @param {number} [options.maxPending=1000] - Maximum pending requests (0 = unlimited).
+     * @param {boolean} [options.coalesceTimeouts=false] - Share a timer for equal default deadlines; custom deadlines remain independent.
      */
     constructor(options = {}) {
         this.#defaultTimeout = options.defaultTimeout ?? 30000;
         this.#maxPending = options.maxPending ?? 1000;
+        this.#coalesceTimeouts = options.coalesceTimeouts ?? false;
     }
 
     /**
@@ -113,22 +147,88 @@ export class PendingRequests {
         const timeout = options.timeout ?? this.#defaultTimeout;
         const { promise, resolve, reject } = deferred();
 
-        // Own the timeout directly: one promise per request, and synchronous
-        // resource release on every settlement path. No Promise.race wrapper.
-        const timer = setTimeout(() => {
-            if (!this.#pending.delete(requestId)) return;
-            if ('defaultValue' in options) resolve(options.defaultValue);
-            else reject(CrossBusError.from(ErrorCode.RESPONSE_TIMEOUT, {
-                requestId, targetPeer, handlerName, timeout
-            }));
-        }, timeout);
         /** @type {PendingRequest} */
         const pending = {
-            id: requestId, targetPeer, handlerName, createdAt: now, timeout,
-            timer, resolve, reject, defaultValue: options.defaultValue
+            id: requestId,
+            targetPeer,
+            handlerName,
+            createdAt: now,
+            timeout,
+            timer: /** @type {ReturnType<typeof setTimeout>} */ (/** @type {unknown} */ (null)),
+            resolve,
+            reject,
+            defaultValue: options.defaultValue,
+            pooled:
+                this.#coalesceTimeouts &&
+                timeout === this.#defaultTimeout &&
+                Number.isFinite(timeout) &&
+                timeout >= 1 &&
+                timeout <= 2147483647,
+            deadline: 0,
+            previous: null,
+            next: null,
+            options
         };
+        if (pending.pooled) {
+            pending.deadline = performance.now() + timeout;
+            pending.previous = this.#tail;
+            if (this.#tail) this.#tail.next = pending;
+            else this.#head = pending;
+            this.#tail = pending;
+            if (this.#deadlineTimer === null)
+                this.#deadlineTimer = setTimeout(
+                    this.#expireDeadlines,
+                    this.#head === pending
+                        ? timeout
+                        : Math.max(
+                              1,
+                              Math.ceil(
+                                  (this.#head?.deadline ?? pending.deadline) - performance.now()
+                              )
+                          )
+                );
+            pending.timer = this.#deadlineTimer;
+        } else {
+            pending.timer = setTimeout(() => {
+                if (this.#pending.delete(requestId)) this.#expire(pending);
+            }, timeout);
+        }
         this.#pending.set(requestId, pending);
         return { requestId, promise };
+    }
+
+    /** Release timer/list ownership in O(1), without retaining settled requests. */
+    #release(pending) {
+        if (!pending.pooled) {
+            clearTimeout(pending.timer);
+            return;
+        }
+        if (pending.previous) pending.previous.next = pending.next;
+        else this.#head = pending.next;
+        if (pending.next) pending.next.previous = pending.previous;
+        else this.#tail = pending.previous;
+        pending.previous = pending.next = null;
+        if (!this.#head && this.#deadlineTimer !== null) {
+            clearTimeout(this.#deadlineTimer);
+            this.#deadlineTimer = null;
+        }
+    }
+
+    #expire(pending) {
+        try {
+            if ('defaultValue' in pending.options) pending.resolve(pending.options.defaultValue);
+            else
+                pending.reject(
+                    CrossBusError.from(ErrorCode.RESPONSE_TIMEOUT, {
+                        requestId: pending.id,
+                        targetPeer: pending.targetPeer,
+                        handlerName: pending.handlerName,
+                        timeout: pending.timeout
+                    })
+                );
+        } catch (error) {
+            pending.reject(error);
+        }
     }
 
     /**
@@ -141,24 +241,22 @@ export class PendingRequests {
      */
     resolve(requestId, response, targetPeer) {
         const pending = this.#pending.get(requestId);
-        if (!pending || (targetPeer !== undefined && pending.targetPeer !== targetPeer)) return false;
+        if (!pending || (targetPeer !== undefined && pending.targetPeer !== targetPeer))
+            return false;
 
-        clearTimeout(pending.timer);
+        this.#release(pending);
         // Remove the settled request
         this.#pending.delete(requestId);
 
         if (response.success) {
             pending.resolve(response.data);
         } else {
-            const error = CrossBusError.from(
-                response.error?.code ?? ErrorCode.HANDLER_ERROR,
-                {
-                    requestId,
-                    targetPeer: pending.targetPeer,
-                    handlerName: pending.handlerName,
-                    originalError: response.error
-                }
-            );
+            const error = CrossBusError.from(response.error?.code ?? ErrorCode.HANDLER_ERROR, {
+                requestId,
+                targetPeer: pending.targetPeer,
+                handlerName: pending.handlerName,
+                originalError: response.error
+            });
             error.message = response.error?.message ?? 'Handler error';
             pending.reject(error);
         }
@@ -177,7 +275,7 @@ export class PendingRequests {
         const pending = this.#pending.get(requestId);
         if (!pending) return false;
 
-        clearTimeout(pending.timer);
+        this.#release(pending);
         // Remove the settled request
         this.#pending.delete(requestId);
 
@@ -197,7 +295,7 @@ export class PendingRequests {
         const pending = this.#pending.get(requestId);
         if (!pending) return false;
 
-        clearTimeout(pending.timer);
+        this.#release(pending);
         // Remove the settled request
         this.#pending.delete(requestId);
         pending.reject(new Error('Request cancelled'));
@@ -217,12 +315,14 @@ export class PendingRequests {
 
         for (const [requestId, pending] of this.#pending) {
             if (pending.targetPeer === peerId) {
-                clearTimeout(pending.timer);
+                this.#release(pending);
                 this.#pending.delete(requestId);
-                pending.reject(CrossBusError.from(ErrorCode.PEER_DISCONNECTED, {
-                    peerId,
-                    requestId
-                }));
+                pending.reject(
+                    CrossBusError.from(ErrorCode.PEER_DISCONNECTED, {
+                        peerId,
+                        requestId
+                    })
+                );
                 count++;
             }
         }
@@ -239,7 +339,7 @@ export class PendingRequests {
         const count = this.#pending.size;
 
         for (const pending of this.#pending.values()) {
-            clearTimeout(pending.timer);
+            this.#release(pending);
             pending.reject(new Error('All requests cancelled'));
         }
 

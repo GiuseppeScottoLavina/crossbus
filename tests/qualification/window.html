@@ -1,0 +1,13 @@
+<!doctype html><meta charset="utf-8"><script type="module">
+import {CrossBus,PostMessageTransport} from '/dist/crossbus.min.js';
+const options=new URL(location.href).searchParams,origin=options.get('parent'),rogue=options.has('rogue');
+if(rogue){
+ parent.postMessage(JSON.stringify({_cb:1,version:1,id:'forged-window',type:'req',timestamp:Date.now(),payload:{name:'protected',data:7,source:'child',dest:'parent'},meta:{}}),origin);
+ parent.postMessage({kind:'forged'},origin);
+}else{
+ const bus=CrossBus.createSecure({peerId:'child',allowedOrigins:[origin]});let protectedCalls=0;
+ bus.addTransport(new PostMessageTransport(parent,{targetOrigin:origin,allowedOrigins:[origin]}),{peerId:'parent',origin});
+ bus.handle('echo',v=>v);bus.handle('secret',()=>{protectedCalls++;return 7;},{allowedPeers:['other']});bus.handle('stats',()=>protectedCalls);
+ parent.postMessage({kind:'ready'},origin);
+}
+</script>

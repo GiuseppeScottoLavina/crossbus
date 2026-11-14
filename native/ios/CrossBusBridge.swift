@@ -1,4 +1,5 @@
 import Foundation
+import CoreFoundation
 import WebKit
 
 /// Main-frame, HTTPS-origin-restricted JSON transport for NativeBridgeTransport.
@@ -49,8 +50,10 @@ public final class CrossBusBridge: NSObject, WKScriptMessageHandler {
     }
 
     private static func valid(_ message: [String: Any]) -> Bool {
-        (message["_cb"] as? Int) == 1 && message["id"] is String &&
-            (message["type"] is String || message["t"] is String)
+        // NSNumber bridges JSON true to Int(1); protocol v1 requires a number.
+        guard let marker = message["_cb"] as? NSNumber,
+              CFGetTypeID(marker) != CFBooleanGetTypeID(), marker.doubleValue == 1 else { return false }
+        return message["id"] is String && (message["type"] is String || message["t"] is String)
     }
 
     /// Delivers an envelope to JS; JSON is encoded as a value, never interpolated as code.

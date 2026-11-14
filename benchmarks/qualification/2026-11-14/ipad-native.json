@@ -1,0 +1,72 @@
+{
+  "timestamp": "2026-11-14T09:27:40.906245+00:00",
+  "platform": "ios",
+  "physicalDevice": true,
+  "scope": "Focused native bridge runtime qualification; 11 JavaScript assertions plus native invocation/guard checks. Not a throughput benchmark.",
+  "libraryVersion": "0.1.5",
+  "hashes": {
+    "dist/crossbus.min.js": "a03f24df92d7d7ea94676720cc986975618985deb8c8b07b4e8e3d33f9bfa9e9",
+    "package-lock.json": "a96b16a14a2a1d491e685f1a730553699345ed84cc3d4f34664e062ebd651e5b",
+    "tests/native/qualify.py": "f5aac8b3f764b1d9431ec50377284f3877b63856c03aff4dd6ecdf46e500141f",
+    "tests/native/fixtures/qualification.js": "7a26b47958920a44bb2d22f8e5dc107b7e5c1199951fbbc95993ce6f7158bac3",
+    "tests/native/fixtures/qualification.html": "ffa7b7c32df04705fe4a7eb404f524108ac715b7ea5b20a254c277e8fd6b58af",
+    "tests/native/fixtures/frame.html": "65d151afada17b2edace7c7ecc5554a5fff81bb27ac4c90b294c19acfda546b6",
+    "tests/native/fixtures/denied.html": "6cb514a9d5fd3760fcb6c81238e916a996a9481c105bfe28577f3682324fd91a",
+    "native/ios/CrossBusBridge.swift": "2ff2abec95595ba54e18951a332d5734f18b8f583b421fdb078bb9d9947c3960",
+    "Package.swift": "974c030ac955a5c6eb170ff006ad2337e3c1047aa20786e28cb5844b0b3d4578",
+    "CrossBusNative.podspec": "24b3ed5982870cc20553fe0c60eb9f23096b9ee2735aa31fabd3ed6a5c95b5fb",
+    "tests/native/ios-host/Main.swift": "fb1658bb02a7dd3148d646acbe4b60f0408ed1a6df7be6fb0d8982b2c4bb36c3",
+    "tests/native/ios-host/project.yml": "71ac8ccf0fabb584969ed93afb6d8365ccb426ed5ffb329ab3a5f4af94ca19c5",
+    "tests/native/fixture-server.py": "5d8da6ff43de3d0a26d7de261e8ec33001d9d532f441684e19f9449689eb2b09"
+  },
+  "redactedFields": [
+    "phases[].origin"
+  ],
+  "signedHostMachOHashes": {
+    "CrossBusQualification": "0c4b2ba78e0a8bd5903c1a3bfc58c81a2ce70cf55ac11574a99ef6eae77e2ee5",
+    "__preview.dylib": "afb442611df81138be803cd826ef2878de3e150db80088cd40e2c34666d35980",
+    "CrossBusQualification.debug.dylib": "e3e2dc8b98a0bfc840d2c321699851a671f5ea8d9e414ee4dd90f34a0cabdd2c"
+  },
+  "fixtureCertificateSha256": "3ab7f96f8b9fb27dc20b1ec70f05916ceda491c825804a88ae32ea2d1451303d",
+  "report": {
+    "closedSendBlocked": true,
+    "deniedSendBlocked": true,
+    "echoCalls": 2,
+    "model": "iPad",
+    "nativeReplies": 2,
+    "nativeReplyValid": true,
+    "osVersion": "27.2.1",
+    "passed": true,
+    "phases": [
+      {
+        "checks": [
+          "native echo preserves scalar and Unicode",
+          "native handler error propagates",
+          "native-initiated RPC returns through actual bridge",
+          "malformed/oversized/subframe messages never run protected handler"
+        ],
+        "phase": "first",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)"
+      },
+      {
+        "androidObjectExposed": false,
+        "origin": "<denied fixture origin>",
+        "phase": "denied"
+      },
+      {
+        "checks": [
+          "native echo preserves scalar and Unicode",
+          "native handler error propagates",
+          "native-initiated RPC returns through actual bridge",
+          "wrong-origin navigation never runs protected handler",
+          "RPC reinitializes after allowed navigation",
+          "destroy cancels pending RPC",
+          "destroy removes JavaScript receive callback"
+        ],
+        "phase": "complete"
+      }
+    ],
+    "protectedCalls": 0,
+    "runId": "58d21e2a-a5a9-4216-b554-cc5094b47226"
+  }
+}

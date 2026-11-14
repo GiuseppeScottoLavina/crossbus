@@ -1,4 +1,4 @@
-/*! CrossBus v0.1.4 | Apache-2.0 */
+/*! CrossBus v0.1.5 | Apache-2.0 */
 /**
  * @fileoverview Centralized error handling for CrossBus.
  * @module common/errors

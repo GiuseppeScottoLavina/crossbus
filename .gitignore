@@ -38,6 +38,7 @@ tests/e2e/videos/
 *.tmp
 *.temp
 .cache/
+__pycache__/
 
 # Bun specific
 bun.lockb
@@ -50,3 +51,14 @@ reports/
 # Local release archives (uploaded as GitHub release assets)
 artifacts/
 *.tgz
+
+# Native package/test build products
+.build/
+native/android/.gradle/
+native/android/build/
+tests/native/android-host/.gradle/
+tests/native/android-host/app/build/
+tests/native/android-host/build/
+tests/native/android-host/local.properties
+tests/native/ios-host/*.xcodeproj/
+tests/native/ios-host/Info.plist

@@ -7,6 +7,7 @@
 | 0.1.2 | Published release; historical checks and limitations are recorded in the audit |
 | 0.1.3 | Published release; qualification is recorded in the audit |
 | 0.1.4 | Published release; qualification and limitations are recorded in the audit |
+| 0.1.5 | Unreleased candidate; focused browser/device qualification and bounded stream regressions are recorded in the audit |
 
 See [the audit](docs/AUDIT.md) for measured coverage and outstanding browser/device qualification. A passing suite does not establish that a version has no vulnerabilities.
 
@@ -86,3 +87,5 @@ In 0.1.4, typed-view budgets read native backing storage rather than shadowable 
 Browser UUIDs in 0.1.4 consume fresh Web Crypto bytes from a bounded pool; Node/Bun retain native UUID generation. Entropy-provider errors propagate. The older no-Web-Crypto fallback remains noncryptographic. Message and peer IDs are labels, not authentication credentials.
 
 Native adapters restrict origins and main frames, and reject malformed or oversized envelopes. See [native integration and qualification limits](native/README.md). Shared/service worker transport availability does not imply persistent storage or offline delivery. Production deployment, browser compatibility and security should be validated for the application's actual configuration.
+
+The 0.1.5 Swift candidate rejects boolean protocol markers explicitly before accepting numeric `1`; physical-device tests assert malformed/oversized/subframe and wrong-origin messages never execute the protected handler. Its stream manager has queue, reorder, control-message and active-stream budgets. These apply after channel delivery and do not limit browser-internal parsing/cloning allocations or the complete result assembled by `collect()`. Stream routing must be bound to authenticated peers and application authorization; manually dispatched stream utilities do not inherit CrossBus RPC hooks automatically. See [streaming](docs/STREAMING.md) and [qualification receipts](docs/QUALIFICATION.md).

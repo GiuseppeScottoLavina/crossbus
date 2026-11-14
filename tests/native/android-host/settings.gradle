@@ -1,0 +1,10 @@
+pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+dependencyResolutionManagement {
+    repositories {
+        maven { url = uri('../../../artifacts/native-maven') }
+        google(); mavenCentral()
+    }
+}
+rootProject.name = 'CrossBusQualification'
+include ':app', ':bridge'
+project(':bridge').projectDir = file('../../../native/android')

@@ -204,7 +204,8 @@ export class CrossBus extends EventEmitter {
         this.#router = new MessageRouter();
         this.#pendingRequests = new PendingRequests({
             defaultTimeout: this.#requestTimeout,
-            maxPending: options.maxPendingRequests ?? 100
+            maxPending: options.maxPendingRequests ?? 100,
+            coalesceTimeouts: true
         });
         this.#handshake = new Handshake({
             peerId: this.#peerId,

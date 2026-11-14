@@ -1,0 +1,9 @@
+{
+  "version": "0.1.5",
+  "sha256": {
+    "crossbus.min.js": "a03f24df92d7d7ea94676720cc986975618985deb8c8b07b4e8e3d33f9bfa9e9",
+    "nano.min.js": "7edab73ba90125520127a49c9f6840bb73c3d4a2e64b014b43e26d5ac0f12598",
+    "package-lock.json": "a96b16a14a2a1d491e685f1a730553699345ed84cc3d4f34664e062ebd651e5b"
+  },
+  "inputsSha256": "a0f0bb501a46c58dbff8b385b2c30dc4694017219d14a9e5ab22af7493b98467"
+}

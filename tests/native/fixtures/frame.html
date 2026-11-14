@@ -1,0 +1,6 @@
+<!doctype html><meta charset="utf-8"><script>
+const envelope={_cb:1,id:'forbidden-frame',type:'req',payload:{name:'protected',data:{},source:'frame',dest:'native'}};
+if(window.CrossBus?.postMessage)window.CrossBus.postMessage(JSON.stringify(envelope));
+else window.webkit?.messageHandlers?.crossbus?.postMessage(envelope);
+parent.postMessage({crossbusFrameSent:true},location.origin);
+</script>
