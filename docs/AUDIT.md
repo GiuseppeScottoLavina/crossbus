@@ -1,5 +1,9 @@
 # Local audit — 14 November 2026
 
+## 0.1.5 publication record
+
+On 14 November 2026, npm **0.1.5** and its `latest` tag were verified against the exact archive from [CI 43585215006](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43585215006), source commit `1114ea83cfaff39cdf074ee5ff2812b032c64971`. The downloaded registry tarball matches that archive byte for byte, SHA-256 `093d973dfd7393cb2895335fb4a656e54292342bbf52d2926772d4cd9cc612aa`. Isolated registry consumers passed on Node 18.20.8 and 24.15.0, including all exports, minified/compact RPC and both stream encodings. The [GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.5) preserves the archive, checksum and release manifest. This publication record is separate from the qualification below and does not broaden its measured scope.
+
 ## 0.1.5 release qualification
 
 The candidate passes **1,199 library tests / 81 files** and **43 experimental tests / five files**, with zero failures/skips. Lint, source types, build, packaged documentation/exports and consumer declarations pass. Source line coverage is **5,011 / 5,208 (96.22%)**, not branch coverage or proof of bug freedom. The release coverage gate remains 90%.
