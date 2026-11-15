@@ -58,6 +58,7 @@ const ErrorCode = Object.freeze({
     // Security errors
     PAYLOAD_TOO_LARGE: 'ERR_PAYLOAD_TOO_LARGE',
     RATE_LIMITED: 'ERR_RATE_LIMITED',
+    MESSAGE_DROPPED: 'ERR_MESSAGE_DROPPED',
     UNAUTHORIZED: 'ERR_UNAUTHORIZED',
     INVALID_PAYLOAD: 'ERR_INVALID_PAYLOAD'
 });
@@ -231,6 +232,11 @@ Object.freeze({
         message: 'Request rate limit exceeded',
         retryable: true,
         suggestion: 'Wait before retrying. Consider adding delay or using exponential backoff.'
+    },
+    [ErrorCode.MESSAGE_DROPPED]: {
+        message: 'Message dropped by a hook',
+        retryable: true,
+        suggestion: 'A hook discarded this message, for example a rate limiter configured with throwOnLimit: false.'
     },
     [ErrorCode.UNAUTHORIZED]: {
         message: 'Peer is not authorized to call this handler',
@@ -589,6 +595,30 @@ class Tracer {
     /** @type {number} Max completed spans to keep */
     #maxSpans;
 
+    /** @type {number} */
+    #maxTraces;
+
+    /**
+     * Records a span under its trace. Trace IDs can come from remote
+     * traceparent values, so both the trace count and spans per trace are
+     * bounded; the oldest trace is forgotten first.
+     * @param {string} traceId
+     * @param {Span} span
+     */
+    #track(traceId, span) {
+        let spans = this.#traces.get(traceId);
+        if (!spans) {
+            while (this.#traces.size >= this.#maxTraces && this.#traces.size > 0) {
+                this.#traces.delete(/** @type {string} */ (this.#traces.keys().next().value));
+            }
+            if (this.#maxTraces < 1) return;
+            spans = [];
+            this.#traces.set(traceId, spans);
+        }
+        spans.push(span);
+        if (spans.length > this.#maxSpans) spans.shift();
+    }
+
     /** @type {boolean} Whether to sample (record) traces */
     #sampled;
 
@@ -600,11 +630,13 @@ class Tracer {
      * @param {string} [serviceName='crossbus'] - Service name for traces
      * @param {Object} [options={}] - Tracer options
      * @param {number} [options.maxSpans=1000] - Max completed spans to keep
+     * @param {number} [options.maxTraces=maxSpans] - Max traces kept for getTrace(); oldest first out
      * @param {boolean} [options.sampled=true] - Whether to record traces
      */
     constructor(serviceName = 'crossbus', options = {}) {
         this.#serviceName = serviceName;
         this.#maxSpans = options.maxSpans ?? 1000;
+        this.#maxTraces = options.maxTraces ?? this.#maxSpans;
         this.#sampled = options.sampled ?? true;
     }
 
@@ -632,14 +664,7 @@ class Tracer {
             span.setAttributes(options.attributes);
         }
 
-        // Add to active traces
-        if (!this.#traces.has(context.traceId)) {
-            this.#traces.set(context.traceId, []);
-        }
-        const traceSpans = this.#traces.get(context.traceId);
-        if (traceSpans) {
-            traceSpans.push(span);
-        }
+        this.#track(context.traceId, span);
 
         return span;
     }
@@ -663,13 +688,7 @@ class Tracer {
             traceFlags: context.traceFlags
         });
 
-        if (!this.#traces.has(context.traceId)) {
-            this.#traces.set(context.traceId, []);
-        }
-        const traceSpans = this.#traces.get(context.traceId);
-        if (traceSpans) {
-            traceSpans.push(span);
-        }
+        this.#track(context.traceId, span);
 
         return span;
     }
@@ -1874,8 +1893,12 @@ class MessageVersioning {
                     const migrated = this.migrate(type, rest, version, currentVersion);
                     return { _v: currentVersion, ...migrated };
                 } catch (e) {
-                    console.warn(`[Versioning] Migration failed for ${type}: ${e instanceof Error ? e.message : String(e)}`);
-                    return payload;
+                    // Fail closed: an unmigrated payload must not reach handlers
+                    // that expect the current schema. The bus rejects the message.
+                    throw Object.assign(
+                        new Error(`Migration failed for ${type}: ${e instanceof Error ? e.message : String(e)}`),
+                        { code: 'ERR_INVALID_PAYLOAD' }
+                    );
                 }
             }
 

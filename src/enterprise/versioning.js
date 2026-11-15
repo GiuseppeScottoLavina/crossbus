@@ -176,8 +176,12 @@ export class MessageVersioning {
                     const migrated = this.migrate(type, rest, version, currentVersion);
                     return { _v: currentVersion, ...migrated };
                 } catch (e) {
-                    console.warn(`[Versioning] Migration failed for ${type}: ${e instanceof Error ? e.message : String(e)}`);
-                    return payload;
+                    // Fail closed: an unmigrated payload must not reach handlers
+                    // that expect the current schema. The bus rejects the message.
+                    throw Object.assign(
+                        new Error(`Migration failed for ${type}: ${e instanceof Error ? e.message : String(e)}`),
+                        { code: 'ERR_INVALID_PAYLOAD' }
+                    );
                 }
             }
 

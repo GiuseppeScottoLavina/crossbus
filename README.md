@@ -218,7 +218,7 @@ The [worker offload pattern](examples/patterns/worker-offload.js) extends this e
 | Call every peer | `await bus.broadcastRequest(name, payload)` returns a `Map` of `{ success, data \| error }` |
 | Send a one-way signal | `await bus.signal(name, payload, { exclude })` |
 | Listen | `const sub = bus.on(name, fn, { once, priority, mode, signal })`, then `sub.unsubscribe()` |
-| Transform or validate traffic | `bus.addInboundHook(fn, priority)` / `bus.addOutboundHook(fn, priority)` |
+| Transform or validate traffic | `bus.addInboundHook(fn, priority, options)` / `bus.addOutboundHook(fn, priority, options)` |
 | Inspect | `bus.peers`, `bus.healthCheck()`, `bus.diagnose()` |
 | Tear down | `bus.destroy()` cancels requests and closes attached transports |
 
@@ -242,8 +242,8 @@ Worker transports do not add persistence or an offline queue. `MessageChannelTra
 
 | Import | Contents | Minified + gzip (level 9) |
 |---|---|---:|
-| `crossbus` | Bus, emitters, all transports, streams, presence, ordering utilities | 22,237 B |
-| `crossbus/core` | The `CrossBus` class alone (with its event API); no transports | 11,713 B |
+| `crossbus` | Bus, emitters, all transports, streams, presence, ordering utilities | 23,293 B |
+| `crossbus/core` | The `CrossBus` class alone (with its event API); no transports | 12,688 B |
 | `crossbus/nano` | `createNanoEmitter()`, a minimal local emitter | 331 B |
 
 Sizes are measured on the current development build with `node tests/benchmarks/sizes.js`. A default `import` resolves the unminified ESM build, and bundlers can tree-shake unused exports. `require('crossbus')` is available for the root entry. Subpaths are ESM-only.

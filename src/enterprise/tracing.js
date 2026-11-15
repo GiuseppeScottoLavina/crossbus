@@ -227,6 +227,30 @@ export class Tracer {
     /** @type {number} Max completed spans to keep */
     #maxSpans;
 
+    /** @type {number} */
+    #maxTraces;
+
+    /**
+     * Records a span under its trace. Trace IDs can come from remote
+     * traceparent values, so both the trace count and spans per trace are
+     * bounded; the oldest trace is forgotten first.
+     * @param {string} traceId
+     * @param {Span} span
+     */
+    #track(traceId, span) {
+        let spans = this.#traces.get(traceId);
+        if (!spans) {
+            while (this.#traces.size >= this.#maxTraces && this.#traces.size > 0) {
+                this.#traces.delete(/** @type {string} */ (this.#traces.keys().next().value));
+            }
+            if (this.#maxTraces < 1) return;
+            spans = [];
+            this.#traces.set(traceId, spans);
+        }
+        spans.push(span);
+        if (spans.length > this.#maxSpans) spans.shift();
+    }
+
     /** @type {boolean} Whether to sample (record) traces */
     #sampled;
 
@@ -238,11 +262,13 @@ export class Tracer {
      * @param {string} [serviceName='crossbus'] - Service name for traces
      * @param {Object} [options={}] - Tracer options
      * @param {number} [options.maxSpans=1000] - Max completed spans to keep
+     * @param {number} [options.maxTraces=maxSpans] - Max traces kept for getTrace(); oldest first out
      * @param {boolean} [options.sampled=true] - Whether to record traces
      */
     constructor(serviceName = 'crossbus', options = {}) {
         this.#serviceName = serviceName;
         this.#maxSpans = options.maxSpans ?? 1000;
+        this.#maxTraces = options.maxTraces ?? this.#maxSpans;
         this.#sampled = options.sampled ?? true;
     }
 
@@ -270,14 +296,7 @@ export class Tracer {
             span.setAttributes(options.attributes);
         }
 
-        // Add to active traces
-        if (!this.#traces.has(context.traceId)) {
-            this.#traces.set(context.traceId, []);
-        }
-        const traceSpans = this.#traces.get(context.traceId);
-        if (traceSpans) {
-            traceSpans.push(span);
-        }
+        this.#track(context.traceId, span);
 
         return span;
     }
@@ -301,13 +320,7 @@ export class Tracer {
             traceFlags: context.traceFlags
         });
 
-        if (!this.#traces.has(context.traceId)) {
-            this.#traces.set(context.traceId, []);
-        }
-        const traceSpans = this.#traces.get(context.traceId);
-        if (traceSpans) {
-            traceSpans.push(span);
-        }
+        this.#track(context.traceId, span);
 
         return span;
     }

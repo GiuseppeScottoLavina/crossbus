@@ -49,21 +49,26 @@ import { encodeCompact, decodeCompact } from '../common/compact-wire.js';
  * - High-frequency data streams
  * - Bypassing hub for performance
  *
+ * The port handoff is the trust boundary: whoever holds the port is accepted
+ * under the `channel` origin label. Send it to an exact origin and accept it
+ * only from the expected window and origin.
+ *
  * @example
- * // On hub side: create channel and send to peer
+ * // Parent page: transfer the port to one exact iframe origin
  * const transport = new MessageChannelTransport();
  * iframe.contentWindow.postMessage(
- *   { type: 'channel', port: transport.remotePort },
- *   '*',
+ *   { type: 'crossbus:port' },
+ *   'https://widget.example.com',
  *   [transport.remotePort]
  * );
+ * bus.addTransport(transport, { peerId: 'widget', origin: 'channel' });
  *
- * // On peer side: wrap received port
+ * // Iframe: accept the port only from the expected parent
  * window.addEventListener('message', (e) => {
- *   if (e.data.type === 'channel') {
- *     const transport = MessageChannelTransport.fromPort(e.data.port);
- *     transport.onMessage((msg) => console.log('Received:', msg));
- *   }
+ *   if (e.source !== window.parent || e.origin !== 'https://app.example.com') return;
+ *   if (e.data?.type !== 'crossbus:port' || !e.ports[0]) return;
+ *   const transport = MessageChannelTransport.fromPort(e.ports[0]);
+ *   bus.addTransport(transport, { peerId: 'parent', origin: 'channel' });
  * });
  */
 export class MessageChannelTransport {

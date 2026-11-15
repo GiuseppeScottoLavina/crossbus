@@ -16,7 +16,14 @@
  * @typedef {Object} CompressionOptions
  * @property {'gzip' | 'deflate' | 'deflate-raw'} [algorithm='gzip'] - Compression algorithm
  * @property {number} [threshold=0] - Minimum payload size to compress (bytes)
+ * @property {number} [maxDecompressedBytes=1048576] - Maximum decompressed size accepted
+ *   by the inbound hook. Decompression stops as soon as it is exceeded.
  */
+
+/** Formats accepted from remote compressed payloads. */
+const ALGORITHMS = new Set(['gzip', 'deflate', 'deflate-raw']);
+/** Default inbound decompression budget, equal to the bus default payload budget. */
+const DEFAULT_MAX_DECOMPRESSED_BYTES = 1024 * 1024;
 
 /**
  * @typedef {Object} CompressionStream
@@ -124,10 +131,20 @@ class Compression {
      * Decompresses a compressed payload.
      *
      * @param {CompressedPayload} compressed - Compressed payload
+     * @param {Object} [options={}]
+     * @param {number} [options.maxBytes=1048576] - Maximum decompressed bytes; reading
+     *   stops and the payload is rejected once it is exceeded
      * @returns {Promise<any>} Decompressed payload
      */
-    static async decompress(compressed) {
-        const algorithm = compressed.algorithm ?? this.DEFAULT_ALGORITHM;
+    static async decompress(compressed, options = {}) {
+        const algorithm = compressed?.algorithm ?? this.DEFAULT_ALGORITHM;
+        if (!ALGORITHMS.has(algorithm) || typeof compressed?.data !== 'string') {
+            throw Object.assign(new Error('Unsupported compressed payload'), { code: 'ERR_INVALID_PAYLOAD' });
+        }
+        const maxBytes = options.maxBytes ?? DEFAULT_MAX_DECOMPRESSED_BYTES;
+        if (maxBytes !== Infinity && (!Number.isSafeInteger(maxBytes) || maxBytes < 0)) {
+            throw new RangeError('maxDecompressedBytes must be a nonnegative safe integer or Infinity');
+        }
         const data = this.#base64ToArrayBuffer(compressed.data);
 
         // Create decompression stream
@@ -136,22 +153,26 @@ class Compression {
         const writer = ds.writable.getWriter();
         const reader = ds.readable.getReader();
 
-        // Write compressed data
-        writer.write(new Uint8Array(data));
-        writer.close();
+        // Write compressed data; failures surface through the reader.
+        writer.write(new Uint8Array(data)).catch(() => {});
+        writer.close().catch(() => {});
 
-        // Read decompressed chunks
+        // Read decompressed chunks within the budget
         const chunks = [];
+        let total = 0;
         while (true) {
             const { done, value } = await reader.read();
             if (done) break;
+            total += value.length;
+            if (total > maxBytes) {
+                await reader.cancel().catch(() => {});
+                throw Object.assign(new Error(`Decompressed payload exceeds ${maxBytes} bytes`), { code: 'ERR_PAYLOAD_TOO_LARGE' });
+            }
             chunks.push(value);
         }
 
         // Combine chunks
-        const decompressed = new Uint8Array(
-            chunks.reduce((acc, chunk) => acc + chunk.length, 0)
-        );
+        const decompressed = new Uint8Array(total);
         let offset = 0;
         for (const chunk of chunks) {
             decompressed.set(chunk, offset);
@@ -177,7 +198,7 @@ class Compression {
      * bus.addInboundHook(decompressHook);
      */
     static createCompressedHooks(options = {}) {
-        const { threshold = 0, algorithm = this.DEFAULT_ALGORITHM } = options;
+        const { threshold = 0, algorithm = this.DEFAULT_ALGORITHM, maxDecompressedBytes = DEFAULT_MAX_DECOMPRESSED_BYTES } = options;
 
         return {
             compressHook: async (payload, context) => {
@@ -195,7 +216,7 @@ class Compression {
             decompressHook: async (payload, context) => {
                 // Skip if not compressed
                 if (!payload || !payload._compressed) return payload;
-                return await this.decompress(payload);
+                return await this.decompress(payload, { maxBytes: maxDecompressedBytes });
             }
         };
     }

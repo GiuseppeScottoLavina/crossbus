@@ -207,3 +207,10 @@ export function findTransferables(value, found = new Set(), seen = new Set()) {
 
 /** Shared immutable empty metadata for internally constructed envelopes. */
 export const EMPTY_MESSAGE_META = Object.freeze({});
+
+/**
+ * Marks a signal re-dispatched locally from an already-processed batch.
+ * Symbol-keyed properties are dropped by structured clone and JSON, so a
+ * remote peer cannot set it. The registry key keeps separate bundles in sync.
+ */
+export const BATCHED_SIGNAL = Symbol.for('crossbus.batchedSignal');

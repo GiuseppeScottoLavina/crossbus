@@ -155,6 +155,10 @@ export class RateLimiter {
     /**
      * Creates a hook function for automatic rate limiting.
      *
+     * With `throwOnLimit: false`, a limited message is dropped: the hook throws
+     * `ERR_MESSAGE_DROPPED`, which the bus treats as a silent inbound drop, an
+     * undelivered outbound signal or a rejected outbound request.
+     *
      * @param {{ perPeer?: boolean, throwOnLimit?: boolean }} [options={}]
      * @returns {import('../core/cross-bus.js').MessageHook} Hook function
      *
@@ -173,7 +177,7 @@ export class RateLimiter {
                 if (throwOnLimit) {
                     throw new RateLimitError('Rate limit exceeded', limiter.retryAfter);
                 }
-                return null; // Drop message
+                throw Object.assign(new Error('Message dropped by rate limiter'), { code: 'ERR_MESSAGE_DROPPED' });
             }
 
             return payload;

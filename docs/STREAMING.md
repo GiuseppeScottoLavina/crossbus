@@ -42,6 +42,7 @@ The base64 codec feature-detects the standard [`Uint8Array.toBase64` / `Uint8Arr
 | Option | Default | Scope |
 |---|---:|---|
 | `maxIncomingStreams` | 100 | Active incoming streams per manager |
+| `maxIncomingStreamsPerPeer` | `maxIncomingStreams` | Active incoming streams from one peer; set it lower on hubs so one peer cannot hold every slot |
 | `maxOutgoingStreams` | 100 | Active outgoing writers per manager |
 | `maxControlBytes` | 65,536 | Estimated in-memory size of each non-data frame |
 | `maxBufferedChunks` | 1,024 | Queued plus reordered chunks per reader |

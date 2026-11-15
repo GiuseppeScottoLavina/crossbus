@@ -22,6 +22,8 @@ const bus = CrossBus.createSecure({ peerId: 'app', allowedOrigins: ['https://tru
 | `maxPendingRequests` | `100` | Maximum simultaneous pending requests; zero disables the limit |
 | `maxPayloadSize` | `1048576` | Conservative in-memory payload estimate; zero disables the limit |
 | `strictMode` | `false` | Rejects wildcard origin patterns |
+
+Origin wildcards are accepted only as a whole component: the leftmost subdomain labels (`https://*.example.com`, which does not match the apex), the whole host (`chrome-extension://*`) or the port (`http://localhost:*`). Any other position, such as `https://example.com*`, throws when the bus or `PostMessageTransport` is constructed. Allowing `'null'` logs a development warning, because every opaque origin shares it.
 | `debug` | `false` | Development logging |
 | `debugPrefix` | `'[CrossBus]'` | Log prefix |
 
@@ -32,7 +34,7 @@ const bus = CrossBus.createSecure({ peerId: 'app', allowedOrigins: ['https://tru
 | API | Behavior |
 |---|---|
 | `addPeer(peerId, sendFn, options?)` | Registers a known channel's send function; options include `origin` and `meta` |
-| `removePeer(peerId)` | Removes routing and cancels pending requests for that peer; returns boolean |
+| `removePeer(peerId)` | Removes routing and cancels pending requests for that peer; messages still arriving on that peer's `addTransport()` channel are ignored; returns boolean |
 | `addTransport(transport, {peerId, origin}?)` | Wires `send`/`onMessage`; returns an idempotent cleanup function that destroys the transport |
 | `addCleanup(fn)` | Registers synchronous resource cleanup on bus destruction; returns an unregister function |
 | `handleMessage(message, origin, peerId, replyFn?)` | Receives a message from an application-authenticated channel; returns a Promise |
@@ -70,9 +72,22 @@ const unhandle = bus.handle('save', async (payload, context) => ({ saved: payloa
 
 ### Hooks
 
-`addInboundHook(fn, priority=10)` and `addOutboundHook(fn, priority=10)` return unregister functions. Lower priority numbers run first. Hooks receive `(payload, context)` and return the transformed payload or a Promise. Context contains `type` (`signal`, `request`, `response`), `peerId`, `handlerName` and `direction`. Removal by function is available through `removeInboundHook()` and `removeOutboundHook()`.
+`addInboundHook(fn, priority=10, options)` and `addOutboundHook(fn, priority=10, options)` return unregister functions. Lower priority numbers run first. Hooks receive `(payload, context)` and return the transformed payload or a Promise. Removal by function is available through `removeInboundHook()` and `removeOutboundHook()`.
 
-Throwing/rejecting stops processing. Failed inbound RPC validation produces an error response without invoking the protected handler. A hook must return the payload unchanged when it only observes it. Hook work and payload accounting are part of the full messaging path.
+| Context field | Present for |
+|---|---|
+| `type` | Always: `signal`, `request`, `response`, or `error` (only for `{ errors: true }` hooks) |
+| `direction` | Always: `inbound` or `outbound` |
+| `peerId` | The channel-bound peer, when known |
+| `handlerName` | Requests (handler) and signals (signal name) |
+| `requestId` | Requests, responses and errors |
+| `requestName` | Responses and errors: the handler of the request being answered. Inbound, it comes from the local pending request, not the message |
+| `success` | Inbound responses |
+| `batched` | Inbound signals re-dispatched from a batch whose envelope already passed the hooks |
+
+With `{ errors: true }`, a hook also transforms RPC error objects (`{ code, message }`) in both directions; the encryption plugin uses this so errors are not sent in clear. Other hooks never see `error`.
+
+Throwing/rejecting stops processing. Failed inbound RPC validation produces an error response without invoking the protected handler. A hook that throws an error with code `ERR_MESSAGE_DROPPED` discards the message: inbound, nothing is dispatched and no reply is sent; outbound, `signal()` resolves `{ success: false, delivered: 0, failed: [] }` and `request()` rejects with that code. Requests for an unknown handler, or from a peer outside the handler's `allowedPeers`, are refused before inbound hooks run. A hook must return the payload unchanged when it only observes it. Hook work and payload accounting are part of the full messaging path.
 
 ## Local events
 
@@ -93,7 +108,7 @@ Throwing/rejecting stops processing. Failed inbound RPC validation produces an e
 
 `emit()` supplies `{name, data, messageId, timestamp, source}`. Modes are `'sync'` (awaited) and `'async'` (scheduled; default). Priority is descending. Patterns include exact names, `'*'` and `'namespace:*'`. `emitSync()` omits envelopes, wildcard matching and scheduling; callback exceptions propagate. Already selected listeners may still run if another listener removes them during dispatch.
 
-A remote signal becomes `event.data = {payload: remoteData, source: peerId}`, with the received origin in `event.source.origin`. For local `emit()`, `event.data` is exactly its argument.
+A remote signal becomes `event.data = {payload: remoteData, source: peerId}`, with `event.source.type === 'remote'` and the received origin in `event.source.origin`. Remote signals named `destroyed`, `peer:connected`, `peer:disconnected` or `peer:status` are ignored, so a peer cannot trigger local lifecycle listeners. Other names share one namespace: check `event.source.type` in listeners for events that must only be local. For local `emit()`, `event.data` is exactly its argument.
 
 `createFastEmitter()` from `crossbus` and `createNanoEmitter()` from `crossbus/nano` provide `on(name, fn)`, `emit(name, rawPayload)` and `off(name?)`; `on()` returns an unbind function. They have no event envelopes, RPC, priority, once or wildcard semantics.
 
@@ -128,9 +143,9 @@ Use dynamic imports from the package subpaths:
 | `crossbus/plugins/retry` | `withRetry(fn, options)`, `createRetryWrapper(bus, options)`; `maxAttempts`, not `maxRetries` |
 | `crossbus/plugins/circuit-breaker` | `CircuitBreaker`, `createPeerCircuitBreaker` |
 | `crossbus/plugins/schema-validation` | `createValidator`, `withSchemaValidation(schema, handler)`, `createValidationHook` |
-| `crossbus/plugins/encryption` | `Encryption`, `withEncryption(bus, key)`; application-owned key distribution |
-| `crossbus/plugins/rate-limiter` | `RateLimiter`, `withRateLimiter` |
-| `crossbus/plugins/compression` | `Compression`, `withCompression` |
+| `crossbus/plugins/encryption` | `Encryption`, `withEncryption(bus, key, options)`; application-owned key distribution. See [SECURITY.md](../SECURITY.md#encryption-plugin) |
+| `crossbus/plugins/rate-limiter` | `RateLimiter`, `withRateLimiter`; `createHook({ throwOnLimit: false })` drops limited messages with `ERR_MESSAGE_DROPPED` |
+| `crossbus/plugins/compression` | `Compression`, `withCompression(bus, options)`; inbound output is capped by `maxDecompressedBytes` (default 1 MiB) and only `gzip`, `deflate` and `deflate-raw` are accepted |
 | `crossbus/plugins/batch` | `MessageBatcher`, `createBatcher`, `withBatching`; enable receiving-side unbatching too |
 | `crossbus/enterprise` | Tracing, metrics, backpressure and message versioning; explicitly wire to application operations |
 | `crossbus/testing` | `MockTransport`, `createConnectedMocks` |

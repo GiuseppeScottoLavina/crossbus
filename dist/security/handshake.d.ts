@@ -44,6 +44,8 @@
  * ```
  */
 export class Handshake {
+    /** Maximum responder handshakes awaiting completion. */
+    static MAX_PENDING_RESPONSES: number;
     /**
      * Creates a new Handshake handler.
      *

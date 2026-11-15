@@ -504,7 +504,9 @@ function streamFrame(sid, payload) {
     };
 }
 
-/** @typedef {Pick<ReadableStreamOptions,'maxBufferedChunks'|'maxBufferedBytes'|'maxOutOfOrderChunks'|'idleTimeout'> & {maxIncomingStreams?:number,maxOutgoingStreams?:number,maxControlBytes?:number}} StreamManagerOptions */
+/** @typedef {Pick<ReadableStreamOptions,'maxBufferedChunks'|'maxBufferedBytes'|'maxOutOfOrderChunks'|'idleTimeout'> & {maxIncomingStreams?:number,maxIncomingStreamsPerPeer?:number,maxOutgoingStreams?:number,maxControlBytes?:number}} StreamManagerOptions
+ * `maxIncomingStreamsPerPeer` (default: `maxIncomingStreams`) stops one peer from
+ * holding every incoming slot; set it below the total on hubs serving several peers. */
 export class StreamManager {
     #activeStreams = new Map();
     #outgoingStreams = new Map();
@@ -520,6 +522,10 @@ export class StreamManager {
             maxIncomingStreams: positiveInteger(
                 options.maxIncomingStreams ?? 100,
                 'maxIncomingStreams'
+            ),
+            maxIncomingStreamsPerPeer: positiveInteger(
+                options.maxIncomingStreamsPerPeer ?? options.maxIncomingStreams ?? 100,
+                'maxIncomingStreamsPerPeer'
             ),
             maxOutgoingStreams: positiveInteger(
                 options.maxOutgoingStreams ?? 100,
@@ -610,6 +616,12 @@ export class StreamManager {
             if (active || outgoing || typeof message.name !== 'string') return;
             if (this.#activeStreams.size >= this.#options.maxIncomingStreams) {
                 this.#reject(peerId, sid, 'Incoming stream limit exceeded');
+                return;
+            }
+            let fromPeer = 0;
+            for (const entry of this.#activeStreams.values()) if (entry.peerId === peerId) fromPeer++;
+            if (fromPeer >= this.#options.maxIncomingStreamsPerPeer) {
+                this.#reject(peerId, sid, 'Per-peer incoming stream limit exceeded');
                 return;
             }
             const handler = this.#streamHandlers.get(message.name)?.handler;

@@ -188,21 +188,48 @@ export class OriginValidator {
 
     /**
      * Creates a RegExp from a wildcard pattern.
-     * Uses bounded quantifiers to prevent ReDoS attacks.
      *
      * @param {string} pattern - Pattern with wildcards.
      * @returns {RegExp}
      */
     #createPattern(pattern) {
-        // Escape special regex characters except *
-        const escaped = pattern
-            .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
-            // Use bounded quantifier to prevent catastrophic backtracking
-            // Allows up to 253 chars per segment (max DNS label)
-            .replace(/\*/g, '[a-zA-Z0-9.-]{0,253}');
-
-        return new RegExp(`^${escaped}$`);
+        return compileOriginPattern(pattern);
     }
+}
+
+/**
+ * Compiles an origin wildcard pattern.
+ *
+ * Supported forms, where `*` must be the whole component it replaces:
+ * - `https://*.example.com`: one or more subdomain labels (not the apex);
+ * - `chrome-extension://*`: any host for the scheme;
+ * - `http://localhost:*`: any port.
+ *
+ * Any other `*` position (for example `https://example.com*`) is rejected,
+ * because it could match a different registrable domain.
+ *
+ * @param {string} pattern
+ * @returns {RegExp}
+ */
+export function compileOriginPattern(pattern) {
+    const match = /^([a-z][a-z0-9+.-]*:\/\/)(.*?)(:(?:\d{1,5}|\*))?$/i.exec(pattern);
+    if (!match) throw new TypeError(`Invalid origin pattern: ${pattern}`);
+    const [, scheme, host, port = ''] = match;
+    const escape = (/** @type {string} */ value) => value.replace(/[.+?^${}()|[\]\\]/g, '\\$&');
+    let hostSource;
+    if (host === '*') {
+        // Bounded single-component host; '/' and ':' cannot match.
+        hostSource = '[a-zA-Z0-9.-]{0,253}';
+    } else if (host.startsWith('*.') && !host.slice(2).includes('*') && host.length > 2) {
+        // Labels exclude '.', so this cannot backtrack catastrophically.
+        hostSource = '(?:[a-zA-Z0-9-]{1,63}\\.){1,127}' + escape(host.slice(2));
+    } else if (!host.includes('*')) {
+        hostSource = escape(host);
+    } else {
+        throw new TypeError(`Unsupported wildcard position in origin pattern: ${pattern}`);
+    }
+    const portSource = port === ':*' ? ':\\d{1,5}' : escape(port);
+    return new RegExp(`^${escape(scheme)}${hostSource}${portSource}$`);
 }
 
 /**

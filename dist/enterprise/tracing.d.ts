@@ -115,10 +115,12 @@ export class Tracer {
      * @param {string} [serviceName='crossbus'] - Service name for traces
      * @param {Object} [options={}] - Tracer options
      * @param {number} [options.maxSpans=1000] - Max completed spans to keep
+     * @param {number} [options.maxTraces=maxSpans] - Max traces kept for getTrace(); oldest first out
      * @param {boolean} [options.sampled=true] - Whether to record traces
      */
     constructor(serviceName?: string, options?: {
         maxSpans?: number | undefined;
+        maxTraces?: number | undefined;
         sampled?: boolean | undefined;
     });
     /**

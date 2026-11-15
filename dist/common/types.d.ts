@@ -151,3 +151,9 @@ export const TransferableTypes: (ArrayBufferConstructor | {
 })[];
 /** Shared immutable empty metadata for internally constructed envelopes. */
 export const EMPTY_MESSAGE_META: Readonly<{}>;
+/**
+ * Marks a signal re-dispatched locally from an already-processed batch.
+ * Symbol-keyed properties are dropped by structured clone and JSON, so a
+ * remote peer cannot set it. The registry key keeps separate bundles in sync.
+ */
+export const BATCHED_SIGNAL: unique symbol;

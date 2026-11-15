@@ -18,8 +18,19 @@
  */
 
 /**
+ * @typedef {Object} EncryptionHookOptions
+ * @property {boolean} [requireEncryption=true] - Reject inbound plaintext payloads.
+ *   Disable only while migrating a mixed deployment.
+ * @property {number} [ttl=60000] - Replay window in ms.
+ * @property {number} [maxClockSkew=5000] - Accepted future timestamp skew in ms.
+ * @property {number} [maxReplayEntries=50000] - Accepted IVs remembered within the
+ *   replay window. When full, the oldest entry is forgotten first.
+ */
+
+/**
  * Encryption utilities for CrossBus messages.
- * Uses AES-256-GCM for authenticated encryption.
+ * Uses AES-256-GCM. The hooks authenticate message context, reject plaintext
+ * and replays, and encrypt RPC errors; see {@link Encryption.createEncryptedHooks}.
  *
  * @example
  * import { Encryption } from 'crossbus/plugins/encryption';
@@ -28,12 +39,8 @@
  * const key = await Encryption.generateKey();
  * // or: const key = await Encryption.deriveKey('password', 'salt');
  *
- * // Use with CrossBus hooks
- * const { encryptHook, decryptHook } = Encryption.createEncryptedHooks(key);
- * bus.addOutboundHook(encryptHook);
- * bus.addInboundHook(decryptHook);
- *
- * // Now all messages are automatically encrypted!
+ * // Install on both endpoints; RPC errors are encrypted too.
+ * withEncryption(bus, key);
  */
 export class Encryption {
     static ALGORITHM = 'AES-GCM';
@@ -130,9 +137,12 @@ export class Encryption {
      *
      * @param {any} payload - Data to encrypt (will be JSON serialized)
      * @param {CryptoKey} key - Encryption key
+     * @param {Object} [options={}] - Encryption options
+     * @param {string} [options.additionalData] - Context authenticated by AES-GCM but not
+     *   encrypted. Decryption must supply the same value.
      * @returns {Promise<EncryptedPayload>} Encrypted payload
      */
-    static async encrypt(payload, key) {
+    static async encrypt(payload, key, options = {}) {
         // Wrap payload with timestamp for replay protection
         const wrapped = {
             data: payload,
@@ -144,16 +154,12 @@ export class Encryption {
 
         // Generate random IV
         const iv = crypto.getRandomValues(new Uint8Array(this.IV_LENGTH));
+        /** @type {AesGcmParams} */
+        const params = { name: this.ALGORITHM, iv };
+        if (options.additionalData !== undefined) params.additionalData = encoder.encode(options.additionalData);
 
         // Encrypt
-        const ciphertext = await crypto.subtle.encrypt(
-            {
-                name: this.ALGORITHM,
-                iv
-            },
-            key,
-            data
-        );
+        const ciphertext = await crypto.subtle.encrypt(params, key, data);
 
         return {
             _encrypted: true,
@@ -163,77 +169,110 @@ export class Encryption {
     }
 
     /**
+     * Checks whether a value has the encrypted-envelope shape.
+     *
+     * @param {any} value
+     * @returns {value is EncryptedPayload}
+     */
+    static isEncrypted(value) {
+        return value !== null && typeof value === 'object' && value._encrypted === true &&
+            typeof value.ciphertext === 'string' && typeof value.iv === 'string';
+    }
+
+    /**
      * Decrypts an encrypted payload.
      *
      * @param {EncryptedPayload} encrypted - Encrypted payload
      * @param {CryptoKey} key - Decryption key
      * @param {Object} [options={}] - Decryption options
-     * @param {number} [options.ttl=60000] - Time-to-live window in ms (replay protection)
+     * @param {number} [options.ttl=60000] - Maximum message age in ms (replay window)
+     * @param {number} [options.maxClockSkew=5000] - Accepted future timestamp skew in ms
+     * @param {string} [options.additionalData] - Authenticated context used at encryption
      * @returns {Promise<any>} Decrypted payload
-     * @throws {Error} If message is expired (replay attack)
+     * @throws {Error} If the envelope is malformed, fails authentication, has no
+     *   timestamp, is older than `ttl` or is dated beyond `maxClockSkew`
      */
     static async decrypt(encrypted, key, options = {}) {
-        const ciphertext = this.#base64ToArrayBuffer(encrypted.ciphertext);
+        if (!this.isEncrypted(encrypted)) throw encryptionError('ERR_ENCRYPTION_INVALID', 'Malformed encrypted payload');
         const iv = this.#base64ToArrayBuffer(encrypted.iv);
+        if (iv.byteLength !== this.IV_LENGTH) throw encryptionError('ERR_ENCRYPTION_INVALID', 'Invalid initialization vector');
+        const ciphertext = this.#base64ToArrayBuffer(encrypted.ciphertext);
 
-        const decrypted = await crypto.subtle.decrypt(
-            {
-                name: this.ALGORITHM,
-                iv
-            },
-            key,
-            ciphertext
-        );
-
-        const decoder = new TextDecoder();
-        const unwrapped = JSON.parse(decoder.decode(decrypted));
-
-        // Handle legacy payloads (no timestamp) vs new wrapped payloads
-        const payload = unwrapped._ts ? unwrapped.data : unwrapped;
-        const timestamp = unwrapped._ts;
-
-        // Replay protection check
-        if (timestamp) {
-            const ttl = options.ttl ?? 60000;
-            const now = Date.now();
-
-            // Check if expired
-            if (now - timestamp > ttl) {
-                throw new Error(`Message expired (replay attack detected). Age: ${now - timestamp}ms, TTL: ${ttl}ms`);
-            }
-
-            // Check for future timestamps (clock skew/manipulation)
-            if (timestamp > now + 5000) { // Allow 5s slack
-                console.warn('[CrossBus] Detected future timestamp in encrypted message (clock skew?)');
-            }
+        /** @type {AesGcmParams} */
+        const params = { name: this.ALGORITHM, iv };
+        if (options.additionalData !== undefined) params.additionalData = new TextEncoder().encode(options.additionalData);
+        let decrypted;
+        try {
+            decrypted = await crypto.subtle.decrypt(params, key, ciphertext);
+        } catch {
+            throw encryptionError('ERR_DECRYPTION_FAILED', 'Encrypted payload failed authentication');
         }
 
-        return payload;
+        const unwrapped = JSON.parse(new TextDecoder().decode(decrypted));
+        const timestamp = unwrapped?._ts;
+        if (typeof timestamp !== 'number' || !Number.isFinite(timestamp)) {
+            throw encryptionError('ERR_ENCRYPTION_INVALID', 'Encrypted payload has no timestamp');
+        }
+
+        const ttl = options.ttl ?? 60000;
+        const maxClockSkew = options.maxClockSkew ?? 5000;
+        const now = Date.now();
+        if (now - timestamp > ttl) {
+            throw encryptionError('ERR_MESSAGE_EXPIRED', `Message expired (replay window exceeded). Age: ${now - timestamp}ms, TTL: ${ttl}ms`);
+        }
+        if (timestamp - now > maxClockSkew) {
+            throw encryptionError('ERR_MESSAGE_EXPIRED', `Message timestamp is ${timestamp - now}ms in the future (max skew ${maxClockSkew}ms)`);
+        }
+
+        return unwrapped.data;
     }
 
     /**
      * Creates hook functions for automatic encryption/decryption.
      *
+     * Every outbound payload, response and RPC error is encrypted. AES-GCM
+     * authenticates the message type, signal/handler name and, for replies,
+     * the request ID, so ciphertext cannot be moved to another handler or
+     * request. Inbound plaintext is rejected unless `requireEncryption` is
+     * false, and each initialization vector is accepted once within the
+     * replay window. All holders of a shared key are equally trusted: the key
+     * authenticates membership, not an individual peer.
+     *
      * @param {CryptoKey} key - Encryption key
+     * @param {EncryptionHookOptions} [options={}]
      * @returns {{ encryptHook: import('../core/cross-bus.js').MessageHook, decryptHook: import('../core/cross-bus.js').MessageHook }}
      *
      * @example
      * const { encryptHook, decryptHook } = Encryption.createEncryptedHooks(key);
-     * bus.addOutboundHook(encryptHook);
-     * bus.addInboundHook(decryptHook);
+     * bus.addOutboundHook(encryptHook, 10, { errors: true });
+     * bus.addInboundHook(decryptHook, 10, { errors: true });
      */
-    static createEncryptedHooks(key) {
+    static createEncryptedHooks(key, options = {}) {
+        const requireEncryption = options.requireEncryption ?? true;
+        const ttl = options.ttl ?? 60000;
+        const maxClockSkew = options.maxClockSkew ?? 5000;
+        const replay = new ReplayCache(options.maxReplayEntries ?? 50000, ttl + maxClockSkew);
         return {
             encryptHook: async (payload, context) => {
-                // Skip if already encrypted
-                if (payload && payload._encrypted) return payload;
-                return await this.encrypt(payload, key);
+                const encrypted = await this.encrypt(payload, key, { additionalData: additionalData(context) });
+                // Reflecting this message back to its sender is rejected as a replay.
+                replay.remember(encrypted.iv);
+                return encrypted;
             },
 
             decryptHook: async (payload, context) => {
-                // Skip if not encrypted
-                if (!payload || !payload._encrypted) return payload;
-                return await this.decrypt(payload, key);
+                // Items of a batch whose envelope was already decrypted.
+                if (context?.batched === true) return payload;
+                // Error replies carry their encrypted detail in the error field.
+                if (context?.type === 'response' && context.success === false && payload == null) return payload;
+                if (!this.isEncrypted(payload)) {
+                    if (!requireEncryption) return payload;
+                    throw encryptionError('ERR_ENCRYPTION_REQUIRED', 'Unencrypted payload rejected');
+                }
+                if (replay.has(payload.iv)) throw encryptionError('ERR_REPLAY_DETECTED', 'Encrypted payload was already received');
+                const data = await this.decrypt(payload, key, { ttl, maxClockSkew, additionalData: additionalData(context) });
+                replay.remember(payload.iv);
+                return data;
             }
         };
     }
@@ -266,6 +305,7 @@ export class Encryption {
  *
  * @param {import("../core/cross-bus.js").CrossBus} bus - CrossBus instance
  * @param {CryptoKey} key - Encryption key
+ * @param {EncryptionHookOptions} [options={}]
  * @returns {import("../core/cross-bus.js").CrossBus} Same bus with encryption hooks installed
  *
  * @example
@@ -274,9 +314,64 @@ export class Encryption {
  * withEncryption(bus, key);
  * // All messages now encrypted automatically
  */
-export function withEncryption(bus, key) {
-    const { encryptHook, decryptHook } = Encryption.createEncryptedHooks(key);
-    bus.addOutboundHook(encryptHook);
-    bus.addInboundHook(decryptHook);
+export function withEncryption(bus, key, options = {}) {
+    const { encryptHook, decryptHook } = Encryption.createEncryptedHooks(key, options);
+    bus.addOutboundHook(encryptHook, 10, { errors: true });
+    bus.addInboundHook(decryptHook, 10, { errors: true });
     return bus;
+}
+
+/**
+ * Authenticated context for a hook invocation. Replies are bound to the
+ * handler and ID of the request they answer.
+ * @param {any} context
+ * @returns {string}
+ */
+function additionalData(context = {}) {
+    const reply = context.type === 'response' || context.type === 'error';
+    return JSON.stringify(['crossbus-encryption/2', context.type ?? null,
+        (reply ? context.requestName : context.handlerName) ?? null, reply ? context.requestId ?? null : null]);
+}
+
+/**
+ * @param {string} code
+ * @param {string} message
+ */
+function encryptionError(code, message) {
+    return Object.assign(new Error(message), { code });
+}
+
+/** Bounded set of recently accepted initialization vectors. */
+class ReplayCache {
+    /** @type {Map<string, number>} */
+    #entries = new Map();
+    #max;
+    #lifetime;
+
+    /**
+     * @param {number} max
+     * @param {number} lifetime
+     */
+    constructor(max, lifetime) {
+        if (!Number.isSafeInteger(max) || max < 1) throw new RangeError('maxReplayEntries must be a positive safe integer');
+        this.#max = max;
+        this.#lifetime = lifetime;
+    }
+
+    /** @param {string} iv */
+    has(iv) {
+        const expires = this.#entries.get(iv);
+        return expires !== undefined && expires > Date.now();
+    }
+
+    /** @param {string} iv */
+    remember(iv) {
+        const now = Date.now();
+        // Entries are inserted in time order, so expired ones are at the front.
+        for (const [entry, expires] of this.#entries) {
+            if (expires > now && this.#entries.size < this.#max) break;
+            this.#entries.delete(entry);
+        }
+        this.#entries.set(iv, now + this.#lifetime);
+    }
 }

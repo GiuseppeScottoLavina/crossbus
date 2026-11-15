@@ -44,6 +44,9 @@ public final class CrossBusBridge: NSObject, WKScriptMessageHandler {
         let port = origin.port == 0 || origin.port == 443 ? "" : ":\(origin.port)"
         guard origins.contains("\(origin.protocol)://\(origin.host)\(port)"),
               let body = message.body as? [String: Any], Self.valid(body),
+              // JSONSerialization raises an Objective-C exception (not a Swift
+              // error) for NSDate, NaN or Infinity values that pages can post.
+              JSONSerialization.isValidJSONObject(body),
               let data = try? JSONSerialization.data(withJSONObject: body),
               data.count <= maxBytes else { return }
         onMessage?(body)
@@ -62,7 +65,7 @@ public final class CrossBusBridge: NSObject, WKScriptMessageHandler {
         guard !closed, let view = webView, let url = view.url, origins.contains(Self.origin(url)) else {
             throw NSError(domain: "CrossBus", code: 1, userInfo: [NSLocalizedDescriptionKey: "Not connected to an allowed origin"])
         }
-        guard Self.valid(message) else { throw NSError(domain: "CrossBus", code: 2) }
+        guard Self.valid(message), JSONSerialization.isValidJSONObject(message) else { throw NSError(domain: "CrossBus", code: 2) }
         let data = try JSONSerialization.data(withJSONObject: message, options: [.fragmentsAllowed])
         guard data.count <= maxBytes else { throw NSError(domain: "CrossBus", code: 3) }
         let callbackJSON = String(data: try JSONSerialization.data(withJSONObject: callback, options: [.fragmentsAllowed]), encoding: .utf8)!

@@ -172,7 +172,7 @@
   "plugins": [
     {
       "name": "withEncryption",
-      "description": "AES-256-GCM encryption for all messages",
+      "description": "AES-256-GCM encryption of payloads, responses and RPC errors; rejects plaintext, context-moved ciphertext and replays",
       "import": "crossbus/plugins/encryption"
     },
     {

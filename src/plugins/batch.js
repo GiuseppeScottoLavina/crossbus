@@ -1,4 +1,5 @@
 import { uuid } from '../common/utils.js';
+import { BATCHED_SIGNAL } from '../common/types.js';
 /**
  * @fileoverview Message Batching plugin for CrossBus.
  * Collects messages and sends them in batches to reduce postMessage overhead.
@@ -251,7 +252,8 @@ export function withBatching(bus, options = {}) {
         }
         for (const item of messages) {
             // Re-enter the normal inbound pipeline for each logical signal.
-            await bus.handleMessage({ _cb: 1, id: uuid(), type: 'sig',
+            // The symbol marks local re-dispatch; it cannot cross a channel.
+            await bus.handleMessage({ _cb: 1, id: uuid(), type: 'sig', [BATCHED_SIGNAL]: true,
                 payload: { name: item.event, data: item.data } }, event.source.origin, event.data.source);
         }
     }, { mode: 'sync' });
