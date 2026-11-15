@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+- Add live demos to the GitHub Pages site (`docs/demos/`): a fractal rendered across Web Workers with request/response, tabs kept in sync over BroadcastChannel, and an encrypted channel whose replay, forgery and tampering attempts are refused. Each page draws a live trace of the real envelopes it sends and shows the source it runs. A Chrome test runs every demo from the Pages folder alone. The build also copies `dist/plugins/encryption.min.js` into `docs/assets/plugins/`.
+
 ## [0.1.7] - 2026-11-15
 
 Security fixes from a local audit of 0.1.6; each finding has a regression test in `tests/unit/security-audit-0.1.7.test.js`.
