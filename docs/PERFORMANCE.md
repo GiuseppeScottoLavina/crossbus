@@ -19,3 +19,5 @@ The [0.1.5 comparison](NEXT_RELEASE.md) adds shared default RPC timeout scheduli
 The [0.1.6 optimization study](OPTIMIZATION_016.md) separately compares the exact 0.1.5 runtime with an earlier 0.1.6 candidate, including the Node base64 fallback and RPC controls. Its bundle sizes predate compact-v2; current sizes are in the [compact-v2 study](RPC_WIRE_V2.md). Earlier 0.1.5-versus-0.1.4 results remain historical.
 
 The newer [compact-v2 RPC study](RPC_WIRE_V2.md) measures the opt-in MessageChannel format separately from the standard default and retains mixed/negative Worker results. The earlier 0.1.6 measurements identify their own frozen runtime.
+
+The [0.1.7 deadline-timer record](https://github.com/GiuseppeScottoLavina/crossbus/tree/master/benchmarks/deadline-timer-0.1.7) measures reuse of the idle shared RPC deadline timer against the security-fixed build. Sequential 1 KiB echo improved by paired medians of about 5–9% on Node and Chrome and 2–4% on Bun; 64 concurrent calls were unchanged. It retains the harness, raw samples and limits.

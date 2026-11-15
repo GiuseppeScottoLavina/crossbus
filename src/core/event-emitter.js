@@ -448,14 +448,14 @@ export class EventEmitter {
             (colon > 0 && this[LISTENERS].has(name.slice(0, colon + 1) + '*'));
 
         if (!exactListeners?.length && !hasWildcard) return 0;
-        if (exactListeners?.length === 1 && !hasWildcard && !source) {
+        if (exactListeners?.length === 1 && !hasWildcard) {
             const entry = exactListeners[0];
             const event = {
                 name,
                 data,
                 messageId: uuid(),
                 timestamp: Date.now(),
-                source: DEFAULT_SOURCE
+                source: source ? { ...DEFAULT_SOURCE, ...source } : DEFAULT_SOURCE
             };
 
             if (entry.once) this.#removeListener(name, entry.id);
