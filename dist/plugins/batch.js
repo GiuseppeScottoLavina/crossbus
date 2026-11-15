@@ -57,6 +57,7 @@ const ErrorCode = Object.freeze({
     // Security errors
     PAYLOAD_TOO_LARGE: 'ERR_PAYLOAD_TOO_LARGE',
     RATE_LIMITED: 'ERR_RATE_LIMITED',
+    MESSAGE_DROPPED: 'ERR_MESSAGE_DROPPED',
     UNAUTHORIZED: 'ERR_UNAUTHORIZED',
     INVALID_PAYLOAD: 'ERR_INVALID_PAYLOAD'
 });
@@ -231,6 +232,11 @@ Object.freeze({
         retryable: true,
         suggestion: 'Wait before retrying. Consider adding delay or using exponential backoff.'
     },
+    [ErrorCode.MESSAGE_DROPPED]: {
+        message: 'Message dropped by a hook',
+        retryable: true,
+        suggestion: 'A hook discarded this message, for example a rate limiter configured with throwOnLimit: false.'
+    },
     [ErrorCode.UNAUTHORIZED]: {
         message: 'Peer is not authorized to call this handler',
         retryable: false,
@@ -359,6 +365,20 @@ function uuid() {
         return v.toString(16);
     });
 }
+
+/**
+ * @fileoverview Common types and constants shared across all modules.
+ * This module is included in the common bundle to avoid duplication.
+ * @module common/types
+ */
+
+
+/**
+ * Marks a signal re-dispatched locally from an already-processed batch.
+ * Symbol-keyed properties are dropped by structured clone and JSON, so a
+ * remote peer cannot set it. The registry key keeps separate bundles in sync.
+ */
+const BATCHED_SIGNAL = Symbol.for('crossbus.batchedSignal');
 
 /**
  * @fileoverview Message Batching plugin for CrossBus.
@@ -612,7 +632,8 @@ function withBatching(bus, options = {}) {
         }
         for (const item of messages) {
             // Re-enter the normal inbound pipeline for each logical signal.
-            await bus.handleMessage({ _cb: 1, id: uuid(), type: 'sig',
+            // The symbol marks local re-dispatch; it cannot cross a channel.
+            await bus.handleMessage({ _cb: 1, id: uuid(), type: 'sig', [BATCHED_SIGNAL]: true,
                 payload: { name: item.event, data: item.data } }, event.source.origin, event.data.source);
         }
     }, { mode: 'sync' });

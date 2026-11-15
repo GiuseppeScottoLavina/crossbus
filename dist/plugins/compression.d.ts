@@ -11,23 +11,6 @@
  */
 export function withCompression(bus: import("../core/cross-bus.js").CrossBus, options?: CompressionOptions): import("../core/cross-bus.js").CrossBus;
 /**
- * @fileoverview Compression plugin for CrossBus.
- * Compresses message payloads using CompressionStream API.
- *
- * @module plugins/compression
- */
-/**
- * @typedef {Object} CompressedPayload
- * @property {boolean} _compressed - Marker indicating compressed content
- * @property {string} data - Base64-encoded compressed data
- * @property {string} algorithm - Compression algorithm used
- */
-/**
- * @typedef {Object} CompressionOptions
- * @property {'gzip' | 'deflate' | 'deflate-raw'} [algorithm='gzip'] - Compression algorithm
- * @property {number} [threshold=0] - Minimum payload size to compress (bytes)
- */
-/**
  * @typedef {Object} CompressionStream
  * @property {WritableStream} writable
  * @property {ReadableStream} readable
@@ -81,9 +64,14 @@ export class Compression {
      * Decompresses a compressed payload.
      *
      * @param {CompressedPayload} compressed - Compressed payload
+     * @param {Object} [options={}]
+     * @param {number} [options.maxBytes=1048576] - Maximum decompressed bytes; reading
+     *   stops and the payload is rejected once it is exceeded
      * @returns {Promise<any>} Decompressed payload
      */
-    static decompress(compressed: CompressedPayload): Promise<any>;
+    static decompress(compressed: CompressedPayload, options?: {
+        maxBytes?: number | undefined;
+    }): Promise<any>;
     /**
      * Creates hook functions for automatic compression/decompression.
      *
@@ -128,6 +116,11 @@ export type CompressionOptions = {
      * - Minimum payload size to compress (bytes)
      */
     threshold?: number | undefined;
+    /**
+     * - Maximum decompressed size accepted
+     * by the inbound hook. Decompression stops as soon as it is exceeded.
+     */
+    maxDecompressedBytes?: number | undefined;
 };
 export type CompressionStream = {
     writable: WritableStream;

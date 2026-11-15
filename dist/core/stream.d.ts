@@ -61,7 +61,9 @@ export class ReadableSignalStream {
     [Symbol.asyncIterator](): AsyncIterableIterator<any>;
     #private;
 }
-/** @typedef {Pick<ReadableStreamOptions,'maxBufferedChunks'|'maxBufferedBytes'|'maxOutOfOrderChunks'|'idleTimeout'> & {maxIncomingStreams?:number,maxOutgoingStreams?:number,maxControlBytes?:number}} StreamManagerOptions */
+/** @typedef {Pick<ReadableStreamOptions,'maxBufferedChunks'|'maxBufferedBytes'|'maxOutOfOrderChunks'|'idleTimeout'> & {maxIncomingStreams?:number,maxIncomingStreamsPerPeer?:number,maxOutgoingStreams?:number,maxControlBytes?:number}} StreamManagerOptions
+ * `maxIncomingStreamsPerPeer` (default: `maxIncomingStreams`) stops one peer from
+ * holding every incoming slot; set it below the total on hubs serving several peers. */
 export class StreamManager {
     /** @param {Function} sendFn - (peerId,message)=>Promise on an authenticated channel. @param {StreamManagerOptions} [options] */
     constructor(sendFn: Function, options?: StreamManagerOptions);
@@ -123,8 +125,13 @@ export type ReadableStreamOptions = {
     acknowledge?: ((message: any) => void) | undefined;
     onClose?: ((error: Error | null) => void) | undefined;
 };
+/**
+ * `maxIncomingStreamsPerPeer` (default: `maxIncomingStreams`) stops one peer from
+ * holding every incoming slot; set it below the total on hubs serving several peers.
+ */
 export type StreamManagerOptions = Pick<ReadableStreamOptions, "maxBufferedChunks" | "maxBufferedBytes" | "maxOutOfOrderChunks" | "idleTimeout"> & {
     maxIncomingStreams?: number;
+    maxIncomingStreamsPerPeer?: number;
     maxOutgoingStreams?: number;
     maxControlBytes?: number;
 };

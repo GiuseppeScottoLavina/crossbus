@@ -1,4 +1,19 @@
 /**
+ * Compiles an origin wildcard pattern.
+ *
+ * Supported forms, where `*` must be the whole component it replaces:
+ * - `https://*.example.com`: one or more subdomain labels (not the apex);
+ * - `chrome-extension://*`: any host for the scheme;
+ * - `http://localhost:*`: any port.
+ *
+ * Any other `*` position (for example `https://example.com*`) is rejected,
+ * because it could match a different registrable domain.
+ *
+ * @param {string} pattern
+ * @returns {RegExp}
+ */
+export function compileOriginPattern(pattern: string): RegExp;
+/**
  * @fileoverview Origin validation for cross-origin security.
  * Validates message origins against an allowlist.
  * @module security/origin-validator

@@ -1,62 +1,4 @@
 /**
- * @typedef {Object} CrossBusOptions
- * @property {string} [peerId] - Unique peer identifier (auto-generated if not specified).
- * @property {boolean} [isHub=false] - Whether this instance is the hub.
- * @property {number} [requestTimeout=30000] - Default request timeout in ms.
- * @property {number} [handshakeTimeout=10000] - Handshake timeout in ms.
- * @property {string[]} [allowedOrigins=[]] - Allowed origins for incoming connections.
- * @property {Object} [meta={}] - Metadata to share with peers.
- * @property {string[]} [capabilities=[]] - Supported capabilities.
- * @property {string} [contentType='application/json'] - Preferred serialization format.
- * @property {number} [maxPayloadSize=1048576] - Maximum payload size in bytes (default: 1MB).
- * @property {number} [maxPendingRequests=100] - Maximum concurrent pending requests.
- * @property {boolean} [strictMode=false] - Enforce strict security (disallows wildcard origins).
- * @property {boolean} [debug=false] - Enable verbose debug logging.
- * @property {string} [debugPrefix='[CrossBus]'] - Prefix for debug log messages.
- */
-/**
- * @typedef {Object} HandlerOptions
- * @property {string[]} [allowedPeers] - Peer IDs allowed to call this handler.
- * @property {number} [rateLimit] - Max calls per second from each peer.
- * @property {Function} [validatePayload] - Custom payload validator function.
- */
-/**
- * @typedef {Object} PeerInfo
- * @property {string} peerId - Peer identifier.
- * @property {string} origin - Peer origin.
- * @property {Object} meta - Peer metadata.
- * @property {PeerStatus} status - Connection status.
- * @property {number} connectedAt - Connection timestamp.
- */
-/**
- * @typedef {Object} RequestOptions
- * @property {number} [timeout] - Request timeout in ms.
- */
-/**
- * @typedef {Object} BroadcastRequestOptions
- * @property {number} [timeout] - Per-peer timeout in ms.
- * @property {string[]} [exclude] - Peer IDs to exclude.
- * @property {boolean} [ignoreErrors=true] - Whether to ignore peer errors.
- */
-/**
- * @typedef {Object} HookContext
- * @property {'signal'|'request'|'response'} type - Message type.
- * @property {string} [peerId] - Peer ID (if applicable).
- * @property {string} [handlerName] - Handler name (for requests).
- * @property {'inbound'|'outbound'} direction - Hook direction.
- */
-/**
- * @callback MessageHook
- * @param {*} payload - Payload to transform.
- * @param {HookContext} context - Hook context.
- * @returns {*|Promise<*>} Transformed payload.
- */
-/**
- * @typedef {Object} HookEntry
- * @property {MessageHook} fn - Hook function.
- * @property {number} priority - Execution priority (lower = first).
- */
-/**
  * @callback RequestHandler
  * @param {*} payload - Request payload.
  * @param {Object} context - Request context (peerId, meta, etc).
@@ -85,8 +27,8 @@ export class CrossBus extends EventEmitter {
      *
      * Enforces:
      * - strictMode (no wildcard origins)
-     * - 1MB max payload size
-     * - 100 max pending requests
+     * - 1MB max payload size (overridable; 0 is rejected)
+     * - 100 max pending requests (overridable; 0 is rejected)
      * - 30s request timeout
      *
      * @param {CrossBusOptions} options - Configuration options
@@ -225,6 +167,7 @@ export class CrossBus extends EventEmitter {
      *
      * @param {MessageHook} hookFn - Hook function.
      * @param {number} [priority=10] - Execution priority (lower = first).
+     * @param {HookOptions} [options={}] - Hook options.
      * @returns {Function} Unregister function.
      *
      * @example
@@ -233,12 +176,13 @@ export class CrossBus extends EventEmitter {
      *   return await decrypt(payload);
      * });
      */
-    addInboundHook(hookFn: MessageHook, priority?: number): Function;
+    addInboundHook(hookFn: MessageHook, priority?: number, options?: HookOptions): Function;
     /**
      * Adds an outbound hook to transform outgoing payloads.
      *
      * @param {MessageHook} hookFn - Hook function.
      * @param {number} [priority=10] - Execution priority (lower = first).
+     * @param {HookOptions} [options={}] - Hook options.
      * @returns {Function} Unregister function.
      *
      * @example
@@ -247,7 +191,7 @@ export class CrossBus extends EventEmitter {
      *   return await encrypt(payload);
      * });
      */
-    addOutboundHook(hookFn: MessageHook, priority?: number): Function;
+    addOutboundHook(hookFn: MessageHook, priority?: number, options?: HookOptions): Function;
     /**
      * Removes an inbound hook.
      *
@@ -497,21 +441,47 @@ export type BroadcastRequestOptions = {
 };
 export type HookContext = {
     /**
-     * - Message type.
+     * - Message type. `error`
+     * is passed only to hooks registered with `{ errors: true }`.
      */
-    type: "signal" | "request" | "response";
+    type: "signal" | "request" | "response" | "error";
     /**
-     * - Peer ID (if applicable).
+     * - Bound peer ID (if applicable).
      */
     peerId?: string | undefined;
     /**
-     * - Handler name (for requests).
+     * - Handler name for requests, or the signal name.
      */
     handlerName?: string | undefined;
+    /**
+     * - Request ID for requests, responses and errors.
+     */
+    requestId?: string | undefined;
+    /**
+     * - Handler name of the request a response or
+     * error answers. Inbound, it is taken from the local pending request.
+     */
+    requestName?: string | undefined;
+    /**
+     * - Inbound responses: the response success flag.
+     */
+    success?: boolean | undefined;
+    /**
+     * - Inbound signals re-dispatched locally from a
+     * batch whose envelope already passed the inbound hooks.
+     */
+    batched?: boolean | undefined;
     /**
      * - Hook direction.
      */
     direction: "inbound" | "outbound";
+};
+export type HookOptions = {
+    /**
+     * - Also run this hook on RPC error objects
+     * (`{ code, message }`) with context type `error`, in both directions.
+     */
+    errors?: boolean | undefined;
 };
 export type MessageHook = (payload: any, context: HookContext) => any | Promise<any>;
 export type HookEntry = {
@@ -523,6 +493,10 @@ export type HookEntry = {
      * - Execution priority (lower = first).
      */
     priority: number;
+    /**
+     * - Whether the hook also transforms RPC errors.
+     */
+    errors: boolean;
 };
 export type RequestHandler = (payload: any, context: any) => Promise<any> | any;
 import { EventEmitter } from './event-emitter.js';

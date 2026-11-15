@@ -72,6 +72,24 @@ export class Handshake {
     /** @type {Map<string, Object>} */
     #pendingHandshakes = new Map();
 
+    /** Maximum responder handshakes awaiting completion. */
+    static MAX_PENDING_RESPONSES = 100;
+
+    /** Drops expired responder entries and, when full, the oldest one. */
+    #pruneResponders() {
+        const now = Date.now();
+        let responders = 0;
+        for (const [id, pending] of this.#pendingHandshakes) {
+            if (pending.phase !== HandshakePhase.ACK_SENT) continue;
+            if (pending.expiresAt <= now) this.#pendingHandshakes.delete(id);
+            else responders++;
+        }
+        for (const [id, pending] of this.#pendingHandshakes) {
+            if (responders < Handshake.MAX_PENDING_RESPONSES) break;
+            if (pending.phase === HandshakePhase.ACK_SENT) { this.#pendingHandshakes.delete(id); responders--; }
+        }
+    }
+
     /**
      * Creates a new Handshake handler.
      *
@@ -232,7 +250,7 @@ export class Handshake {
     cancel(handshakeId) {
         const pending = this.#pendingHandshakes.get(handshakeId);
         if (pending) {
-            pending.reject(new Error('Handshake cancelled'));
+            pending.reject?.(new Error('Handshake cancelled'));
             this.#pendingHandshakes.delete(handshakeId);
         }
     }
@@ -242,7 +260,7 @@ export class Handshake {
      */
     cancelAll() {
         for (const [_id, pending] of this.#pendingHandshakes) {
-            pending.reject(new Error('All handshakes cancelled'));
+            pending.reject?.(new Error('All handshakes cancelled'));
         }
         this.#pendingHandshakes.clear();
     }
@@ -256,6 +274,8 @@ export class Handshake {
      *
      */
     #handleInit(message, origin, sendFn, validateFn) {
+        // Without a reply channel the handshake cannot progress; keep no state.
+        if (typeof sendFn !== 'function' || typeof message.handshakeId !== 'string') return null;
         // Validate if validator provided
         if (validateFn && !validateFn(message, origin)) {
             const ack = this.createAckMessage(message, false, 'Validation failed');
@@ -267,9 +287,13 @@ export class Handshake {
         const ack = this.createAckMessage(message, true);
         sendFn(ack);
 
-        // Store awaiting complete
+        // Store awaiting complete. Responder state is bounded and expires, so
+        // unanswered inits cannot accumulate.
+        this.#pruneResponders();
+        if (this.#pendingHandshakes.has(message.handshakeId)) return null;
         this.#pendingHandshakes.set(message.handshakeId, {
             phase: HandshakePhase.ACK_SENT,
+            expiresAt: Date.now() + this.#timeout,
             remotePeer: {
                 peerId: message.peerId,
                 origin,
@@ -287,8 +311,8 @@ export class Handshake {
      */
     #handleAck(message, origin, sendFn) {
         const pending = this.#pendingHandshakes.get(message.handshakeId);
-        if (!pending) {
-            return null; // Unknown handshake
+        if (!pending || pending.phase !== HandshakePhase.INIT_SENT || typeof sendFn !== 'function') {
+            return null; // Unknown handshake, or not one we initiated
         }
 
         if (!message.accept) {
@@ -329,6 +353,10 @@ export class Handshake {
     #handleComplete(message, origin) {
         const pending = this.#pendingHandshakes.get(message.handshakeId);
         if (!pending || pending.phase !== HandshakePhase.ACK_SENT) {
+            return null;
+        }
+        if (pending.expiresAt <= Date.now()) {
+            this.#pendingHandshakes.delete(message.handshakeId);
             return null;
         }
 

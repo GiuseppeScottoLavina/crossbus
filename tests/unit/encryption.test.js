@@ -98,18 +98,23 @@ describe('Encryption Plugin', () => {
         });
 
         it('should encrypt on outbound and decrypt on inbound', async () => {
-            const { encryptHook, decryptHook } = Encryption.createEncryptedHooks(key);
+            // Separate endpoints: each hook pair rejects its own reflected messages.
+            const sender = Encryption.createEncryptedHooks(key);
+            const receiver = Encryption.createEncryptedHooks(key);
 
             const original = { secret: 'data' };
 
             // Encrypt (outbound)
-            const encrypted = await encryptHook(original, { direction: 'outbound' });
+            const encrypted = await sender.encryptHook(original, { type: 'signal', handlerName: 'x', direction: 'outbound' });
             expect(encrypted._encrypted).toBe(true);
             expect(encrypted.ciphertext).toBeDefined();
 
             // Decrypt (inbound)
-            const decrypted = await decryptHook(encrypted, { direction: 'inbound' });
+            const decrypted = await receiver.decryptHook(encrypted, { type: 'signal', handlerName: 'x', direction: 'inbound' });
             expect(decrypted).toEqual(original);
+            // The sender rejects its own message reflected back to it.
+            await expect(sender.decryptHook(encrypted, { type: 'signal', handlerName: 'x', direction: 'inbound' }))
+                .rejects.toMatchObject({ code: 'ERR_REPLAY_DETECTED' });
         });
     });
 

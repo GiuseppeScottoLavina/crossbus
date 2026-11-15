@@ -96,12 +96,12 @@ describe('Rate Limiter Plugin', () => {
             expect(() => hook({ data: 2 }, {})).toThrow('Rate limit exceeded');
         });
 
-        it('should return null when limit exceeded with throwOnLimit=false', () => {
+        it('should drop the message when limit exceeded with throwOnLimit=false', () => {
             const limiter = new RateLimiter({ maxRequests: 1, windowMs: 1000 });
             const hook = limiter.createHook({ throwOnLimit: false });
 
             expect(hook({ data: 1 }, {})).toEqual({ data: 1 });
-            expect(hook({ data: 2 }, {})).toBe(null); // Dropped
+            expect(() => hook({ data: 2 }, {})).toThrow(expect.objectContaining({ code: 'ERR_MESSAGE_DROPPED' }));
         });
     });
 

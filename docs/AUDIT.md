@@ -1,5 +1,27 @@
 # Local audit
 
+## 0.1.7 security audit (unreleased)
+
+A local review of 0.1.6 (15 November 2026) reproduced eleven issues with proofs of concept against the real source. In every scenario tried, the core bus kept peer identity bound to the channel; the most serious issues were in opt-in plugins and the iOS adapter. All are fixed on this branch, and each has a regression test in `tests/unit/security-audit-0.1.7.test.js`. Against the 0.1.6 sources, 21 of those 27 tests fail; the remaining six are positive round-trip checks.
+
+| Finding | Severity (local assessment) | Fix |
+|---|---|---|
+| Encryption accepted plaintext, moved ciphertext and replays; some payloads and RPC errors left in clear | Medium–high | Context-bound AES-GCM, replay cache, plaintext rejection, encrypted errors |
+| Compression hook had no decompressed-size limit (four ~1 MiB messages reached 3.3 GB RSS) | Medium | `maxDecompressedBytes` cap, algorithm allowlist |
+| iOS adapter could crash on `Date`/`NaN`/`Infinity` bodies | Medium | `isValidJSONObject` guard on receive and send |
+| Sparse array bypassed schema `maxItems` (CPU blocking) | Low–medium | Length checked first; only present elements visited |
+| Rate limiter drop mode still dispatched messages | Low | `ERR_MESSAGE_DROPPED` handled by the bus |
+| Tracer stored remote trace IDs without bound | Low | `maxTraces` |
+| Broken `PostMessageTransport` wildcards; permissive trailing `*` in `OriginValidator` | Low | Shared component-level matcher |
+| Remote signals could trigger local lifecycle events | Low | Reserved names; `source.type: 'remote'` |
+| `removePeer()` left the `addTransport()` inbound path active | Low | Registration check per message |
+| Handshake handling threw without a reply channel and kept responder state forever | Low | Ignored without reply; bounded, expiring state |
+| `MessageChannelTransport` JSDoc taught an unauthenticated port handoff | Documentation | Example checks origin and source |
+
+The audit also listed hardening items. Implemented: requests are refused before inbound hooks when the handler is missing or the peer is outside `allowedPeers`; `createSecure()` rejects zero budgets; a `'null'` origin warning; `maxIncomingStreamsPerPeer` (opt-in, default unchanged); fail-closed version migration. Not changed, with their limits documented: per-peer inbound request concurrency, legacy stream idle timeout (still `0` by default), accounting for envelope fields outside the payload, default `'*'` transport origins, verbatim remote error messages, the shared default BroadcastChannel name and vector-clock trust.
+
+Checks on this branch: lint, source types, build, consumer declarations and the Swift/Java compile check pass. The suites total **1,298 tests across 89 files** with zero failures (1,138 unit/package, 93 e2e, 12 integration, 11 documentation, 44 experimental). Source line coverage is **96.67% (5,226/5,406)**. The original PoCs, re-run against the fixed source, no longer reproduce the issues. The Swift fix was compiled and checked against the failing Foundation call; it was not reproduced end to end in a WKWebView. The minified root grows from 22,237 to 23,293 bytes gzip level 9 and the core from 11,713 to 12,688. A paired-process Node check (six pairs, 1 KiB echo) against the 0.1.6 build measured median ratios of 1.000–1.010 without hooks and 0.981–0.985 with async identity hooks on both endpoints, a cost of about 1.5–2% from the richer hook context and the pre-hook access check. Signal fan-out and local `emit()` were unchanged (0.997–1.008). These are local measurements on one machine, not a full benchmark campaign.
+
 ## 0.1.6 publication record
 
 On 15 November 2026, npm **0.1.6** and its `latest` tag were verified against the exact archive from [CI 43702995538](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43702995538), source commit `fe5df57a6123141efe9cfe33414a29a21fcd4ef5`. The downloaded registry tarball matches that archive byte for byte, SHA-256 `7c75d12a4e11622ea37b8d50ada5a9c54155320f52329f88b16e9bb222b7bd49`, and a local `npm pack` of the same commit reproduces it. Isolated registry consumers passed on Node 18.18.0, 20.20.0, 22.19.0 and 24.15.0, including all 12 exports, ESM/CommonJS/minified RPC, standard/compact/compact-v2 MessageChannel RPC and bounded binary streams. The jsDelivr copy of `dist/crossbus.min.js` matches the archive. The [GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.6) preserves the archive, checksum and release manifest. This publication record is separate from the qualification below and does not broaden its measured scope.

@@ -151,7 +151,7 @@ describe('MessageVersioning', () => {
             expect(hook('string', {})).toBe('string');
         });
 
-        it('should handle migration errors gracefully', () => {
+        it('should reject a payload whose migration fails', () => {
             versioning.setCurrentVersion('user', 2);
             versioning.registerMigration('user', 1, 2, () => {
                 throw new Error('Migration failed');
@@ -159,10 +159,9 @@ describe('MessageVersioning', () => {
 
             const hook = versioning.createInboundHook();
             const payload = { _v: 1, data: 1 };
-            const result = hook(payload, { handlerName: 'user' });
 
-            // Should return original on error
-            expect(result).toEqual(payload);
+            // An unmigrated payload must not reach handlers expecting version 2.
+            expect(() => hook(payload, { handlerName: 'user' })).toThrow(expect.objectContaining({ code: 'ERR_INVALID_PAYLOAD' }));
         });
     });
 

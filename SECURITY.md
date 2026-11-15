@@ -58,12 +58,25 @@ withEncryption(bus, key);
 
 Provision the same key to the other trusted endpoint through your application's key-distribution mechanism. Generating a key independently at each endpoint will not create a shared encrypted channel.
 
+Since 0.1.7, `withEncryption()`:
+
+- encrypts every outbound payload, response and RPC error message;
+- authenticates the message type, the signal or handler name and, for replies, the request ID as AES-GCM additional data, so ciphertext cannot be moved to another handler or request;
+- rejects inbound plaintext (`ERR_ENCRYPTION_REQUIRED`), ciphertext that fails authentication (`ERR_DECRYPTION_FAILED`), messages older than `ttl` (60 s) or dated more than `maxClockSkew` (5 s) ahead (`ERR_MESSAGE_EXPIRED`), and an initialization vector already accepted within that window (`ERR_REPLAY_DETECTED`, including a sender's own messages reflected back to it).
+
+Both endpoints must run 0.1.7 or later; earlier envelopes have no additional data and fail authentication. `requireEncryption: false` accepts plaintext during a migration and should not stay enabled. Envelope metadata (message type, names, request IDs, timing and sizes) is visible on the wire. A shared key authenticates membership, not an individual peer: any holder can send messages that other holders accept, so use separate keys per peer pair when peers must not impersonate each other.
+
 ### Rate Limiting
 Limit outbound operations from this bus; this helper is not an inbound or distributed DoS defense:
 ```javascript
 import { withRateLimiter } from 'crossbus/plugins/rate-limiter';
 withRateLimiter(bus, { maxRequests: 100, windowMs: 1000 });
 ```
+
+`limiter.createHook({ throwOnLimit: false })` drops limited messages with `ERR_MESSAGE_DROPPED`. Before 0.1.7 it delivered them with a null payload.
+
+### Compression, schema validation and tracing
+The compression hook stops decompressing once the output exceeds `maxDecompressedBytes` (default 1 MiB) and accepts only `gzip`, `deflate` and `deflate-raw`. The schema validator checks `maxItems` before visiting array items and visits only present elements of sparse arrays; Bun's structured clone of a very large sparse array still costs time before any CrossBus code runs. The tracer keeps at most `maxTraces` traces (default `maxSpans`), so remote trace IDs cannot grow memory without bound. A failed version migration rejects the message instead of delivering the unmigrated payload.
 
 ## Security Best Practices
 

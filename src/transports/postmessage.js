@@ -11,6 +11,7 @@ import {
     findTransferables
 } from '../common/types.js';
 import { CrossBusError, ErrorCode } from '../common/errors.js';
+import { compileOriginPattern } from '../security/origin-validator.js';
 import { getSerializer } from '../common/serialization.js';
 
 /**
@@ -74,6 +75,9 @@ export class PostMessageTransport {
     /** @type {Set<string>} */
     #allowedOrigins;
 
+    /** @type {RegExp[]} */
+    #originPatterns;
+
     /** @type {boolean} */
     #autoTransfer;
 
@@ -117,6 +121,10 @@ export class PostMessageTransport {
         this.#target = target;
         this.#targetOrigin = options.targetOrigin ?? '*';
         this.#allowedOrigins = new Set(options.allowedOrigins ?? []);
+        // Compile wildcard patterns once; unsupported positions throw here.
+        this.#originPatterns = [...this.#allowedOrigins]
+            .filter(origin => origin !== '*' && origin.includes('*'))
+            .map(compileOriginPattern);
         this.#autoTransfer = options.autoTransfer ?? false;
         this.#contentType = options.contentType ?? 'application/json';
         this.#serializer = getSerializer(this.#contentType);
@@ -338,17 +346,9 @@ export class PostMessageTransport {
             return true;
         }
 
-        // Check wildcard pattern (e.g., https://*.example.com)
-        for (const pattern of this.#allowedOrigins) {
-            if (pattern.includes('*')) {
-                // Use bounded quantifier to prevent ReDoS
-                const regex = new RegExp('^' + pattern
-                    .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
-                    .replace(/\\\*/g, '[a-zA-Z0-9.-]{0,253}') + '$');
-                if (regex.test(origin)) {
-                    return true;
-                }
-            }
+        // Check wildcard patterns (e.g., https://*.example.com)
+        for (const pattern of this.#originPatterns) {
+            if (pattern.test(origin)) return true;
         }
 
         return false;

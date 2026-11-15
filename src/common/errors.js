@@ -57,6 +57,7 @@ export const ErrorCode = Object.freeze({
     // Security errors
     PAYLOAD_TOO_LARGE: 'ERR_PAYLOAD_TOO_LARGE',
     RATE_LIMITED: 'ERR_RATE_LIMITED',
+    MESSAGE_DROPPED: 'ERR_MESSAGE_DROPPED',
     UNAUTHORIZED: 'ERR_UNAUTHORIZED',
     INVALID_PAYLOAD: 'ERR_INVALID_PAYLOAD'
 });
@@ -230,6 +231,11 @@ const ERROR_META = Object.freeze({
         message: 'Request rate limit exceeded',
         retryable: true,
         suggestion: 'Wait before retrying. Consider adding delay or using exponential backoff.'
+    },
+    [ErrorCode.MESSAGE_DROPPED]: {
+        message: 'Message dropped by a hook',
+        retryable: true,
+        suggestion: 'A hook discarded this message, for example a rate limiter configured with throwOnLimit: false.'
     },
     [ErrorCode.UNAUTHORIZED]: {
         message: 'Peer is not authorized to call this handler',

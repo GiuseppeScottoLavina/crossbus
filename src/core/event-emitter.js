@@ -57,7 +57,7 @@ const DEFAULT_SOURCE = Object.freeze({
  * @typedef {Object} SignalSource
  * @property {string} peerId - ID of the emitting peer ('self' if local).
  * @property {string} origin - Origin URL.
- * @property {'local'|'iframe'|'worker'|'service-worker'|'window'} type - Source type.
+ * @property {'local'|'remote'|'iframe'|'worker'|'service-worker'|'window'} type - Source type. Signals received from a peer use `remote`.
  */
 
 /**

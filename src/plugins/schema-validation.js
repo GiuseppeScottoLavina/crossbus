@@ -98,14 +98,20 @@ export function createValidator(schema) {
 
         // Array validation
         if (schema.type === 'array' && Array.isArray(data)) {
-            if (schema.items) {
-                data.forEach((item, index) => {
-                    const itemPath = `${path}[${index}]`;
-                    const itemResult = createValidator(/** @type {JSONSchema} */(schema.items))(item, itemPath);
+            // Check the length bound before visiting items: a sparse array can
+            // declare billions of slots while carrying only a few bytes.
+            const tooLong = schema.maxItems !== undefined && data.length > schema.maxItems;
+            if (schema.items && !tooLong) {
+                const validateItem = createValidator(/** @type {JSONSchema} */(schema.items));
+                // Own keys visit only present elements, matching forEach's hole skipping.
+                for (const key of Object.keys(data)) {
+                    const index = Number(key);
+                    if (!Number.isInteger(index) || String(index) !== key) continue;
+                    const itemResult = validateItem(data[index], `${path}[${index}]`);
                     if (!itemResult.valid) {
                         errors.push(...(itemResult.errors || []));
                     }
-                });
+                }
             }
 
             if (schema.minItems !== undefined && data.length < schema.minItems) {

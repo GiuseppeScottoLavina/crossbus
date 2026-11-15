@@ -58,6 +58,7 @@ const ErrorCode = Object.freeze({
     // Security errors
     PAYLOAD_TOO_LARGE: 'ERR_PAYLOAD_TOO_LARGE',
     RATE_LIMITED: 'ERR_RATE_LIMITED',
+    MESSAGE_DROPPED: 'ERR_MESSAGE_DROPPED',
     UNAUTHORIZED: 'ERR_UNAUTHORIZED',
     INVALID_PAYLOAD: 'ERR_INVALID_PAYLOAD'
 });
@@ -231,6 +232,11 @@ const ERROR_META = Object.freeze({
         message: 'Request rate limit exceeded',
         retryable: true,
         suggestion: 'Wait before retrying. Consider adding delay or using exponential backoff.'
+    },
+    [ErrorCode.MESSAGE_DROPPED]: {
+        message: 'Message dropped by a hook',
+        retryable: true,
+        suggestion: 'A hook discarded this message, for example a rate limiter configured with throwOnLimit: false.'
     },
     [ErrorCode.UNAUTHORIZED]: {
         message: 'Peer is not authorized to call this handler',
@@ -465,14 +471,20 @@ function createValidator(schema) {
 
         // Array validation
         if (schema.type === 'array' && Array.isArray(data)) {
-            if (schema.items) {
-                data.forEach((item, index) => {
-                    const itemPath = `${path}[${index}]`;
-                    const itemResult = createValidator(/** @type {JSONSchema} */(schema.items))(item, itemPath);
+            // Check the length bound before visiting items: a sparse array can
+            // declare billions of slots while carrying only a few bytes.
+            const tooLong = schema.maxItems !== undefined && data.length > schema.maxItems;
+            if (schema.items && !tooLong) {
+                const validateItem = createValidator(/** @type {JSONSchema} */(schema.items));
+                // Own keys visit only present elements, matching forEach's hole skipping.
+                for (const key of Object.keys(data)) {
+                    const index = Number(key);
+                    if (!Number.isInteger(index) || String(index) !== key) continue;
+                    const itemResult = validateItem(data[index], `${path}[${index}]`);
                     if (!itemResult.valid) {
                         errors.push(...(itemResult.errors || []));
                     }
-                });
+                }
             }
 
             if (schema.minItems !== undefined && data.length < schema.minItems) {

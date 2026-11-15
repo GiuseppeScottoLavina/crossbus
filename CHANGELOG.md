@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.7] - Unreleased
+
+Security fixes from a local audit of 0.1.6; each finding has a regression test in `tests/unit/security-audit-0.1.7.test.js`.
+
+- **Encryption (breaking for encrypted deployments):** `withEncryption()` now encrypts every outbound payload, response and RPC error. AES-GCM additional data binds the message type, the signal or handler name and, for replies, the request ID. Inbound plaintext, moved or modified ciphertext, replays within the window and timestamps beyond `maxClockSkew` are rejected. Both endpoints must be upgraded together; `requireEncryption: false` eases migration. `Encryption.decrypt()` now requires a timestamp and rejects future-dated messages instead of warning.
+- **Compression:** the inbound hook caps decompressed output (`maxDecompressedBytes`, default 1 MiB) and accepts only `gzip`, `deflate` and `deflate-raw`. A 1 MiB message could previously expand to gigabytes.
+- **iOS adapter:** check `JSONSerialization.isValidJSONObject` before serializing received and sent messages. A page could crash the host app by posting a `Date`, `NaN` or `Infinity`, because `try?` does not catch the Objective-C exception.
+- **Schema validation:** check `maxItems` before visiting array items and visit only present elements, so a sparse array with a huge `length` no longer blocks the receiver.
+- **Rate limiter:** `createHook({ throwOnLimit: false })` now drops limited messages through the new `ERR_MESSAGE_DROPPED` code instead of dispatching them with a null payload.
+- **Tracing:** bound stored traces (`maxTraces`, default `maxSpans`); remote trace IDs previously grew memory without limit.
+- **Origin patterns:** `PostMessageTransport` and `OriginValidator` share one matcher. `*` is accepted only as the leftmost subdomain labels, the whole host or the port; other positions throw. `https://*.example.com` previously rejected real subdomains while accepting `https://.example.com`, and `OriginValidator` let `https://example.com*` match `example.com.evil.net`.
+- **Core:** remote signals cannot trigger the local `destroyed`/`peer:*` events and are delivered with `source.type: 'remote'`; `removePeer()` stops an `addTransport()` channel from dispatching; requests for unknown handlers or from peers outside `allowedPeers` are refused before inbound hooks; handshake messages without a reply channel are ignored and responder state is bounded and expires.
+- **Hooks:** `addInboundHook()`/`addOutboundHook()` accept `{ errors: true }` to transform RPC errors. Hook context adds `requestId`, `requestName`, `success`, `batched` and the signal name in `handlerName` for outbound signals.
+- **Hardening:** `createSecure()` rejects zero budgets; allowing the `'null'` origin logs a development warning; `StreamManager` adds `maxIncomingStreamsPerPeer`; a failed version migration rejects the message; the `MessageChannelTransport` JSDoc example checks origin and source during port handoff.
+
 ## [0.1.6] - 2026-11-15
 
 - Add opt-in MessageChannel `compact-v2` encoding with numeric tags and constant-field omission for successful responses, reconstructing the original protocol fields. Both endpoints must support the decoder; default standard encoding and compact-v1 compatibility remain available.
