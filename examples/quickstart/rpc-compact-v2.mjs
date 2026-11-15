@@ -1,4 +1,4 @@
-// Development checkout: compact-v2 is not available in npm 0.1.5.
+// Requires crossbus 0.1.6 or later on both endpoints; npm 0.1.5 does not support compact-v2.
 import { CrossBus } from 'crossbus';
 const { MessageChannelTransport } = await import('crossbus');
 

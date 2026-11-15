@@ -16,6 +16,6 @@ The [0.1.3 competitor study](COMPETITOR_ANALYSIS.md) adds source-reviewed birpc/
 
 The [0.1.5 comparison](NEXT_RELEASE.md) adds shared default RPC timeout scheduling and a separate one-way binary study. The standard typed-array base64 path improves the tested Bun/Chrome stream cases; Node's fallback has a small regression, and optional native binary modes change representation. Keep these results separate from RPC ratios, local emitter throughput and [functional physical-device qualification](QUALIFICATION.md). The report includes complete ranges, unchanged RPC controls and increased bundle size.
 
-The unpublished [0.1.6 optimization study](OPTIMIZATION_016.md) separately compares the exact 0.1.5 runtime with the development candidate, including the Node base64 fallback and RPC controls. Its bundle sizes predate compact-v2; current sizes are in the [compact-v2 study](RPC_WIRE_V2.md). Earlier 0.1.5-versus-0.1.4 results remain historical.
+The [0.1.6 optimization study](OPTIMIZATION_016.md) separately compares the exact 0.1.5 runtime with an earlier 0.1.6 candidate, including the Node base64 fallback and RPC controls. Its bundle sizes predate compact-v2; current sizes are in the [compact-v2 study](RPC_WIRE_V2.md). Earlier 0.1.5-versus-0.1.4 results remain historical.
 
 The newer [compact-v2 RPC study](RPC_WIRE_V2.md) measures the opt-in MessageChannel format separately from the standard default and retains mixed/negative Worker results. The earlier 0.1.6 measurements identify their own frozen runtime.
