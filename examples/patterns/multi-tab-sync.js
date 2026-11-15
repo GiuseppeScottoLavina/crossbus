@@ -22,12 +22,15 @@ const { BroadcastChannelTransport } = await import('crossbus');
 const tabId = `tab-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 const bus = new CrossBus({
     peerId: tabId,
-    allowedOrigins: ['*'],
+    // BroadcastChannelTransport reports the fixed origin label "broadcast".
+    allowedOrigins: ['broadcast'],
 });
 
 // Add BroadcastChannel transport for cross-tab communication
-// Using '*' as peerId enables broadcast mode (receive from all)
-bus.addTransport(new BroadcastChannelTransport('my-app-sync'), { peerId: '*' });
+// The peer ID is a label for the shared channel, not a wildcard. Every tab on
+// this channel appears as the same bound peer, so the sending tab is identified
+// by the application-level `fromTab` field (not an authenticated identity).
+bus.addTransport(new BroadcastChannelTransport('my-app-sync'), { peerId: 'app-tabs' });
 
 console.log(`[${tabId}] Tab initialized`);
 

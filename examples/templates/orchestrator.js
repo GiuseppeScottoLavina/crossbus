@@ -4,14 +4,22 @@
  * Template for creating a central orchestrator that coordinates
  * multiple agents and routes tool calls.
  * 
+ * Agents are identified by the peer bound to their transport, never by an ID
+ * in a message payload. Announced capabilities and tool lists are self-declared
+ * by that bound peer; authorize what each agent may do in your application.
+ *
  * @example
- * const orchestrator = new Orchestrator();
- * await orchestrator.connectAgent('planner', iframe);
+ * const orchestrator = new Orchestrator({ allowedOrigins: ['https://agents.example.com'] });
+ * const iframe = document.body.appendChild(document.createElement('iframe'));
+ * await orchestrator.connectAgent('planner', iframe, {
+ *   origin: 'https://agents.example.com',
+ *   src: 'https://agents.example.com/planner.html',
+ * });
  * const result = await orchestrator.delegate('planner', 'plan', { goal: 'Build app' });
  */
 
 import { CrossBus } from 'crossbus';
-const { PostMessageTransport } = await import('crossbus');
+const { PostMessageTransport, MessageChannelTransport } = await import('crossbus');
 
 export class Orchestrator {
     #bus;
@@ -20,13 +28,16 @@ export class Orchestrator {
 
     /**
      * Create an Orchestrator
-     * @param {Object} [options] - Configuration options
+     * @param {Object} options - Configuration options
+     * @param {string[]} options.allowedOrigins - Exact agent origins. Include
+     *   'channel' when connecting Workers with connectWorker().
      */
     constructor(options = {}) {
-        this.#bus = new CrossBus({
+        // createSecure() requires explicit origins and rejects wildcards.
+        this.#bus = CrossBus.createSecure({
             isHub: true,
             peerId: options.peerId || 'orchestrator',
-            allowedOrigins: options.allowedOrigins || ['*'],
+            allowedOrigins: options.allowedOrigins,
             capabilities: ['orchestrator', 'tool:router'],
             meta: {
                 type: 'orchestrator',
@@ -44,8 +55,9 @@ export class Orchestrator {
     #setupEventHandlers() {
         // Agent announcements
         this.#bus.on('agent:ready', (event) => {
-            const { agentId, capabilities, meta } = event.data.payload;
-            this.#registerAgent(agentId, { capabilities, meta, status: 'ready' });
+            // event.data.source is the peer ID bound to the receiving transport.
+            const { capabilities, meta } = event.data.payload ?? {};
+            this.#registerAgent(event.data.source, { capabilities, meta, status: 'ready' });
         });
 
         // Agent status updates
@@ -119,50 +131,71 @@ export class Orchestrator {
     }
 
     /**
-     * Connect an agent via iframe
+     * Connect an agent running in an iframe.
+     *
+     * The iframe must already be in the document. The transport and ready
+     * listener are installed before `src` is navigated, so the agent's
+     * agent:ready announcement cannot be missed.
+     *
+     * @param {string} agentId - Peer ID to bind to this iframe.
+     * @param {HTMLIFrameElement} iframe - Iframe element in the document.
+     * @param {Object} options
+     * @param {string} options.origin - The agent's exact origin.
+     * @param {string} [options.src] - URL to navigate after the transport is ready.
+     * @param {number} [options.timeout=10000] - Ready timeout in milliseconds.
+     * @returns {Promise<string>} Resolves with agentId once the agent is ready.
      */
     async connectAgent(agentId, iframe, options = {}) {
+        if (!options.origin || options.origin.includes('*')) {
+            throw new Error('connectAgent() requires the agent\'s exact origin');
+        }
+        if (!iframe.contentWindow) {
+            throw new Error('Append the iframe to the document before connectAgent()');
+        }
+
+        const removeTransport = this.#bus.addTransport(
+            new PostMessageTransport(iframe.contentWindow, {
+                targetOrigin: options.origin,
+                allowedOrigins: [options.origin],
+            }),
+            { peerId: agentId }
+        );
+
         return new Promise((resolve, reject) => {
+            const subscription = this.#bus.on('agent:ready', (event) => {
+                if (event.data.source === agentId) {
+                    clearTimeout(timeout);
+                    subscription.unsubscribe();
+                    resolve(agentId);
+                }
+            });
+
             const timeout = setTimeout(() => {
+                subscription.unsubscribe();
+                removeTransport();
                 reject(new Error(`Connection timeout for agent: ${agentId}`));
             }, options.timeout || 10000);
 
-            const handleReady = (event) => {
-                if (event.data.payload.agentId === agentId) {
-                    clearTimeout(timeout);
-                    this.#bus.off('agent:ready', handleReady);
-                    resolve(agentId);
-                }
-            };
-
-            this.#bus.on('agent:ready', handleReady);
-
-            // Add transport when iframe loads
-            if (iframe.contentWindow) {
-                this.#bus.addTransport(
-                    new PostMessageTransport(iframe.contentWindow, {
-                        targetOrigin: options.targetOrigin || '*',
-                    }),
-                    { peerId: agentId }
-                );
-            } else {
-                iframe.onload = () => {
-                    this.#bus.addTransport(
-                        new PostMessageTransport(iframe.contentWindow, {
-                            targetOrigin: options.targetOrigin || '*',
-                        }),
-                        { peerId: agentId }
-                    );
-                };
-            }
+            if (options.src) iframe.src = options.src;
         });
     }
 
     /**
-     * Connect an agent via worker
+     * Connect an agent running in a module Worker over a dedicated MessageChannel.
+     * The worker receives `{ port }` and connects with
+     * `agent.connect(MessageChannelTransport.fromPort(port), { peerId: 'orchestrator', origin: 'channel' })`.
+     * Requires 'channel' in the orchestrator's allowedOrigins.
+     *
+     * @param {string} agentId - Peer ID to bind to this worker.
+     * @param {Worker} worker - Worker running an agent template.
+     * @returns {Function} Cleanup that removes the transport.
      */
     connectWorker(agentId, worker) {
-        this.#bus.addTransport(new PostMessageTransport(worker), { peerId: agentId });
+        const channel = new MessageChannelTransport();
+        const removeTransport = this.#bus.addTransport(channel, { peerId: agentId, origin: 'channel' });
+        worker.postMessage({ port: channel.remotePort }, [channel.remotePort]);
+        channel.markRemoteTransferred();
+        return removeTransport;
     }
 
     /**
@@ -283,16 +316,18 @@ export class Orchestrator {
 // ============================================
 
 /*
-// Create orchestrator
-const orchestrator = new Orchestrator();
+const AGENT_ORIGIN = 'https://agents.example.com';
 
-// Connect agents
+// Create orchestrator
+const orchestrator = new Orchestrator({ allowedOrigins: [AGENT_ORIGIN] });
+
+// Connect agents: iframes are in the document but not yet navigated
 const plannerIframe = document.getElementById('planner-agent');
 const executorIframe = document.getElementById('executor-agent');
 
 await Promise.all([
-  orchestrator.connectAgent('planner', plannerIframe),
-  orchestrator.connectAgent('executor', executorIframe),
+  orchestrator.connectAgent('planner', plannerIframe, { origin: AGENT_ORIGIN, src: `${AGENT_ORIGIN}/planner.html` }),
+  orchestrator.connectAgent('executor', executorIframe, { origin: AGENT_ORIGIN, src: `${AGENT_ORIGIN}/executor.html` }),
 ]);
 
 console.log('All agents connected!');

@@ -48,6 +48,6 @@ SwiftPM compilation, strict local CocoaPods lint for iOS/macOS, Android AAR/sour
 node tests/qualification/check-receipts.js
 ```
 
-This verifies the retained receipts against current library/fixture hashes and checks their success/counter invariants. It does not rerun hardware. Broad native performance, Android Chrome, other OS/WebView versions, background lifecycle and all application-specific host policies remain outside these focused checks. See [the candidate performance comparison](NEXT_RELEASE.md) for separately measured RPC throughput.
+This verifies the retained receipts against current library/fixture hashes and checks their success/counter invariants. It does not rerun hardware. Broad native performance, Android Chrome, other OS/WebView versions, background lifecycle and all application-specific host policies remain outside these focused checks. See [the 0.1.5 performance comparison](NEXT_RELEASE.md) for separately measured RPC throughput.
 
-The development 0.1.6 runtime has separate [optimization and current browser checks](OPTIMIZATION_016.md). The physical-device receipts above do not qualify that newer runtime. `node tests/qualification/check-receipts.js` validates these historical receipts against the archived 0.1.5 inputs; it does not rerun devices.
+The development 0.1.6 runtime has separate evidence: the current eleven-case browser suite is recorded in the [compact-v2 study](RPC_WIRE_V2.md#functional-qualification), and the earlier ten-case checks in the [optimization snapshot](OPTIMIZATION_016.md). The physical-device receipts above do not qualify that newer runtime. `node tests/qualification/check-receipts.js` validates these historical receipts against the archived 0.1.5 inputs; it does not rerun devices.

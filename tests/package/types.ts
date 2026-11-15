@@ -16,6 +16,11 @@ nano.on('event', (value: number) => value.toFixed());
 const native = new NativeBridgeTransport({ callbackName: '__custom__', maxQueueSize: 10 });
 const valid = withSchemaValidation({ type: 'string' }, (data: string) => data.toUpperCase());
 void [bus, native, valid, withRetry, CircuitBreaker, createConnectedMocks, Metrics];
+void (async () => {
+    const sent = await bus.signal('state:sync', { value: 1 });
+    const result: { success: boolean; delivered: number; failed: string[] } = sent;
+    void result;
+});
 
 const compact = new MessageChannelTransport({ wireFormat: 'compact' });
 const selected: 'standard' | 'compact' | 'compact-v2' = compact.wireFormat;

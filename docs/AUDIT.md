@@ -1,6 +1,14 @@
-# Local audit — 14 November 2026
+# Local audit
 
-## 0.1.5 publication record
+## 0.1.6 development status (unpublished)
+
+Package metadata is 0.1.6; npm `latest` remains 0.1.5. The current evidence for this development runtime is the [compact-v2 study](RPC_WIRE_V2.md#functional-qualification): **1,269 tests across 88 files** (1,225 unit/package/browser/integration/documentation tests plus 44 experimental tests), source line coverage **96.25% (5,060/5,257)** against the 90% gate, and an eleven-case focused browser suite in Chrome, Firefox and desktop Safari. The earlier [optimization snapshot](OPTIMIZATION_016.md) covers the Node base64 stream fallback.
+
+On 15 November 2026 a local re-run on Node 24.15.0 / Bun 1.3.14 reproduced those test and coverage counts with zero failures, together with lint, source types, build (no tracked `dist/` changes), consumer declarations and the Swift/Java adapter compile check. Benchmarks were not re-run.
+
+A subsequent documentation-consistency change corrected shipped JSDoc examples, declared `success` in the `signal()` return type and removed an unreachable strict-mode warning branch. The README now also runs its inline iframe and Worker snippets in Chrome (two added documentation tests), so the suites total **1,271 tests across 88 files** with zero failures; source line coverage is 96.25% (5,055/5,252) and the minified root is 74,069 bytes raw / 22,237 gzip level 9 (`node tests/benchmarks/sizes.js`, regenerated in `benchmarks/sizes.json`). The compact-v2 measurements describe the source frozen at commit `b79f7e7`: `node experiments/rpc-wire-v2/report.js` still verifies the retained data, while `--check-current` now reports a source mismatch by design. The changed lines are comments, declarations and a branch the constructor made unreachable; no RPC timing was re-measured for them. The physical iPad/Pixel receipts below qualify 0.1.5 only and do not cover 0.1.6.
+
+## 0.1.5 publication record (14 November 2026)
 
 On 14 November 2026, npm **0.1.5** and its `latest` tag were verified against the exact archive from [CI 43585215006](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43585215006), source commit `1114ea83cfaff39cdf074ee5ff2812b032c64971`. The downloaded registry tarball matches that archive byte for byte, SHA-256 `093d973dfd7393cb2895335fb4a656e54292342bbf52d2926772d4cd9cc612aa`. Isolated registry consumers passed on Node 18.20.8 and 24.15.0, including all exports, minified/compact RPC and both stream encodings. The [GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.5) preserves the archive, checksum and release manifest. This publication record is separate from the qualification below and does not broaden its measured scope.
 

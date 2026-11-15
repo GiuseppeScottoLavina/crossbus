@@ -7,8 +7,10 @@
  * @example
  * const agent = new LLMAgent({
  *   agentId: 'planner',
- *   model: 'gpt-4',
- *   systemPrompt: 'You are a planning assistant...'
+ *   model: 'your-model-id',
+ *   systemPrompt: 'You are a planning assistant...',
+ *   llmClient: request => callYourBackend(request),
+ *   allowedOrigins: ['https://app.example.com'],
  * });
  */
 
@@ -17,29 +19,36 @@ import { CrossBus } from 'crossbus';
 export class LLMAgent {
     #bus;
     #config;
+    #capabilities;
+    #meta;
     #conversationHistory = [];
 
     /**
      * Create an LLM Agent
      * @param {Object} config - Agent configuration
      * @param {string} config.agentId - Unique identifier for this agent
-     * @param {string} config.model - LLM model to use (e.g., 'gpt-4', 'claude-3')
+     * @param {string} config.model - Model identifier passed to llmClient
      * @param {string} config.systemPrompt - System prompt for the LLM
      * @param {Function} config.llmClient - Function to call the LLM API
      * @param {string[]} [config.capabilities] - Agent capabilities
+     * @param {string[]} config.allowedOrigins - Exact origin(s) of the hub, or 'channel' for a MessagePort.
      */
     constructor(config) {
         this.#config = config;
+        this.#capabilities = ['agent:llm', 'stream:enabled', ...(config.capabilities || [])];
+        this.#meta = {
+            type: 'agent',
+            subtype: 'llm',
+            model: config.model,
+            role: config.role || 'assistant',
+        };
 
-        this.#bus = new CrossBus({
+        // createSecure() requires explicit origins and rejects wildcards.
+        this.#bus = CrossBus.createSecure({
             peerId: config.agentId,
-            capabilities: ['agent:llm', 'stream:enabled', ...(config.capabilities || [])],
-            meta: {
-                type: 'agent',
-                subtype: 'llm',
-                model: config.model,
-                role: config.role || 'assistant',
-            },
+            allowedOrigins: config.allowedOrigins,
+            capabilities: this.#capabilities,
+            meta: this.#meta,
         });
 
         this.#setupHandlers();
@@ -194,10 +203,13 @@ export class LLMAgent {
     }
 
     /**
-     * Connect to a hub or parent
+     * Connect to a hub or parent and announce this agent with agent:ready.
+     * @returns {Function} Cleanup that removes the transport.
      */
     connect(transport, options) {
-        this.#bus.addTransport(transport, options);
+        const removeTransport = this.#bus.addTransport(transport, options);
+        this.#bus.signal('agent:ready', { capabilities: this.#capabilities, meta: this.#meta });
+        return removeTransport;
     }
 
     /**
@@ -215,27 +227,32 @@ export class LLMAgent {
 /*
 const { PostMessageTransport } = await import('crossbus');
 
+const HUB_ORIGIN = 'https://app.example.com';
+
 // Create agent
 const agent = new LLMAgent({
   agentId: 'planner',
-  model: 'gpt-4',
+  model: 'your-model-id',
   systemPrompt: 'You are a task planning assistant. Break down user goals into actionable steps.',
+  allowedOrigins: [HUB_ORIGIN],
   llmClient: async (request) => {
-    // Your LLM API call here
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call your own backend, which holds provider credentials and applies
+    // authorization and quotas. Never ship model-provider API keys to a browser context.
+    const response = await fetch('/api/llm', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${API_KEY}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request),
     });
+    if (!response.ok) throw new Error(`LLM backend error: ${response.status}`);
     return response.json();
   },
 });
 
-// Connect to hub
-agent.connect(new PostMessageTransport(window.parent), { peerId: 'hub' });
+// Connect to the orchestrator (its peerId defaults to 'orchestrator')
+agent.connect(
+  new PostMessageTransport(window.parent, { targetOrigin: HUB_ORIGIN, allowedOrigins: [HUB_ORIGIN] }),
+  { peerId: 'orchestrator' }
+);
 */
 
 export default LLMAgent;

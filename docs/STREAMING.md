@@ -33,7 +33,7 @@ Concurrent writes and `end()` execute in registration order. Once end is request
 
 Binary chunks are encoded independently, including empty binary input. Strings are sliced by UTF-16 code units; objects are JSON-serialized as a single text chunk and are not split by `chunkSize`. Mutating input before `write()` resolves is unsupported. Native binary mode allocates exact owned chunk slices so the original caller buffer remains attached; an application can transfer those internal buffers. It is not a zero-copy guarantee. JSON native/WebSocket bridges require base64 or another application encoding.
 
-The base64 codec feature-detects the standard [`Uint8Array.toBase64` / `Uint8Array.fromBase64` APIs](https://github.com/tc39/proposal-arraybuffer-base64) and keeps the padded base64 alphabet. Older engines use `btoa`/`atob` with tight byte loops; no Node Buffer dependency or engine minimum is added. Compatibility tests cover empty input, every byte value and non-multiple-of-three chunk boundaries against the 0.1.4 reader.
+The base64 codec feature-detects the standard [`Uint8Array.toBase64` / `Uint8Array.fromBase64` APIs](https://github.com/tc39/proposal-arraybuffer-base64) and keeps the padded base64 alphabet. Without those methods, Node-compatible runtimes (including Bun) use the existing global `Buffer` when present, while still producing canonical padded chunks and strict decoding; other older engines use `btoa`/`atob` with tight byte loops. No package dependency or engine minimum is added. The Buffer fallback is new in unpublished 0.1.6; 0.1.5 used the btoa/atob loops in Node, see [the 0.1.6 study](OPTIMIZATION_016.md). Compatibility tests cover empty input, every byte value and non-multiple-of-three chunk boundaries against the 0.1.4 reader.
 
 ## Reader and manager budgets
 
@@ -57,6 +57,6 @@ The budgets do not cap browser-internal cloning/parsing allocations, application
 
 ## Compatibility
 
-Default `flowControl: false` and base64 frames interoperate with 0.1.4 in both directions in regression tests. The candidate still imposes its reader budgets: legacy senders can overflow a slow receiver, so read incrementally or configure explicit limits. Native binary mode requires a compatible structured-clone receiver; it is not a JSON mode.
+Default `flowControl: false` and base64 frames interoperate with 0.1.4 in both directions in regression tests. The 0.1.5+ reader still imposes its budgets: legacy senders can overflow a slow receiver, so read incrementally or configure explicit limits. Native binary mode requires a compatible structured-clone receiver; it is not a JSON mode.
 
 Flow mode uses `st: 'open-flow', flow: 1` and cumulative acknowledgements from the bound peer. A 0.1.4 manager ignores this opening and does not run its stream handler; the writer reaches its acknowledgement deadline rather than silently downgrading. Use finite acknowledgement/lifetime deadlines when peers may be incompatible. Acknowledgements with a wrong peer, unsupported version or impossible future sequence do not grant credits. This handshake does not replace application authentication.

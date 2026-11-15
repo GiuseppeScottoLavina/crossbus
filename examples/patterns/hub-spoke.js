@@ -19,14 +19,19 @@
 import { CrossBus } from 'crossbus';
 const { PostMessageTransport } = await import('crossbus');
 
+// Exact origins of the page hosting the hub and of the agent iframes.
+// Replace them with your deployment's origins; wildcards are rejected by createSecure().
+const HUB_ORIGIN = 'https://app.example.com';
+const AGENT_ORIGIN = 'https://agents.example.com';
+
 // ============================================
 // HUB SETUP (main page / orchestrator)
 // ============================================
 
-const hub = new CrossBus({
-    isHub: true,
+const hub = CrossBus.createSecure({
+    isHub: true, // Reported by diagnostics; routing still requires explicit transports.
     peerId: 'hub',
-    allowedOrigins: ['*'], // Use specific origins in production
+    allowedOrigins: [AGENT_ORIGIN],
 });
 
 // Register handlers for agent requests
@@ -66,16 +71,24 @@ hub.on('agent:error', (event) => {
 // ============================================
 
 function createAgent(agentId) {
-    const agent = new CrossBus({
+    const agent = CrossBus.createSecure({
         peerId: agentId,
-        allowedOrigins: ['*'],
+        allowedOrigins: [HUB_ORIGIN],
     });
 
     // Connect to parent (hub)
     agent.addTransport(
-        new PostMessageTransport(window.parent, { targetOrigin: '*' }),
+        new PostMessageTransport(window.parent, {
+            targetOrigin: HUB_ORIGIN,
+            allowedOrigins: [HUB_ORIGIN],
+        }),
         { peerId: 'hub' }
     );
+
+    // Handler the hub calls via hub.request(agentId, 'process', payload)
+    agent.handle('process', async (payload) => {
+        return { agentId, processed: payload.data };
+    });
 
     // Announce ourselves to the hub
     agent.signal('agent:ready', { agentId });
@@ -106,33 +119,33 @@ function createAgent(agentId) {
 // CONNECTING AGENTS (from hub side)
 // ============================================
 
-function connectAgentIframe(iframeElement, agentId) {
+function connectAgentIframe(iframeElement, agentId, src) {
     return new Promise((resolve, reject) => {
+        // Install the transport and ready listener before navigating the iframe,
+        // so the agent's agent:ready signal cannot arrive before the hub listens.
+        const removeTransport = hub.addTransport(
+            new PostMessageTransport(iframeElement.contentWindow, {
+                targetOrigin: AGENT_ORIGIN,
+                allowedOrigins: [AGENT_ORIGIN],
+            }),
+            { peerId: agentId }
+        );
+
+        const subscription = hub.on('agent:ready', (event) => {
+            if (event.data.payload.agentId === agentId) {
+                clearTimeout(timeout);
+                subscription.unsubscribe();
+                resolve(agentId);
+            }
+        });
+
         const timeout = setTimeout(() => {
+            subscription.unsubscribe();
+            removeTransport();
             reject(new Error(`Agent ${agentId} connection timeout`));
         }, 10000);
 
-        iframeElement.onload = () => {
-            // Add transport for this agent
-            hub.addTransport(
-                new PostMessageTransport(iframeElement.contentWindow, { targetOrigin: '*' }),
-                { peerId: agentId }
-            );
-
-            // Wait for agent:ready signal
-            const unsubscribe = hub.on('agent:ready', (event) => {
-                if (event.data.payload.agentId === agentId) {
-                    clearTimeout(timeout);
-                    unsubscribe();
-                    resolve(agentId);
-                }
-            });
-        };
-
-        iframeElement.onerror = (error) => {
-            clearTimeout(timeout);
-            reject(error);
-        };
+        iframeElement.src = src;
     });
 }
 
@@ -151,13 +164,12 @@ async function main() {
     // Connect all agents
     for (const { id, src } of agentIframes) {
         const iframe = document.createElement('iframe');
-        iframe.src = src;
         iframe.id = id;
         iframe.style.display = 'none';
-        document.body.appendChild(iframe);
+        document.body.appendChild(iframe); // contentWindow exists before navigation
 
         try {
-            await connectAgentIframe(iframe, id);
+            await connectAgentIframe(iframe, id, src);
             console.log(`✅ Agent ${id} connected`);
         } catch (error) {
             console.error(`❌ Agent ${id} failed:`, error);

@@ -20,7 +20,7 @@ The RPC grouping experiments and their tests/data remain in the repository, excl
 
 ## Validate and pack a future release
 
-Use Node 24 and Bun for development. Development package metadata is **0.1.6**, which is unpublished. npm latest remains **0.1.5**. Its [release assets](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.5) identify the exact tested archive. npm 0.1.4 and its release archive remain unchanged. Qualification and tagging are separate from registry publication; check the publication record and registry availability before declaring completion. Review the [candidate study](NEXT_RELEASE.md), [stream compatibility](STREAMING.md) and [qualification receipts](QUALIFICATION.md) before releasing. Install the committed dependency versions and validate that checkout:
+Use Node 24 and Bun for development. Development package metadata is **0.1.6**, which is unpublished. npm latest remains **0.1.5**. Its [release assets](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.5) identify the exact tested archive. npm 0.1.4 and its release archive remain unchanged. Qualification and tagging are separate from registry publication; check the publication record and registry availability before declaring completion. Review the 0.1.6 studies ([optimization snapshot](OPTIMIZATION_016.md) and [compact-v2](RPC_WIRE_V2.md)), [stream compatibility](STREAMING.md) and [qualification receipts](QUALIFICATION.md) before releasing. Install the committed dependency versions and validate that checkout:
 
 ```sh
 npm ci --legacy-peer-deps
@@ -34,11 +34,20 @@ RELEASE_VERSION=$(node -p 'require("./package.json").version')
 shasum -a 256 "artifacts/crossbus-${RELEASE_VERSION}.tgz"
 ```
 
+Before tagging, update the README for the new version. That means:
+
+- the pinned CDN version in the import-map example;
+- the **Versions and status** table;
+- the entry-point sizes (`node tests/benchmarks/sizes.js`);
+- the test and coverage figures under **Development**.
+
+`bun run test:docs` executes the README's Node and browser snippets.
+
 `release:check` runs lint, source type checking, the build, unit/package tests, consumer declaration checks and the source coverage gate. Browser tests require Chrome and local HTTP servers. Native checks compile the source adapters; they do not qualify physical WebViews.
 
 Run `node tests/qualification/check-receipts.js` to verify the retained 0.1.5 browser/device receipts against their archived 0.1.5 library and fixture bytes. Add `--check-current` only when checking the exact 0.1.5 checkout; this intentionally fails on newer source. Runtime requalification requires the configured devices, development signing and local fixture access described in [QUALIFICATION.md](QUALIFICATION.md). CI additionally builds SwiftPM and packages the Android AAR, verifies its source/license/POM and compiles an isolated consumer. These SDK checks do not publish to Maven Central or CocoaPods. No 0.1.6 Git tag or npm publication is implied by the development version bump.
 
-Install the archive in a separate directory and copy `tests/package/consumer-smoke.mjs` beside its `node_modules`. Run `node consumer-smoke.mjs` with that archive's version as its argument. CI repeats the packed-consumer check on Node 18, 20, 22 and 24, taking the expected version from package.json. The smoke test checks standard and compact MessageChannel RPC in ESM, CommonJS and minified artifacts.
+Install the archive in a separate directory and copy `tests/package/consumer-smoke.mjs` beside its `node_modules`. Run `node consumer-smoke.mjs` with that archive's version as its argument. CI repeats the packed-consumer check on Node 18, 20, 22 and 24, taking the expected version from package.json. The current smoke test checks standard, compact and compact-v2 MessageChannel RPC in ESM, CommonJS and minified artifacts; compact-v2 requires a 0.1.6+ archive.
 
 ## Publish a newly qualified archive to npm
 

@@ -65,6 +65,10 @@
         }
       },
       "returns": {
+        "success": {
+          "type": "boolean",
+          "description": "True when no send failed"
+        },
         "delivered": {
           "type": "number",
           "description": "Count of transport sends accepted; not a delivery acknowledgement"
@@ -206,7 +210,7 @@
   "aiGuide": "./docs/AI-GUIDE.md",
   "geminiMd": "./GEMINI.md",
   "license": "Apache-2.0",
-  "lastUpdated": "2026-11-14",
+  "lastUpdated": "2026-11-15",
   "kind": "library-metadata",
   "qualification": "Version 0.1.6 is in development and unpublished. The earlier optimization snapshot is in docs/OPTIMIZATION_016.md; current RPC and browser checks are in docs/RPC_WIRE_V2.md. Retained physical iPad/Pixel receipts in docs/QUALIFICATION.md apply only to version 0.1.5. Publication records are in docs/RELEASING.md."
 }

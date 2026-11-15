@@ -75,7 +75,7 @@
  * });
  * bus.handle('getData', ({ id }) => ({ id, status: 'ready' }));
  * // Attach an initialized transport with bus.addTransport(...).
- * const result = await bus.request('widget', 'getStatus');
+ * const result = await bus.request('widget', 'getData', { id: 1 });
  * bus.destroy();
  */
 export class CrossBus extends EventEmitter {
@@ -142,7 +142,7 @@ export class CrossBus extends EventEmitter {
      * @param {*} [payload] - Signal payload.
      * @param {Object} [options={}] - Send options.
      * @param {string[]} [options.exclude] - Peer IDs to exclude.
-     * @returns {Promise<{ delivered: number, failed: string[] }>}
+     * @returns {Promise<{ success: boolean, delivered: number, failed: string[] }>}
      *
      * @example
      * bus.signal('user:login', { userId: 123 });
@@ -150,6 +150,7 @@ export class CrossBus extends EventEmitter {
     signal(signalName: string, payload?: any, options?: {
         exclude?: string[] | undefined;
     }): Promise<{
+        success: boolean;
         delivered: number;
         failed: string[];
     }>;
@@ -172,12 +173,14 @@ export class CrossBus extends EventEmitter {
      * @param {string} handlerName - Handler to invoke on all peers.
      * @param {*} [payload] - Request payload.
      * @param {BroadcastRequestOptions} [options={}]
-     * @returns {Promise<Map<string, *>>} Map of peerId -> response.
+     * @returns {Promise<Map<string, *>>} Map of peerId -> `{ success: true, data }`,
+ *   or `{ success: false, error }` for failures when `ignoreErrors` is true.
      *
      * @example
      * const responses = await bus.broadcastRequest('getStatus');
      * for (const [peerId, status] of responses) {
-     *   console.log(`${peerId}: ${status.state}`);
+     *   if (status.success) console.log(`${peerId}: ${status.data.state}`);
+ *   else console.warn(`${peerId} failed: ${status.error}`);
      * }
      */
     broadcastRequest(handlerName: string, payload?: any, options?: BroadcastRequestOptions): Promise<Map<string, any>>;
@@ -355,10 +358,13 @@ export class CrossBus extends EventEmitter {
      * // {
      * //   status: 'healthy',
      * //   peerId: 'hub-1',
+     * //   isHub: true,
      * //   uptime: 123456,
-     * //   peers: { total: 5, connected: 4 },
+     * //   peers: { total: 2, ids: ['widget-1', 'widget-2'] },
      * //   handlers: ['getData', 'setData'],
-     * //   memory: { heapUsed: 12345678 }
+     * //   pendingRequests: 0,
+     * //   destroyed: false,
+     * //   memory: { heapUsed: 12345678, heapTotal: 23456789, rss: 34567890 } // Node/Bun only
      * // }
      */
     healthCheck(): any;

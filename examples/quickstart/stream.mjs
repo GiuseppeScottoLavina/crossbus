@@ -1,4 +1,4 @@
-// Run from the built 0.1.5 checkout: node examples/quickstart/stream.mjs
+// Requires crossbus 0.1.5+ (or a built checkout): node examples/quickstart/stream.mjs
 import assert from 'node:assert/strict';
 import { MessageChannelTransport, StreamManager } from 'crossbus';
 const left = new MessageChannelTransport();

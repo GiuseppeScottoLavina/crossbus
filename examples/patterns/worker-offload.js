@@ -14,20 +14,42 @@
 // ============================================
 
 import { CrossBus } from 'crossbus';
-const { PostMessageTransport } = await import('crossbus');
+const { MessageChannelTransport } = await import('crossbus');
 
-// Create bus on main thread
-const bus = new CrossBus({
+// The worker is reached through a dedicated MessageChannel. Its fixed origin
+// label is "channel"; the peer identity comes from this binding, not payloads.
+// The demo sends arrays of up to one million numbers, so the 1 MiB default
+// payload budget is raised deliberately. Size it for your own workloads.
+const MAX_PAYLOAD = 64 * 1024 * 1024;
+
+const bus = CrossBus.createSecure({
     peerId: 'main',
-    allowedOrigins: ['*'],
+    allowedOrigins: ['channel'],
+    maxPayloadSize: MAX_PAYLOAD,
 });
 
-// Create worker and connect
-const worker = new Worker(new URL('./compute-worker.js', import.meta.url));
+// compute-worker.js uses ES module imports, so the Worker must be a module worker.
+const worker = new Worker(new URL('./compute-worker.js', import.meta.url), { type: 'module' });
+const channel = new MessageChannelTransport();
+bus.addTransport(channel, { peerId: 'worker', origin: 'channel' });
 
-bus.addTransport(new PostMessageTransport(worker), { peerId: 'worker' });
+// Wait for the worker's ready signal before issuing requests.
+const ready = new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error('Worker initialization timed out')), 5000);
+    bus.once('worker:ready', () => {
+        clearTimeout(timeout);
+        console.log('[Main] Worker connected');
+        resolve();
+    }, { mode: 'sync' });
+    worker.onerror = (event) => {
+        clearTimeout(timeout);
+        reject(new Error(event.message));
+    };
+});
 
-console.log('[Main] Worker connected');
+// Hand the other end of the channel to the worker.
+worker.postMessage({ port: channel.remotePort }, [channel.remotePort]);
+channel.markRemoteTransferred();
 
 // ============================================
 // API FUNCTIONS
@@ -38,6 +60,7 @@ console.log('[Main] Worker connected');
  */
 export async function computeSum(numbers) {
     console.log(`[Main] Offloading sum of ${numbers.length} numbers to worker`);
+    await ready;
     const start = performance.now();
 
     const result = await bus.request('worker', 'compute:sum', { numbers });
@@ -53,6 +76,7 @@ export async function computeSum(numbers) {
  */
 export async function sortArray(data, options = {}) {
     console.log(`[Main] Offloading sort of ${data.length} items to worker`);
+    await ready;
 
     return bus.request('worker', 'compute:sort', {
         data,
@@ -66,9 +90,10 @@ export async function sortArray(data, options = {}) {
  */
 export async function processWithProgress(data, onProgress) {
     console.log(`[Main] Processing ${data.length} items with progress`);
+    await ready;
 
     // Listen for progress updates
-    const unsubscribe = bus.on('worker:progress', (event) => {
+    const subscription = bus.on('worker:progress', (event) => {
         onProgress?.(event.data.payload);
     });
 
@@ -79,7 +104,7 @@ export async function processWithProgress(data, onProgress) {
         });
         return result;
     } finally {
-        unsubscribe();
+        subscription.unsubscribe();
     }
 }
 
@@ -119,4 +144,4 @@ async function demo() {
 }
 
 // Export worker creation for testing
-export { bus, worker };
+export { bus, worker, ready };
