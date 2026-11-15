@@ -1212,14 +1212,14 @@ class EventEmitter {
             (colon > 0 && this[LISTENERS].has(name.slice(0, colon + 1) + '*'));
 
         if (!exactListeners?.length && !hasWildcard) return 0;
-        if (exactListeners?.length === 1 && !hasWildcard && !source) {
+        if (exactListeners?.length === 1 && !hasWildcard) {
             const entry = exactListeners[0];
             const event = {
                 name,
                 data,
                 messageId: uuid(),
                 timestamp: Date.now(),
-                source: DEFAULT_SOURCE
+                source: source ? { ...DEFAULT_SOURCE, ...source } : DEFAULT_SOURCE
             };
 
             if (entry.once) this.#removeListener(name, entry.id);
@@ -2174,8 +2174,11 @@ class PendingRequests {
     #tail = null;
     /** @type {ReturnType<typeof setTimeout>|null} */
     #deadlineTimer = null;
+    /** True while an armed shared timer has no pooled request (unreferenced where supported). */
+    #timerIdle = false;
     #expireDeadlines = () => {
         this.#deadlineTimer = null;
+        this.#timerIdle = false;
         try {
             const now = performance.now();
             while (this.#head && this.#head.deadline <= now) {
@@ -2264,7 +2267,11 @@ class PendingRequests {
             if (this.#tail) this.#tail.next = pending;
             else this.#head = pending;
             this.#tail = pending;
-            if (this.#deadlineTimer === null)
+            if (this.#timerIdle) {
+                // Reuse the armed timer: it fires no later than this deadline and re-arms.
+                this.#timerIdle = false;
+                /** @type {any} */ (this.#deadlineTimer).ref?.();
+            } else if (this.#deadlineTimer === null)
                 this.#deadlineTimer = setTimeout(
                     this.#expireDeadlines,
                     this.#head === pending
@@ -2276,7 +2283,7 @@ class PendingRequests {
                               )
                           )
                 );
-            pending.timer = this.#deadlineTimer;
+            pending.timer = /** @type {ReturnType<typeof setTimeout>} */ (this.#deadlineTimer);
         } else {
             pending.timer = setTimeout(() => {
                 if (this.#pending.delete(requestId)) this.#expire(pending);
@@ -2297,9 +2304,11 @@ class PendingRequests {
         if (pending.next) pending.next.previous = pending.previous;
         else this.#tail = pending.previous;
         pending.previous = pending.next = null;
-        if (!this.#head && this.#deadlineTimer !== null) {
-            clearTimeout(this.#deadlineTimer);
-            this.#deadlineTimer = null;
+        if (!this.#head && this.#deadlineTimer !== null && !this.#timerIdle) {
+            // Keep the native timer armed instead of clearing and recreating it for
+            // every sequential request. Unreferenced handles do not keep Node/Bun alive.
+            this.#timerIdle = true;
+            /** @type {any} */ (this.#deadlineTimer).unref?.();
         }
     }
 
@@ -2433,6 +2442,11 @@ class PendingRequests {
         }
 
         this.#pending.clear();
+        if (this.#deadlineTimer !== null) {
+            clearTimeout(this.#deadlineTimer);
+            this.#deadlineTimer = null;
+            this.#timerIdle = false;
+        }
         return count;
     }
 

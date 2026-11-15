@@ -24,8 +24,9 @@ it('shares one default timer while retaining independent promises, peer checks a
             Array.from({ length: 128 }, (_, i) => i)
         );
         expect(tracker.size).toBe(0);
+        // The shared timer stays armed (unreferenced) while idle and is reused.
         const next = tracker.create('trusted', 'echo');
-        expect(tracker.get(next.requestId).timer).not.toBe(oldTimer);
+        expect(tracker.get(next.requestId).timer).toBe(oldTimer);
         tracker.resolve(next.requestId, { success: true, data: 7 }, 'trusted');
         expect(await next.promise).toBe(7);
     } finally {
@@ -103,3 +104,38 @@ it('survives default getters that throw or create requests during expiration', a
     expect(await reentrant.promise).toBe(9);
     expect(tracker.size).toBe(0);
 });
+
+it('keeps deadlines exact when an idle timer is reused', async () => {
+    const tracker = new PendingRequests({ coalesceTimeouts: true, defaultTimeout: 60 });
+    try {
+        const first = tracker.create('a', 'echo');
+        tracker.resolve(first.requestId, { success: true, data: 1 }, 'a');
+        await first.promise;
+        await pause(20);
+        // The reused timer was armed for the first deadline and must re-arm.
+        const start = performance.now();
+        const second = tracker.create('a', 'echo');
+        const error = await second.promise.catch((e) => e);
+        const elapsed = performance.now() - start;
+        expect(error.code).toBe('ERR_RESPONSE_TIMEOUT');
+        expect(elapsed).toBeGreaterThanOrEqual(55);
+        expect(elapsed).toBeLessThan(400);
+    } finally {
+        tracker.cancelAll();
+    }
+});
+
+for (const runtime of ['node', 'bun']) {
+    it(`does not keep an idle ${runtime} process alive`, () => {
+        const url = new URL('../../src/router/pending-requests.js', import.meta.url).href;
+        const script = `const { PendingRequests } = await import(${JSON.stringify(url)});
+const tracker = new PendingRequests({ coalesceTimeouts: true, defaultTimeout: 30000 });
+const request = tracker.create('peer', 'echo');
+tracker.resolve(request.requestId, { success: true, data: 1 }, 'peer');
+await request.promise;`;
+        const start = performance.now();
+        const result = Bun.spawnSync([runtime === 'node' ? 'node' : process.execPath, '--input-type=module', '-e', script].filter(arg => runtime === 'node' || arg !== '--input-type=module'), { timeout: 10000 });
+        expect(result.exitCode).toBe(0);
+        expect(performance.now() - start).toBeLessThan(5000);
+    });
+}

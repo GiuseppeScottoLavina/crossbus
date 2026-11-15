@@ -85,8 +85,11 @@ export class PendingRequests {
     #tail = null;
     /** @type {ReturnType<typeof setTimeout>|null} */
     #deadlineTimer = null;
+    /** True while an armed shared timer has no pooled request (unreferenced where supported). */
+    #timerIdle = false;
     #expireDeadlines = () => {
         this.#deadlineTimer = null;
+        this.#timerIdle = false;
         try {
             const now = performance.now();
             while (this.#head && this.#head.deadline <= now) {
@@ -175,7 +178,11 @@ export class PendingRequests {
             if (this.#tail) this.#tail.next = pending;
             else this.#head = pending;
             this.#tail = pending;
-            if (this.#deadlineTimer === null)
+            if (this.#timerIdle) {
+                // Reuse the armed timer: it fires no later than this deadline and re-arms.
+                this.#timerIdle = false;
+                /** @type {any} */ (this.#deadlineTimer).ref?.();
+            } else if (this.#deadlineTimer === null)
                 this.#deadlineTimer = setTimeout(
                     this.#expireDeadlines,
                     this.#head === pending
@@ -187,7 +194,7 @@ export class PendingRequests {
                               )
                           )
                 );
-            pending.timer = this.#deadlineTimer;
+            pending.timer = /** @type {ReturnType<typeof setTimeout>} */ (this.#deadlineTimer);
         } else {
             pending.timer = setTimeout(() => {
                 if (this.#pending.delete(requestId)) this.#expire(pending);
@@ -208,9 +215,11 @@ export class PendingRequests {
         if (pending.next) pending.next.previous = pending.previous;
         else this.#tail = pending.previous;
         pending.previous = pending.next = null;
-        if (!this.#head && this.#deadlineTimer !== null) {
-            clearTimeout(this.#deadlineTimer);
-            this.#deadlineTimer = null;
+        if (!this.#head && this.#deadlineTimer !== null && !this.#timerIdle) {
+            // Keep the native timer armed instead of clearing and recreating it for
+            // every sequential request. Unreferenced handles do not keep Node/Bun alive.
+            this.#timerIdle = true;
+            /** @type {any} */ (this.#deadlineTimer).unref?.();
         }
     }
 
@@ -344,6 +353,11 @@ export class PendingRequests {
         }
 
         this.#pending.clear();
+        if (this.#deadlineTimer !== null) {
+            clearTimeout(this.#deadlineTimer);
+            this.#deadlineTimer = null;
+            this.#timerIdle = false;
+        }
         return count;
     }
 
