@@ -19,7 +19,7 @@
             "action": "create-hub",
             "title": "Create the Hub",
             "explanation": "Create the central hub that will coordinate all agents. isHub: true is reported by diagnostics; it does not add routing. Each agent still needs its own transport.",
-            "code": "const hub = new CrossBus({ isHub: true, peerId: 'hub', allowedOrigins: ['*'] });"
+            "code": "const hub = CrossBus.createSecure({ isHub: true, peerId: 'hub', allowedOrigins: ['https://agents.example.com'] });"
         },
         {
             "order": 2,
@@ -33,14 +33,14 @@
             "action": "create-agent",
             "title": "Create an Agent",
             "explanation": "Create an agent that will connect to the hub. Each agent needs a unique peerId.",
-            "code": "const agent = new CrossBus({ peerId: 'agent-1', allowedOrigins: ['*'] });"
+            "code": "const agent = CrossBus.createSecure({ peerId: 'agent-1', allowedOrigins: ['https://app.example.com'] });"
         },
         {
             "order": 4,
             "action": "connect-transport",
             "title": "Connect Transport",
             "explanation": "Add a transport to connect the agent to the hub. In a browser, this would be PostMessageTransport for iframes.",
-            "code": "hub.addTransport(new PostMessageTransport(iframe.contentWindow, { targetOrigin: '*' }), { peerId: 'agent-1' });"
+            "code": "hub.addTransport(new PostMessageTransport(iframe.contentWindow, { targetOrigin: 'https://agents.example.com', allowedOrigins: ['https://agents.example.com'] }), { peerId: 'agent-1' });"
         },
         {
             "order": 5,

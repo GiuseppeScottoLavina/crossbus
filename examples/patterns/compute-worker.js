@@ -1,23 +1,30 @@
 /**
  * Compute Worker
  * 
- * Worker thread for heavy computation. Communicates with main
- * thread via CrossBus PostMessageTransport.
+ * Module worker for heavy computation. The main thread transfers one
+ * MessagePort; CrossBus runs over it with MessageChannelTransport.
  */
 
-import { CrossBus } from 'crossbus';
-const { PostMessageTransport } = await import('crossbus');
+// Static imports finish before this module runs, so onmessage is installed
+// before the worker can receive the port.
+import { CrossBus, MessageChannelTransport } from 'crossbus';
 
-// Create bus in worker
-const bus = new CrossBus({
+// Must match the main thread's budget (see worker-offload.js).
+const bus = CrossBus.createSecure({
     peerId: 'worker',
-    allowedOrigins: ['*'],
+    allowedOrigins: ['channel'],
+    maxPayloadSize: 64 * 1024 * 1024,
 });
 
-// Connect to main thread
-bus.addTransport(new PostMessageTransport(self), { peerId: 'main' });
-
-console.log('[Worker] Ready');
+let connected = false;
+self.onmessage = ({ data }) => {
+    if (connected || !data?.port) return;
+    connected = true;
+    bus.addTransport(MessageChannelTransport.fromPort(data.port), { peerId: 'main', origin: 'channel' });
+    // Handlers are registered below, synchronously, before any request can arrive.
+    bus.signal('worker:ready', { peerId: 'worker' });
+    console.log('[Worker] Ready');
+};
 
 // ============================================
 // COMPUTE HANDLERS
@@ -70,7 +77,8 @@ bus.handle('compute:process', ({ data, reportProgress }) => {
             return typeof item === 'number' ? Math.sqrt(item) : item;
         });
 
-        results.push(...processed);
+        // Avoid spreading large chunks into push(), which can exceed argument limits.
+        for (const value of processed) results.push(value);
 
         // Report progress
         if (reportProgress) {
@@ -136,5 +144,4 @@ bus.on('worker:shutdown', () => {
     self.close();
 });
 
-// Announce ready
-bus.signal('worker:ready', { peerId: 'worker' });
+// Readiness is announced once the main thread's port arrives (see onmessage above).

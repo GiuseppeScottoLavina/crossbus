@@ -18,22 +18,22 @@
             "order": 1,
             "action": "create-main-bus",
             "title": "Create Main Thread Bus",
-            "explanation": "Create a CrossBus instance on the main thread.",
-            "code": "const bus = new CrossBus({ peerId: 'main', allowedOrigins: ['*'] });"
+            "explanation": "Create a CrossBus instance on the main thread. MessageChannel ports report the fixed origin label \"channel\". Raise maxPayloadSize deliberately for large arrays; the default budget is 1 MiB.",
+            "code": "const bus = CrossBus.createSecure({ peerId: 'main', allowedOrigins: ['channel'], maxPayloadSize: 64 * 1024 * 1024 });"
         },
         {
             "order": 2,
             "action": "create-worker",
             "title": "Create and Connect Worker",
-            "explanation": "Create a Web Worker and add PostMessageTransport to connect it.",
-            "code": "const worker = new Worker('worker.js');\nbus.addTransport(new PostMessageTransport(worker), { peerId: 'worker' });"
+            "explanation": "Create a module Worker, bind one end of a MessageChannel to the worker peer and transfer the other port. Wait for the worker's ready signal before sending requests.",
+            "code": "const worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });\nconst channel = new MessageChannelTransport();\nbus.addTransport(channel, { peerId: 'worker', origin: 'channel' });\nconst ready = new Promise(resolve => bus.once('worker:ready', resolve, { mode: 'sync' }));\nworker.postMessage({ port: channel.remotePort }, [channel.remotePort]);\nchannel.markRemoteTransferred();\nawait ready;"
         },
         {
             "order": 3,
             "action": "setup-worker-bus",
             "title": "Setup Worker-side Bus",
-            "explanation": "In the worker file, create a bus and connect back to main thread.",
-            "code": "// worker.js\nconst bus = new CrossBus({ peerId: 'worker', allowedOrigins: ['*'] });\nbus.addTransport(new PostMessageTransport(self), { peerId: 'main' });"
+            "explanation": "In the worker, create a bus with the same payload budget, bind the received port to the main peer and announce readiness.",
+            "code": "// worker.js\nimport { CrossBus, MessageChannelTransport } from 'crossbus';\nconst bus = CrossBus.createSecure({ peerId: 'worker', allowedOrigins: ['channel'], maxPayloadSize: 64 * 1024 * 1024 });\nself.onmessage = ({ data }) => {\n  bus.addTransport(MessageChannelTransport.fromPort(data.port), { peerId: 'main', origin: 'channel' });\n  bus.signal('worker:ready');\n};"
         },
         {
             "order": 4,

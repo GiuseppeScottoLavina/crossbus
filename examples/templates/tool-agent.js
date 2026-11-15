@@ -5,7 +5,7 @@
  * executable capabilities to other agents via CrossBus.
  * 
  * @example
- * const toolAgent = new ToolAgent('calculator');
+ * const toolAgent = new ToolAgent('calculator', { allowedOrigins: ['https://app.example.com'] });
  * toolAgent.registerTool('add', { a: 'number', b: 'number' }, ({ a, b }) => a + b);
  */
 
@@ -13,24 +13,30 @@ import { CrossBus } from 'crossbus';
 
 export class ToolAgent {
     #bus;
+    #capabilities = ['agent:tool'];
+    #meta;
     #tools = new Map();
     #executionStats = { total: 0, success: 0, failed: 0 };
 
     /**
      * Create a Tool Agent
      * @param {string} toolId - Unique identifier for this tool agent
-     * @param {Object} [options] - Configuration options
+     * @param {Object} options - Configuration options
+     * @param {string[]} options.allowedOrigins - Exact origin(s) of the hub, or 'channel' for a MessagePort.
      */
     constructor(toolId, options = {}) {
-        this.#bus = new CrossBus({
+        this.#meta = {
+            type: 'tool',
+            toolId,
+            version: options.version || '1.0.0',
+            description: options.description || `Tool agent: ${toolId}`,
+        };
+        // createSecure() requires explicit origins and rejects wildcards.
+        this.#bus = CrossBus.createSecure({
+            allowedOrigins: options.allowedOrigins,
             peerId: `tool:${toolId}`,
-            capabilities: ['agent:tool'],
-            meta: {
-                type: 'tool',
-                toolId,
-                version: options.version || '1.0.0',
-                description: options.description || `Tool agent: ${toolId}`,
-            },
+            capabilities: this.#capabilities,
+            meta: this.#meta,
         });
 
         this.#setupHandlers();
@@ -79,8 +85,8 @@ export class ToolAgent {
             fn,
         });
 
-        // Bus metadata is fixed at construction; callers discover registered
-        // tools at runtime through the 'describe' handler.
+        // Bus metadata is fixed at construction. Registered tool names are
+        // announced by connect() and are always available via 'describe'.
     }
 
     /**
@@ -100,14 +106,15 @@ export class ToolAgent {
         this.#validateParams(params, toolDef.schema);
 
         const startTime = Date.now();
+        let timer;
 
         try {
-            // Execute with timeout
+            // Execute with timeout; the timer is cleared in finally.
             const result = await Promise.race([
-                toolDef.fn(params),
-                new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Execution timeout')), timeout)
-                ),
+                Promise.resolve().then(() => toolDef.fn(params)),
+                new Promise((_, reject) => {
+                    timer = setTimeout(() => reject(new Error('Execution timeout')), timeout);
+                }),
             ]);
 
             this.#executionStats.success++;
@@ -128,6 +135,8 @@ export class ToolAgent {
                 },
                 executionTime: Date.now() - startTime,
             };
+        } finally {
+            clearTimeout(timer);
         }
     }
 
@@ -188,10 +197,17 @@ export class ToolAgent {
     }
 
     /**
-     * Connect to a hub or parent
+     * Connect to a hub or parent and announce this agent with agent:ready.
+     * Register tools before connecting so the announcement lists them.
+     * @returns {Function} Cleanup that removes the transport.
      */
     connect(transport, options) {
-        this.#bus.addTransport(transport, options);
+        const removeTransport = this.#bus.addTransport(transport, options);
+        this.#bus.signal('agent:ready', {
+            capabilities: this.#capabilities,
+            meta: { ...this.#meta, tools: Array.from(this.#tools.keys()) },
+        });
+        return removeTransport;
     }
 
     /**
@@ -210,8 +226,11 @@ export class ToolAgent {
 const { PostMessageTransport } = await import('crossbus');
 
 // Create tool agent
+const HUB_ORIGIN = 'https://app.example.com';
+
 const calculator = new ToolAgent('calculator', {
   description: 'Mathematical operations',
+  allowedOrigins: [HUB_ORIGIN],
 });
 
 // Register tools
@@ -247,8 +266,11 @@ calculator.registerTool('factorial', {
   return result;
 });
 
-// Connect to hub
-calculator.connect(new PostMessageTransport(window.parent), { peerId: 'hub' });
+// Connect to the orchestrator (its peerId defaults to 'orchestrator')
+calculator.connect(
+  new PostMessageTransport(window.parent, { targetOrigin: HUB_ORIGIN, allowedOrigins: [HUB_ORIGIN] }),
+  { peerId: 'orchestrator' }
+);
 */
 
 export default ToolAgent;
