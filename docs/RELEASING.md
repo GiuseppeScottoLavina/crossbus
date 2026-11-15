@@ -1,14 +1,22 @@
 # Releasing CrossBus
 
-## 0.1.6 publication — 15 November 2026
+## 0.1.7 publication — 15 November 2026
 
-Version **0.1.6 is [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.6)** and is the `latest` tag. Its registry tarball was downloaded and compared byte for byte with the archive from [CI 43702995538](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43702995538), which passed all seven jobs, including packaged consumers on Node 18/20/22/24. A local `npm pack` of the same commit reproduces the archive exactly. The registry version passed isolated consumers on Node 18.18.0, 20.20.0, 22.19.0 and 24.15.0, covering all 12 exports, ESM/CommonJS/minified RPC, standard/compact/compact-v2 MessageChannel RPC and bounded binary streams.
+Version **0.1.7 is [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.7)** and is the `latest` tag. Its registry tarball was downloaded and compared byte for byte with the archive from [CI 43714123944](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43714123944), which passed all seven jobs. A local `npm pack` of the same commit reproduces the archive. The registry version passed isolated consumers on Node 18.18.0, 20.20.0, 22.19.0 and 24.15.0, including encrypted RPC and decompression-bomb checks from the installed package.
+
+Annotated tag **`v0.1.7`** pins tested source commit `313e61d297dd3a0876a9d66e79e29ef0d70f3042`. The [GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.7) preserves `crossbus-0.1.7.tgz`, `SHA256SUMS` and `release-manifest.json`. Its archive SHA-256 is `f4a7e0b8489cf2957cc3110b408f5b4eaa85cd136fc1b9ae2c96c47668cafe06`; registry integrity is `sha512-0ZIh3b37z2ppz8f5oZcO0jqjHGSPQDAyWDOxPLSSS7L+9eooA2wzgD7daNAeCul7Ivy81GOoSwEbv1rlsUPJ+g==`.
+
+Encrypted 0.1.6 and 0.1.7 endpoints are not interoperable; see the changelog. The Swift adapter changed; CocoaPods and Maven Central are not published by this npm release, and the physical iPad/Pixel receipts cover 0.1.5 only.
+
+## Earlier publication records
+
+### 0.1.6 — 15 November 2026
+
+Version **0.1.6 is [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.6)**. Its registry tarball was downloaded and compared byte for byte with the archive from [CI 43702995538](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43702995538), which passed all seven jobs, including packaged consumers on Node 18/20/22/24. A local `npm pack` of the same commit reproduces the archive exactly. The registry version passed isolated consumers on Node 18.18.0, 20.20.0, 22.19.0 and 24.15.0, covering all 12 exports, ESM/CommonJS/minified RPC, standard/compact/compact-v2 MessageChannel RPC and bounded binary streams.
 
 Annotated tag **`v0.1.6`** pins tested source commit `fe5df57a6123141efe9cfe33414a29a21fcd4ef5`. The [GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.6) preserves `crossbus-0.1.6.tgz`, `SHA256SUMS` and `release-manifest.json`. Its archive SHA-256 is `7c75d12a4e11622ea37b8d50ada5a9c54155320f52329f88b16e9bb222b7bd49`; registry integrity is `sha512-ANlu1j2w84wbc/za4Ym33WOO3UaE3zjUcF8uQlHyQfOenNB295HwPlitdAGThT2LEOwmDezRARMUbIdCor6njQ==`. Later publication-documentation commits do not replace that tag or those bytes.
 
 The native adapters are unchanged from 0.1.5; CocoaPods and Maven Central are not published by this npm release. The physical iPad/Pixel receipts cover 0.1.5 only.
-
-## Earlier publication records
 
 ### 0.1.5 — 14 November 2026
 

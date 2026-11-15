@@ -1,5 +1,9 @@
 # Local audit
 
+## 0.1.7 publication record
+
+On 15 November 2026, npm **0.1.7** and its `latest` tag were verified against the exact archive from [CI 43714123944](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43714123944), source commit `313e61d297dd3a0876a9d66e79e29ef0d70f3042`. The downloaded registry tarball matches that archive byte for byte (SHA-256 `f4a7e0b8489cf2957cc3110b408f5b4eaa85cd136fc1b9ae2c96c47668cafe06`), and a local `npm pack` of the same commit reproduces it. Isolated registry consumers passed on Node 18.18.0, 20.20.0, 22.19.0 and 24.15.0. Beyond the packaged smoke test, they ran an encrypted compact-v2 RPC and error round trip, a plaintext rejection and a decompression-bomb rejection from the installed package; on Node 18 the encryption check needs `--experimental-global-webcrypto`, as in earlier versions. The jsDelivr copy of `dist/crossbus.min.js` matches the archive. The [GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.7) preserves the archive, checksum and release manifest.
+
 ## 0.1.7 security audit and release qualification
 
 A local review of 0.1.6 (15 November 2026) reproduced eleven issues with proofs of concept against the real source. In every scenario tried, the core bus kept peer identity bound to the channel; the most serious issues were in opt-in plugins and the iOS adapter. All are fixed on this branch, and each has a regression test in `tests/unit/security-audit-0.1.7.test.js`. Against the 0.1.6 sources, 21 of those 27 tests fail; the remaining six are positive round-trip checks.

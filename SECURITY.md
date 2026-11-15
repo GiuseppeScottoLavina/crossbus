@@ -9,7 +9,7 @@
 | 0.1.4 | Published release; qualification and limitations are recorded in the audit |
 | 0.1.5 | Published release; focused browser/device qualification and bounded stream regressions are recorded in the audit |
 | 0.1.6 | Published release; affected by the plugin and iOS adapter issues fixed in 0.1.7 (see the audit) |
-| 0.1.7 | Release qualification; security audit fixes and regression tests are recorded in the audit. Physical-device receipts cover 0.1.5 only |
+| 0.1.7 | Published release; security audit fixes and regression tests are recorded in the audit. Physical-device receipts cover 0.1.5 only |
 
 See [the audit](docs/AUDIT.md) for measured coverage and outstanding browser/device qualification. A passing suite does not establish that a version has no vulnerabilities.
 
@@ -65,7 +65,7 @@ Since 0.1.7, `withEncryption()`:
 - authenticates the message type, the signal or handler name and, for replies, the request ID as AES-GCM additional data, so ciphertext cannot be moved to another handler or request;
 - rejects inbound plaintext (`ERR_ENCRYPTION_REQUIRED`), ciphertext that fails authentication (`ERR_DECRYPTION_FAILED`), messages older than `ttl` (60 s) or dated more than `maxClockSkew` (5 s) ahead (`ERR_MESSAGE_EXPIRED`), and an initialization vector already accepted within that window (`ERR_REPLAY_DETECTED`, including a sender's own messages reflected back to it).
 
-Both endpoints must run 0.1.7 or later; earlier envelopes have no additional data and fail authentication. `requireEncryption: false` accepts plaintext during a migration and should not stay enabled. Envelope metadata (message type, names, request IDs, timing and sizes) is visible on the wire. A shared key authenticates membership, not an individual peer: any holder can send messages that other holders accept, so use separate keys per peer pair when peers must not impersonate each other.
+The plugin uses the global Web Crypto API: browsers, Bun and Node 19+ provide it; Node 18 needs `--experimental-global-webcrypto`. Both endpoints must run 0.1.7 or later; earlier envelopes have no additional data and fail authentication. `requireEncryption: false` accepts plaintext during a migration and should not stay enabled. Envelope metadata (message type, names, request IDs, timing and sizes) is visible on the wire. A shared key authenticates membership, not an individual peer: any holder can send messages that other holders accept, so use separate keys per peer pair when peers must not impersonate each other.
 
 ### Rate Limiting
 Limit outbound operations from this bus; this helper is not an inbound or distributed DoS defense:
