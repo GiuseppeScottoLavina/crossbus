@@ -1,0 +1,18 @@
+{
+  "package": "crossbus",
+  "version": "0.1.6",
+  "runtime": "v24.15.0",
+  "exports": 12,
+  "esm": true,
+  "commonjs": true,
+  "minifiedRpc": true,
+  "compactRpc": true,
+  "compactV2Rpc": true,
+  "schemaValidation": true,
+  "nativeSources": true,
+  "nativeSdkConfiguration": true,
+  "boundedBinaryStreams": true,
+  "archiveSha256": "4360d6ec9d6cc388aec41c9f21e1338ae01b25222b08bcec0bae22f4899b9f25",
+  "artifactSha256": "a7c8cb0d5d98f23d7b15a539414a721a4ae330b573d86e2394f07a8d1ddfcdf7",
+  "testInputSha256": "35357512cabaa595a73594ac3c8c1638ebd7f87111fe122979685b84714b9848"
+}

@@ -18,7 +18,9 @@ const valid = withSchemaValidation({ type: 'string' }, (data: string) => data.to
 void [bus, native, valid, withRetry, CircuitBreaker, createConnectedMocks, Metrics];
 
 const compact = new MessageChannelTransport({ wireFormat: 'compact' });
-const selected: 'standard' | 'compact' = compact.wireFormat;
+const selected: 'standard' | 'compact' | 'compact-v2' = compact.wireFormat;
+const compactV2 = new MessageChannelTransport({ wireFormat: 'compact-v2' });
+void compactV2;
 new StreamManager(async () => {}).destroy();
 void selected;
 

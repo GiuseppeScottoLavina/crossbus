@@ -1,0 +1,5160 @@
+{
+  "status": "initial prototype; not selected",
+  "datasets": 36,
+  "checkedCalls": 56079360,
+  "scope": "Three fresh wire processes per runtime; within-process v2/v1 ratios. Separate three alternating process pairs compare existing formats with the previous 0.1.6 snapshot. Observed ranges are not confidence intervals.",
+  "tables": [
+    {
+      "runtime": "node",
+      "runtimeVersion": "Node v24.15.0",
+      "libraries": {
+        "comlink": "4.4.2",
+        "birpc": "4.2.0",
+        "penpal": "8.0.1",
+        "puppeteer-core": "25.17.0"
+      },
+      "wireRows": [
+        {
+          "textBytes": 0,
+          "concurrency": 1,
+          "hooks": false,
+          "baseline": 124379.70707425068,
+          "candidate": 132605.6254310662,
+          "ratio": 1.0703186007146825,
+          "minRatio": 1.0521387562101605,
+          "maxRatio": 1.0842894902531006,
+          "pairs": [
+            {
+              "baseline": 125173.49256933622,
+              "candidate": 133975.51741338166
+            },
+            {
+              "baseline": 124379.70707425068,
+              "candidate": 130864.71029888622
+            },
+            {
+              "baseline": 122297.25236948731,
+              "candidate": 132605.6254310662
+            }
+          ]
+        },
+        {
+          "textBytes": 0,
+          "concurrency": 1,
+          "hooks": true,
+          "baseline": 112980.11618912716,
+          "candidate": 113049.36616869114,
+          "ratio": 1.0002287708601256,
+          "minRatio": 0.997996685743655,
+          "maxRatio": 1.0210907631355803,
+          "pairs": [
+            {
+              "baseline": 112980.11618912716,
+              "candidate": 113005.96274748484
+            },
+            {
+              "baseline": 113276.29418373534,
+              "candidate": 113049.36616869114
+            },
+            {
+              "baseline": 111040.19888340641,
+              "candidate": 113382.12141658408
+            }
+          ]
+        },
+        {
+          "textBytes": 0,
+          "concurrency": 64,
+          "hooks": false,
+          "baseline": 194630.16514767215,
+          "candidate": 203041.56864682602,
+          "ratio": 1.06215693090735,
+          "minRatio": 1.0390988234087426,
+          "maxRatio": 1.0932279539661836,
+          "pairs": [
+            {
+              "baseline": 185726.65280850168,
+              "candidate": 203041.56864682602
+            },
+            {
+              "baseline": 194630.16514767215,
+              "candidate": 202239.97560479539
+            },
+            {
+              "baseline": 196016.81016428527,
+              "candidate": 208200.6134903459
+            }
+          ]
+        },
+        {
+          "textBytes": 0,
+          "concurrency": 64,
+          "hooks": true,
+          "baseline": 164628.02165871894,
+          "candidate": 175119.13637877605,
+          "ratio": 1.0675829467651656,
+          "minRatio": 0.9969590724097086,
+          "maxRatio": 1.0852452673819135,
+          "pairs": [
+            {
+              "baseline": 164033.2836988419,
+              "candidate": 175119.13637877605
+            },
+            {
+              "baseline": 164628.02165871894,
+              "candidate": 178661.78138357188
+            },
+            {
+              "baseline": 167794.34901732396,
+              "candidate": 167284.0985519022
+            }
+          ]
+        },
+        {
+          "textBytes": 1024,
+          "concurrency": 1,
+          "hooks": false,
+          "baseline": 122191.90925484695,
+          "candidate": 122769.04869992864,
+          "ratio": 1.0156416377355217,
+          "minRatio": 0.99878672154176,
+          "maxRatio": 1.0273890074583811,
+          "pairs": [
+            {
+              "baseline": 122479.94742213249,
+              "candidate": 122331.34514035884
+            },
+            {
+              "baseline": 119496.1672829675,
+              "candidate": 122769.04869992864
+            },
+            {
+              "baseline": 122191.90925484695,
+              "candidate": 124103.19083362301
+            }
+          ]
+        },
+        {
+          "textBytes": 1024,
+          "concurrency": 1,
+          "hooks": true,
+          "baseline": 107063.85684684129,
+          "candidate": 108722.67762083083,
+          "ratio": 1.0150922524926047,
+          "minRatio": 0.98834032247128,
+          "maxRatio": 1.0730340390987252,
+          "pairs": [
+            {
+              "baseline": 107106.20375030684,
+              "candidate": 108722.67762083083
+            },
+            {
+              "baseline": 102114.9283075191,
+              "candidate": 109572.79397409398
+            },
+            {
+              "baseline": 107063.85684684129,
+              "candidate": 105815.52680102608
+            }
+          ]
+        },
+        {
+          "textBytes": 1024,
+          "concurrency": 64,
+          "hooks": false,
+          "baseline": 173278.17085938624,
+          "candidate": 189488.17144608073,
+          "ratio": 1.1163213966623382,
+          "minRatio": 1.0200174703103462,
+          "maxRatio": 1.132416564023426,
+          "pairs": [
+            {
+              "baseline": 167330.801637904,
+              "candidate": 189488.17144608073
+            },
+            {
+              "baseline": 173278.17085938624,
+              "candidate": 193434.12970484534
+            },
+            {
+              "baseline": 176568.21652263682,
+              "candidate": 180102.6655546295
+            }
+          ]
+        },
+        {
+          "textBytes": 1024,
+          "concurrency": 64,
+          "hooks": true,
+          "baseline": 147931.0082426435,
+          "candidate": 160013.80119034965,
+          "ratio": 1.0660134586466057,
+          "minRatio": 1.050124752947451,
+          "maxRatio": 1.1002140460933516,
+          "pairs": [
+            {
+              "baseline": 152375.99222495127,
+              "candidate": 160013.80119034965
+            },
+            {
+              "baseline": 147931.0082426435,
+              "candidate": 162755.77312130775
+            },
+            {
+              "baseline": 144449.36051887175,
+              "candidate": 153984.96240601293
+            }
+          ]
+        },
+        {
+          "textBytes": 65536,
+          "concurrency": 1,
+          "hooks": false,
+          "baseline": 54448.6863137794,
+          "candidate": 54687.95176223633,
+          "ratio": 1.0029131821502237,
+          "minRatio": 1.001521610916973,
+          "maxRatio": 1.0232450364575396,
+          "pairs": [
+            {
+              "baseline": 54545.48456871519,
+              "candidate": 54704.385500736076
+            },
+            {
+              "baseline": 54448.6863137794,
+              "candidate": 54531.53602928927
+            },
+            {
+              "baseline": 53445.60668631755,
+              "candidate": 54687.95176223633
+            }
+          ]
+        },
+        {
+          "textBytes": 65536,
+          "concurrency": 1,
+          "hooks": true,
+          "baseline": 50308.46606490025,
+          "candidate": 51254.29752143676,
+          "ratio": 1.013455336443165,
+          "minRatio": 1.0057480568356107,
+          "maxRatio": 1.0217005890615354,
+          "pairs": [
+            {
+              "baseline": 51010.38483512063,
+              "candidate": 51303.59542635929
+            },
+            {
+              "baseline": 50165.672869500326,
+              "candidate": 51254.29752143676
+            },
+            {
+              "baseline": 50308.46606490025,
+              "candidate": 50985.383401743034
+            }
+          ]
+        },
+        {
+          "textBytes": 65536,
+          "concurrency": 64,
+          "hooks": false,
+          "baseline": 44401.46521366288,
+          "candidate": 44829.842946263816,
+          "ratio": 1.0136531716435528,
+          "minRatio": 0.9925344094729369,
+          "maxRatio": 1.0331128287887363,
+          "pairs": [
+            {
+              "baseline": 44226.01753771067,
+              "candidate": 44829.842946263816
+            },
+            {
+              "baseline": 44860.71399966212,
+              "candidate": 46346.1791416734
+            },
+            {
+              "baseline": 44401.46521366288,
+              "candidate": 44069.98205557604
+            }
+          ]
+        },
+        {
+          "textBytes": 65536,
+          "concurrency": 64,
+          "hooks": true,
+          "baseline": 40954.21521710145,
+          "candidate": 42528.3021645829,
+          "ratio": 1.038435285333563,
+          "minRatio": 1.036261090156888,
+          "maxRatio": 1.038838119496997,
+          "pairs": [
+            {
+              "baseline": 41439.3148802456,
+              "candidate": 42941.949613157856
+            },
+            {
+              "baseline": 40954.21521710145,
+              "candidate": 42528.3021645829
+            },
+            {
+              "baseline": 39665.484007077335,
+              "candidate": 41206.01681485042
+            }
+          ]
+        }
+      ],
+      "guardRows": [
+        {
+          "case": "CrossBus|1|0",
+          "baseline": 115045.00489812031,
+          "candidate": 109180.81072616161,
+          "ratio": 0.9490269553454161,
+          "minRatio": 0.9255948085135332,
+          "maxRatio": 0.9679177293555187,
+          "pairs": [
+            {
+              "baseline": 116899.70119797035,
+              "candidate": 108201.75654562461
+            },
+            {
+              "baseline": 114585.44602580644,
+              "candidate": 110909.28473448791
+            },
+            {
+              "baseline": 115045.00489812031,
+              "candidate": 109180.81072616161
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|1|0",
+          "baseline": 99478.44249206096,
+          "candidate": 96186.45594192993,
+          "ratio": 0.9516396116251419,
+          "minRatio": 0.9490058816983807,
+          "maxRatio": 1.0055185335285155,
+          "pairs": [
+            {
+              "baseline": 103240.33242882951,
+              "candidate": 97975.68270345528
+            },
+            {
+              "baseline": 95658.5609659498,
+              "candidate": 96186.45594192993
+            },
+            {
+              "baseline": 99478.44249206096,
+              "candidate": 94667.6263782189
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|1|0",
+          "baseline": 132365.12039473763,
+          "candidate": 127817.09373885966,
+          "ratio": 0.9550271039527405,
+          "minRatio": 0.9479559749997731,
+          "maxRatio": 1.0268941009684869,
+          "pairs": [
+            {
+              "baseline": 134834.4196457966,
+              "candidate": 127817.09373885966
+            },
+            {
+              "baseline": 124966.47399069664,
+              "candidate": 128327.33495987824
+            },
+            {
+              "baseline": 132365.12039473763,
+              "candidate": 126412.2775949421
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|1|0",
+          "baseline": 113527.20117006176,
+          "candidate": 112723.21763361014,
+          "ratio": 0.9901568480815058,
+          "minRatio": 0.9773446338495507,
+          "maxRatio": 1.0128244951514846,
+          "pairs": [
+            {
+              "baseline": 117255.2627030301,
+              "candidate": 114598.80179342582
+            },
+            {
+              "baseline": 113527.20117006176,
+              "candidate": 112409.73568206339
+            },
+            {
+              "baseline": 111295.9038542512,
+              "candidate": 112723.21763361014
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|1|0",
+          "baseline": 162103.8675782365,
+          "candidate": 159691.4835393411,
+          "ratio": 0.9851182820315432,
+          "minRatio": 0.9706666352972534,
+          "maxRatio": 0.9984895140217798,
+          "pairs": [
+            {
+              "baseline": 166018.43412596453,
+              "candidate": 161148.5548503687
+            },
+            {
+              "baseline": 162103.8675782365,
+              "candidate": 159691.4835393411
+            },
+            {
+              "baseline": 159390.6110913836,
+              "candidate": 159149.8538082701
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|1|0",
+          "baseline": 143601.93767255155,
+          "candidate": 141295.58321942465,
+          "ratio": 0.9824641457201728,
+          "minRatio": 0.9424844968873176,
+          "maxRatio": 0.9839392525580959,
+          "pairs": [
+            {
+              "baseline": 148068.92955707392,
+              "candidate": 145472.41438499108
+            },
+            {
+              "baseline": 143601.93767255155,
+              "candidate": 141295.58321942465
+            },
+            {
+              "baseline": 142356.50196987955,
+              "candidate": 134168.79613772038
+            }
+          ]
+        },
+        {
+          "case": "CrossBus|1|1024",
+          "baseline": 110046.39196945138,
+          "candidate": 107360.03355001035,
+          "ratio": 0.9784655326064186,
+          "minRatio": 0.9731432511968571,
+          "maxRatio": 1.0001253761822824,
+          "pairs": [
+            {
+              "baseline": 109722.85683280704,
+              "candidate": 107360.03355001035
+            },
+            {
+              "baseline": 110046.39196945138,
+              "candidate": 110060.18916595045
+            },
+            {
+              "baseline": 110265.98681153091,
+              "candidate": 107304.60090220295
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|1|1024",
+          "baseline": 96990.07544790664,
+          "candidate": 95919.63133889173,
+          "ratio": 0.9837893400424107,
+          "minRatio": 0.9614766293316935,
+          "maxRatio": 1.0154757615408008,
+          "pairs": [
+            {
+              "baseline": 99762.8318907386,
+              "candidate": 95919.63133889173
+            },
+            {
+              "baseline": 96990.07544790664,
+              "candidate": 95417.80231555969
+            },
+            {
+              "baseline": 96189.091973798,
+              "candidate": 97677.69142401066
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|1|1024",
+          "baseline": 127067.67271834653,
+          "candidate": 122432.05051087248,
+          "ratio": 0.9599913819314358,
+          "minRatio": 0.9555337653162994,
+          "maxRatio": 0.9751976311938324,
+          "pairs": [
+            {
+              "baseline": 127067.67271834653,
+              "candidate": 123916.0934362447
+            },
+            {
+              "baseline": 127041.07412235533,
+              "candidate": 121392.03590596128
+            },
+            {
+              "baseline": 127534.53084604543,
+              "candidate": 122432.05051087248
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|1|1024",
+          "baseline": 109870.13945004629,
+          "candidate": 107843.63105293023,
+          "ratio": 0.9870351471503338,
+          "minRatio": 0.9635932297543215,
+          "maxRatio": 0.9915905297886185,
+          "pairs": [
+            {
+              "baseline": 111298.80103257936,
+              "candidate": 107246.77115476676
+            },
+            {
+              "baseline": 109260.17311975693,
+              "candidate": 107843.63105293023
+            },
+            {
+              "baseline": 109870.13945004629,
+              "candidate": 108946.18978522079
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|1|1024",
+          "baseline": 151730.16656867944,
+          "candidate": 151396.47539690832,
+          "ratio": 0.997800759207497,
+          "minRatio": 0.944757649196826,
+          "maxRatio": 1.0036983870027751,
+          "pairs": [
+            {
+              "baseline": 159660.09861817554,
+              "candidate": 150840.09944104095
+            },
+            {
+              "baseline": 151558.22464784488,
+              "candidate": 152118.74561604613
+            },
+            {
+              "baseline": 151730.16656867944,
+              "candidate": 151396.47539690832
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|1|1024",
+          "baseline": 136844.65492328498,
+          "candidate": 134228.5178251753,
+          "ratio": 1.006659255041554,
+          "minRatio": 0.9341321866150051,
+          "maxRatio": 1.0294447668794668,
+          "pairs": [
+            {
+              "baseline": 142307.2508045781,
+              "candidate": 132933.78336525048
+            },
+            {
+              "baseline": 136844.65492328498,
+              "candidate": 140874.01388620218
+            },
+            {
+              "baseline": 133340.56896902464,
+              "candidate": 134228.5178251753
+            }
+          ]
+        },
+        {
+          "case": "CrossBus|1|65536",
+          "baseline": 50705.332090276606,
+          "candidate": 49984.28838591393,
+          "ratio": 0.9857797262213189,
+          "minRatio": 0.9595825963496726,
+          "maxRatio": 0.9932805582799186,
+          "pairs": [
+            {
+              "baseline": 50935.79665942462,
+              "candidate": 50593.536542305694
+            },
+            {
+              "baseline": 50705.332090276606,
+              "candidate": 49984.28838591393
+            },
+            {
+              "baseline": 50594.36958532318,
+              "candidate": 48549.47652735932
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|1|65536",
+          "baseline": 47569.4595986288,
+          "candidate": 47720.89780484706,
+          "ratio": 1.003183517481511,
+          "minRatio": 0.9930592518930061,
+          "maxRatio": 1.0110002102508988,
+          "pairs": [
+            {
+              "baseline": 47569.4595986288,
+              "candidate": 47720.89780484706
+            },
+            {
+              "baseline": 47323.19512441689,
+              "candidate": 47843.76022052979
+            },
+            {
+              "baseline": 47949.73219793595,
+              "candidate": 47616.92518495226
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|1|65536",
+          "baseline": 54296.812598143915,
+          "candidate": 53510.77380511231,
+          "ratio": 0.9855232976777264,
+          "minRatio": 0.9300446727671964,
+          "maxRatio": 0.9970582900172447,
+          "pairs": [
+            {
+              "baseline": 53940.100466597716,
+              "candidate": 53781.4243345843
+            },
+            {
+              "baseline": 54296.812598143915,
+              "candidate": 53510.77380511231
+            },
+            {
+              "baseline": 54645.17981552778,
+              "candidate": 50822.45837983714
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|1|65536",
+          "baseline": 50469.40302914785,
+          "candidate": 50635.676149395826,
+          "ratio": 1.003294533128358,
+          "minRatio": 0.9423898579615005,
+          "maxRatio": 1.0106029889830261,
+          "pairs": [
+            {
+              "baseline": 50469.40302914785,
+              "candidate": 50635.676149395826
+            },
+            {
+              "baseline": 50451.50463052099,
+              "candidate": 50986.441378295494
+            },
+            {
+              "baseline": 51675.65828587856,
+              "candidate": 48698.61627209614
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|1|65536",
+          "baseline": 59918.55494350804,
+          "candidate": 59784.05636865864,
+          "ratio": 0.9910719297767072,
+          "minRatio": 0.9457197266300501,
+          "maxRatio": 1.0092871232936664,
+          "pairs": [
+            {
+              "baseline": 60527.06304484624,
+              "candidate": 59986.673175572185
+            },
+            {
+              "baseline": 59233.9434328279,
+              "candidate": 59784.05636865864
+            },
+            {
+              "baseline": 59918.55494350804,
+              "candidate": 56666.15940124206
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|1|65536",
+          "baseline": 55643.57410794157,
+          "candidate": 56758.7505337067,
+          "ratio": 1.0190304358268392,
+          "minRatio": 0.9691275512207826,
+          "maxRatio": 1.0245461866730412,
+          "pairs": [
+            {
+              "baseline": 55478.583235185084,
+              "candidate": 56840.37089563179
+            },
+            {
+              "baseline": 55698.77850375761,
+              "candidate": 56758.7505337067
+            },
+            {
+              "baseline": 55643.57410794157,
+              "candidate": 53925.720716401556
+            }
+          ]
+        },
+        {
+          "case": "CrossBus|64|0",
+          "baseline": 159958.6044627101,
+          "candidate": 158232.50582420663,
+          "ratio": 0.9918767653933522,
+          "minRatio": 0.9689217771225382,
+          "maxRatio": 1.0062292459873814,
+          "pairs": [
+            {
+              "baseline": 157252.93858750648,
+              "candidate": 158232.50582420663
+            },
+            {
+              "baseline": 160216.9562893316,
+              "candidate": 158915.47636543034
+            },
+            {
+              "baseline": 159958.6044627101,
+              "candidate": 154987.37530205023
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|64|0",
+          "baseline": 138290.19501922283,
+          "candidate": 136281.02264800257,
+          "ratio": 0.9854713317098079,
+          "minRatio": 0.939675966364815,
+          "maxRatio": 0.9987301202412783,
+          "pairs": [
+            {
+              "baseline": 138290.19501922283,
+              "candidate": 136281.02264800257
+            },
+            {
+              "baseline": 136902.39938501548,
+              "candidate": 136728.549799116
+            },
+            {
+              "baseline": 139329.4003845646,
+              "candidate": 130924.48894939596
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|64|0",
+          "baseline": 205333.4357326901,
+          "candidate": 203711.00172696152,
+          "ratio": 0.9621747907995604,
+          "minRatio": 0.961349286688712,
+          "maxRatio": 0.9920985396268306,
+          "pairs": [
+            {
+              "baseline": 213694.13138839256,
+              "candidate": 205434.7007797951
+            },
+            {
+              "baseline": 205333.4357326901,
+              "candidate": 203711.00172696152
+            },
+            {
+              "baseline": 203375.52730045616,
+              "candidate": 195682.8054340667
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|64|0",
+          "baseline": 171365.81778248586,
+          "candidate": 167139.61683079728,
+          "ratio": 0.9753381333198382,
+          "minRatio": 0.9454553123273128,
+          "maxRatio": 0.9812153038468372,
+          "pairs": [
+            {
+              "baseline": 170591.14454537787,
+              "candidate": 167386.64172867266
+            },
+            {
+              "baseline": 171365.81778248586,
+              "candidate": 167139.61683079728
+            },
+            {
+              "baseline": 172710.71233976222,
+              "candidate": 163290.26047746258
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|64|0",
+          "baseline": 216930.48135422682,
+          "candidate": 214620.21627073272,
+          "ratio": 0.9768337492386213,
+          "minRatio": 0.9574657532561532,
+          "maxRatio": 0.9964816353896623,
+          "pairs": [
+            {
+              "baseline": 219710.07496210618,
+              "candidate": 214620.21627073272
+            },
+            {
+              "baseline": 216930.48135422682,
+              "candidate": 216167.2408257266
+            },
+            {
+              "baseline": 210459.6060654534,
+              "candidate": 201507.86525145263
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|64|0",
+          "baseline": 213078.53801279326,
+          "candidate": 207024.21642521495,
+          "ratio": 0.9903137557756824,
+          "minRatio": 0.8773951036383476,
+          "maxRatio": 0.9982520706843871,
+          "pairs": [
+            {
+              "baseline": 216556.30014407344,
+              "candidate": 214458.6829325633
+            },
+            {
+              "baseline": 207386.7137418329,
+              "candidate": 207024.21642521495
+            },
+            {
+              "baseline": 213078.53801279326,
+              "candidate": 186954.06594284234
+            }
+          ]
+        },
+        {
+          "case": "CrossBus|64|1024",
+          "baseline": 153618.00018917082,
+          "candidate": 151435.65138329286,
+          "ratio": 0.9778123848334404,
+          "minRatio": 0.9204084330799085,
+          "maxRatio": 1.0085721210309344,
+          "pairs": [
+            {
+              "baseline": 150869.5015276842,
+              "candidate": 152162.77315465623
+            },
+            {
+              "baseline": 154871.88926236425,
+              "candidate": 151435.65138329286
+            },
+            {
+              "baseline": 153618.00018917082,
+              "candidate": 141391.3028469838
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|64|1024",
+          "baseline": 130623.69946343759,
+          "candidate": 128901.97951710774,
+          "ratio": 0.9940233036274686,
+          "minRatio": 0.9491520336581174,
+          "maxRatio": 1.0039554061272897,
+          "pairs": [
+            {
+              "baseline": 130623.69946343759,
+              "candidate": 131140.36924466453
+            },
+            {
+              "baseline": 129677.01969029139,
+              "candidate": 128901.97951710774
+            },
+            {
+              "baseline": 132573.25959161844,
+              "candidate": 125832.17895007016
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|64|1024",
+          "baseline": 183135.11580076916,
+          "candidate": 180039.66674728197,
+          "ratio": 0.9830974576342054,
+          "minRatio": 0.9371550072933962,
+          "maxRatio": 1.0343767887940258,
+          "pairs": [
+            {
+              "baseline": 183135.11580076916,
+              "candidate": 180039.66674728197
+            },
+            {
+              "baseline": 179924.33601836223,
+              "candidate": 186109.55691657081
+            },
+            {
+              "baseline": 191022.8762019769,
+              "candidate": 179018.04494026917
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|64|1024",
+          "baseline": 155660.80310105102,
+          "candidate": 151662.27743348316,
+          "ratio": 0.9743125720289898,
+          "minRatio": 0.9415718802094499,
+          "maxRatio": 1.0021178914899305,
+          "pairs": [
+            {
+              "baseline": 150987.21345466503,
+              "candidate": 151306.98798912897
+            },
+            {
+              "baseline": 155660.80310105102,
+              "candidate": 151662.27743348316
+            },
+            {
+              "baseline": 162138.62107911904,
+              "candidate": 152665.16630403366
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|64|1024",
+          "baseline": 207388.02628826254,
+          "candidate": 205083.70253991158,
+          "ratio": 0.9895981105462451,
+          "minRatio": 0.9438932993927202,
+          "maxRatio": 1.021991328490277,
+          "pairs": [
+            {
+              "baseline": 209582.40858591732,
+              "candidate": 214191.40417891368
+            },
+            {
+              "baseline": 207239.3836996193,
+              "candidate": 205083.70253991158
+            },
+            {
+              "baseline": 207388.02628826254,
+              "candidate": 195752.1683877723
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|64|1024",
+          "baseline": 191266.3113951039,
+          "candidate": 188553.73850597066,
+          "ratio": 0.9994885682781763,
+          "minRatio": 0.9187544886093706,
+          "maxRatio": 1.0021002842575963,
+          "pairs": [
+            {
+              "baseline": 191266.3113951039,
+              "candidate": 191168.49173614025
+            },
+            {
+              "baseline": 188158.5520611445,
+              "candidate": 188553.73850597066
+            },
+            {
+              "baseline": 196115.74946882573,
+              "candidate": 180182.22511147443
+            }
+          ]
+        },
+        {
+          "case": "CrossBus|64|65536",
+          "baseline": 42620.679397562075,
+          "candidate": 42080.570670070956,
+          "ratio": 0.9842443671761255,
+          "minRatio": 0.9598955508772095,
+          "maxRatio": 0.9924904468320846,
+          "pairs": [
+            {
+              "baseline": 43024.87112759092,
+              "candidate": 42346.98705581008
+            },
+            {
+              "baseline": 42398.96797433899,
+              "candidate": 42080.570670070956
+            },
+            {
+              "baseline": 42620.679397562075,
+              "candidate": 40911.40052908378
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|64|65536",
+          "baseline": 40013.05738599252,
+          "candidate": 39381.14416395618,
+          "ratio": 0.9738556617864567,
+          "minRatio": 0.969403111391613,
+          "maxRatio": 0.9842073247255143,
+          "pairs": [
+            {
+              "baseline": 40851.726176425254,
+              "candidate": 39601.79046114484
+            },
+            {
+              "baseline": 40013.05738599252,
+              "candidate": 39381.14416395618
+            },
+            {
+              "baseline": 39917.877154038644,
+              "candidate": 38874.25067295678
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|64|65536",
+          "baseline": 44910.61871339782,
+          "candidate": 43842.556456041326,
+          "ratio": 0.973397497198313,
+          "minRatio": 0.9510650606413854,
+          "maxRatio": 0.9827901482136137,
+          "pairs": [
+            {
+              "baseline": 45364.16096830131,
+              "candidate": 44157.360749045896
+            },
+            {
+              "baseline": 44610.29298648602,
+              "candidate": 43842.556456041326
+            },
+            {
+              "baseline": 44910.61871339782,
+              "candidate": 42712.920310099835
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|64|65536",
+          "baseline": 41450.61989978873,
+          "candidate": 40721.69339253126,
+          "ratio": 0.9824145812771986,
+          "minRatio": 0.9508221715807961,
+          "maxRatio": 0.9940740070682499,
+          "pairs": [
+            {
+              "baseline": 41450.61989978873,
+              "candidate": 40721.69339253126
+            },
+            {
+              "baseline": 41312.81140943632,
+              "candidate": 41067.99198103327
+            },
+            {
+              "baseline": 42363.43011646461,
+              "candidate": 40280.088618948175
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|64|65536",
+          "baseline": 47593.11143161243,
+          "candidate": 46705.47386785384,
+          "ratio": 0.9962675188287019,
+          "minRatio": 0.9387193835792078,
+          "maxRatio": 1.0019233118403592,
+          "pairs": [
+            {
+              "baseline": 47593.11143161243,
+              "candidate": 47684.64782634839
+            },
+            {
+              "baseline": 46880.45428075868,
+              "candidate": 46705.47386785384
+            },
+            {
+              "baseline": 48098.80490322659,
+              "candidate": 45151.28048965344
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|64|65536",
+          "baseline": 46055.67701828374,
+          "candidate": 45943.46876015743,
+          "ratio": 1.001539519674321,
+          "minRatio": 0.9588552822098942,
+          "maxRatio": 1.0145536144464957,
+          "pairs": [
+            {
+              "baseline": 46055.67701828374,
+              "candidate": 46126.58063916757
+            },
+            {
+              "baseline": 45284.416817363126,
+              "candidate": 45943.46876015743
+            },
+            {
+              "baseline": 46361.01987180922,
+              "candidate": 44453.50879272215
+            }
+          ]
+        }
+      ],
+      "rates": [
+        {
+          "case": "CrossBus|1|0",
+          "rate": 112123.94952232366
+        },
+        {
+          "case": "CrossBus + async hooks|1|0",
+          "rate": 98512.25569664025
+        },
+        {
+          "case": "CrossBus compact wire|1|0",
+          "rate": 124379.70707425068
+        },
+        {
+          "case": "CrossBus compact + hooks|1|0",
+          "rate": 112980.11618912716
+        },
+        {
+          "case": "CrossBus compact v2|1|0",
+          "rate": 132605.6254310662
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|1|0",
+          "rate": 113049.36616869114
+        },
+        {
+          "case": "birpc cached|1|0",
+          "rate": 161279.157921195
+        },
+        {
+          "case": "Penpal cached + timeout|1|0",
+          "rate": 142608.86555726727
+        },
+        {
+          "case": "CrossBus|1|1024",
+          "rate": 107005.8221773809
+        },
+        {
+          "case": "CrossBus + async hooks|1|1024",
+          "rate": 95533.89980551094
+        },
+        {
+          "case": "CrossBus compact wire|1|1024",
+          "rate": 122191.90925484695
+        },
+        {
+          "case": "CrossBus compact + hooks|1|1024",
+          "rate": 107063.85684684129
+        },
+        {
+          "case": "CrossBus compact v2|1|1024",
+          "rate": 122769.04869992864
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|1|1024",
+          "rate": 108722.67762083083
+        },
+        {
+          "case": "birpc cached|1|1024",
+          "rate": 153861.80355183207
+        },
+        {
+          "case": "Penpal cached + timeout|1|1024",
+          "rate": 137649.8248274911
+        },
+        {
+          "case": "CrossBus|1|65536",
+          "rate": 50858.164476198006
+        },
+        {
+          "case": "CrossBus + async hooks|1|65536",
+          "rate": 47880.43954991631
+        },
+        {
+          "case": "CrossBus compact wire|1|65536",
+          "rate": 54448.6863137794
+        },
+        {
+          "case": "CrossBus compact + hooks|1|65536",
+          "rate": 50308.46606490025
+        },
+        {
+          "case": "CrossBus compact v2|1|65536",
+          "rate": 54687.95176223633
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|1|65536",
+          "rate": 51254.29752143676
+        },
+        {
+          "case": "birpc cached|1|65536",
+          "rate": 59815.704543130596
+        },
+        {
+          "case": "Penpal cached + timeout|1|65536",
+          "rate": 56675.797336868476
+        },
+        {
+          "case": "CrossBus|64|0",
+          "rate": 159751.4242876948
+        },
+        {
+          "case": "CrossBus + async hooks|64|0",
+          "rate": 136172.85202036618
+        },
+        {
+          "case": "CrossBus compact wire|64|0",
+          "rate": 194630.16514767215
+        },
+        {
+          "case": "CrossBus compact + hooks|64|0",
+          "rate": 164628.02165871894
+        },
+        {
+          "case": "CrossBus compact v2|64|0",
+          "rate": 203041.56864682602
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|64|0",
+          "rate": 175119.13637877605
+        },
+        {
+          "case": "birpc cached|64|0",
+          "rate": 222634.4075062948
+        },
+        {
+          "case": "Penpal cached + timeout|64|0",
+          "rate": 211504.25117865572
+        },
+        {
+          "case": "CrossBus|64|1024",
+          "rate": 152200.94418836455
+        },
+        {
+          "case": "CrossBus + async hooks|64|1024",
+          "rate": 129870.61164714408
+        },
+        {
+          "case": "CrossBus compact wire|64|1024",
+          "rate": 173278.17085938624
+        },
+        {
+          "case": "CrossBus compact + hooks|64|1024",
+          "rate": 147931.0082426435
+        },
+        {
+          "case": "CrossBus compact v2|64|1024",
+          "rate": 189488.17144608073
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|64|1024",
+          "rate": 160013.80119034965
+        },
+        {
+          "case": "birpc cached|64|1024",
+          "rate": 206099.71633613305
+        },
+        {
+          "case": "Penpal cached + timeout|64|1024",
+          "rate": 189989.89797365837
+        },
+        {
+          "case": "CrossBus|64|65536",
+          "rate": 42866.262702374646
+        },
+        {
+          "case": "CrossBus + async hooks|64|65536",
+          "rate": 40263.937185897965
+        },
+        {
+          "case": "CrossBus compact wire|64|65536",
+          "rate": 44401.46521366288
+        },
+        {
+          "case": "CrossBus compact + hooks|64|65536",
+          "rate": 40954.21521710145
+        },
+        {
+          "case": "CrossBus compact v2|64|65536",
+          "rate": 44829.842946263816
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|64|65536",
+          "rate": 42528.3021645829
+        },
+        {
+          "case": "birpc cached|64|65536",
+          "rate": 47422.47831492506
+        },
+        {
+          "case": "Penpal cached + timeout|64|65536",
+          "rate": 46044.330033076774
+        }
+      ]
+    },
+    {
+      "runtime": "bun",
+      "runtimeVersion": "Bun 1.3.14",
+      "libraries": {
+        "comlink": "4.4.2",
+        "birpc": "4.2.0",
+        "penpal": "8.0.1",
+        "puppeteer-core": "25.17.0"
+      },
+      "wireRows": [
+        {
+          "textBytes": 0,
+          "concurrency": 1,
+          "hooks": false,
+          "baseline": 124438.74964333311,
+          "candidate": 145883.66411753764,
+          "ratio": 1.1393966213609699,
+          "minRatio": 1.0763490846494614,
+          "maxRatio": 1.2307957406329877,
+          "pairs": [
+            {
+              "baseline": 124438.74964333311,
+              "candidate": 141785.09090999735
+            },
+            {
+              "baseline": 122939.01195512872,
+              "candidate": 151312.8122720004
+            },
+            {
+              "baseline": 135535.6419195991,
+              "candidate": 145883.66411753764
+            }
+          ]
+        },
+        {
+          "textBytes": 0,
+          "concurrency": 1,
+          "hooks": true,
+          "baseline": 112369.3897881246,
+          "candidate": 126805.74743335227,
+          "ratio": 1.1364683766523942,
+          "minRatio": 1.065109457414738,
+          "maxRatio": 1.1685201924336721,
+          "pairs": [
+            {
+              "baseline": 107335.6500817976,
+              "candidate": 121983.57200538996
+            },
+            {
+              "baseline": 112369.3897881246,
+              "candidate": 131305.90097887366
+            },
+            {
+              "baseline": 119054.19349213043,
+              "candidate": 126805.74743335227
+            }
+          ]
+        },
+        {
+          "textBytes": 0,
+          "concurrency": 64,
+          "hooks": false,
+          "baseline": 177264.53386330596,
+          "candidate": 217441.03225879176,
+          "ratio": 1.22664713307213,
+          "minRatio": 1.0872304337900933,
+          "maxRatio": 1.241975555782544,
+          "pairs": [
+            {
+              "baseline": 176147.420253071,
+              "candidate": 218770.79016846922
+            },
+            {
+              "baseline": 177264.53386330596,
+              "candidate": 217441.03225879176
+            },
+            {
+              "baseline": 190192.79401479862,
+              "candidate": 206783.39394045935
+            }
+          ]
+        },
+        {
+          "textBytes": 0,
+          "concurrency": 64,
+          "hooks": true,
+          "baseline": 154183.2443768426,
+          "candidate": 172644.28537509422,
+          "ratio": 1.1197344177888136,
+          "minRatio": 1.0513344565356677,
+          "maxRatio": 1.1637512211973542,
+          "pairs": [
+            {
+              "baseline": 151118.58931681994,
+              "candidate": 175864.44286307064
+            },
+            {
+              "baseline": 154183.2443768426,
+              "candidate": 172644.28537509422
+            },
+            {
+              "baseline": 159610.84257963978,
+              "candidate": 167804.3784406656
+            }
+          ]
+        },
+        {
+          "textBytes": 1024,
+          "concurrency": 1,
+          "hooks": false,
+          "baseline": 110349.03702145585,
+          "candidate": 123085.39999208885,
+          "ratio": 1.0907806564181608,
+          "minRatio": 1.0620600365134802,
+          "maxRatio": 1.1496685108240976,
+          "pairs": [
+            {
+              "baseline": 110349.03702145585,
+              "candidate": 120366.59503737553
+            },
+            {
+              "baseline": 107061.64327651246,
+              "candidate": 123085.39999208885
+            },
+            {
+              "baseline": 132036.7470903444,
+              "candidate": 140230.95243589234
+            }
+          ]
+        },
+        {
+          "textBytes": 1024,
+          "concurrency": 1,
+          "hooks": true,
+          "baseline": 99090.8798844356,
+          "candidate": 108352.98046749648,
+          "ratio": 1.0748558261511398,
+          "minRatio": 0.9751405958621339,
+          "maxRatio": 1.0934707673790238,
+          "pairs": [
+            {
+              "baseline": 97025.97387215644,
+              "candidate": 104288.93330447562
+            },
+            {
+              "baseline": 99090.8798844356,
+              "candidate": 108352.98046749648
+            },
+            {
+              "baseline": 123354.91642824902,
+              "candidate": 120288.38670836648
+            }
+          ]
+        },
+        {
+          "textBytes": 1024,
+          "concurrency": 64,
+          "hooks": false,
+          "baseline": 172603.66090847898,
+          "candidate": 190239.17885787348,
+          "ratio": 1.0970125715586128,
+          "minRatio": 1.0873188077486278,
+          "maxRatio": 1.1970100062185765,
+          "pairs": [
+            {
+              "baseline": 164534.88346403447,
+              "candidate": 196949.90187845664
+            },
+            {
+              "baseline": 172603.66090847898,
+              "candidate": 189348.38591364134
+            },
+            {
+              "baseline": 174961.72925747276,
+              "candidate": 190239.17885787348
+            }
+          ]
+        },
+        {
+          "textBytes": 1024,
+          "concurrency": 64,
+          "hooks": true,
+          "baseline": 150898.44254827374,
+          "candidate": 159267.4320265199,
+          "ratio": 1.055461072605629,
+          "minRatio": 1.0370598574890306,
+          "maxRatio": 1.2207748471279385,
+          "pairs": [
+            {
+              "baseline": 150898.44254827374,
+              "candidate": 159267.4320265199
+            },
+            {
+              "baseline": 138186.38799977177,
+              "candidate": 168694.46668558338
+            },
+            {
+              "baseline": 151003.45036984803,
+              "candidate": 156599.61672090652
+            }
+          ]
+        },
+        {
+          "textBytes": 65536,
+          "concurrency": 1,
+          "hooks": false,
+          "baseline": 22966.33547895127,
+          "candidate": 23240.49653343521,
+          "ratio": 1.0124773710370432,
+          "minRatio": 1.0119375184924564,
+          "maxRatio": 1.0255542206002997,
+          "pairs": [
+            {
+              "baseline": 22966.33547895127,
+              "candidate": 23240.49653343521
+            },
+            {
+              "baseline": 22931.282431690124,
+              "candidate": 23217.40455094555
+            },
+            {
+              "baseline": 83406.7248708234,
+              "candidate": 85538.11871772092
+            }
+          ]
+        },
+        {
+          "textBytes": 65536,
+          "concurrency": 1,
+          "hooks": true,
+          "baseline": 22190.1334497074,
+          "candidate": 22706.059499465933,
+          "ratio": 1.020425199947294,
+          "minRatio": 1.0056155946032934,
+          "maxRatio": 1.0239288606295034,
+          "pairs": [
+            {
+              "baseline": 22190.1334497074,
+              "candidate": 22643.371362274807
+            },
+            {
+              "baseline": 22175.42680211829,
+              "candidate": 22706.059499465933
+            },
+            {
+              "baseline": 75446.96432065962,
+              "candidate": 75870.6438863336
+            }
+          ]
+        },
+        {
+          "textBytes": 65536,
+          "concurrency": 64,
+          "hooks": false,
+          "baseline": 94830.45525448212,
+          "candidate": 96377.50919763364,
+          "ratio": 1.0538127676086106,
+          "minRatio": 1.0163138934533207,
+          "maxRatio": 1.0579225089425306,
+          "pairs": [
+            {
+              "baseline": 90575.38366281583,
+              "candidate": 95821.73713299842
+            },
+            {
+              "baseline": 94830.45525448212,
+              "candidate": 96377.50919763364
+            },
+            {
+              "baseline": 97210.96150422185,
+              "candidate": 102442.15238465814
+            }
+          ]
+        },
+        {
+          "textBytes": 65536,
+          "concurrency": 64,
+          "hooks": true,
+          "baseline": 83217.63927892447,
+          "candidate": 90429.57292536968,
+          "ratio": 1.0614653189556162,
+          "minRatio": 1.0602338263500455,
+          "maxRatio": 1.086663521206996,
+          "pairs": [
+            {
+              "baseline": 82983.22253877809,
+              "candidate": 88083.81278008898
+            },
+            {
+              "baseline": 83217.63927892447,
+              "candidate": 90429.57292536968
+            },
+            {
+              "baseline": 88113.81241232435,
+              "candidate": 93421.24448820877
+            }
+          ]
+        }
+      ],
+      "guardRows": [
+        {
+          "case": "CrossBus|1|0",
+          "baseline": 106724.21992568261,
+          "candidate": 104510.90338831914,
+          "ratio": 0.966273390170292,
+          "minRatio": 0.9512943723863804,
+          "maxRatio": 1.090251934255199,
+          "pairs": [
+            {
+              "baseline": 97525.0680615926,
+              "candidate": 106326.89409252127
+            },
+            {
+              "baseline": 106724.21992568261,
+              "candidate": 103124.77380086917
+            },
+            {
+              "baseline": 109861.79086306074,
+              "candidate": 104510.90338831914
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|1|0",
+          "baseline": 93774.95046709133,
+          "candidate": 93008.82246357422,
+          "ratio": 0.977900858872356,
+          "minRatio": 0.9626238960510158,
+          "maxRatio": 1.0852327866705878,
+          "pairs": [
+            {
+              "baseline": 87254.98811054934,
+              "candidate": 94691.97389812046
+            },
+            {
+              "baseline": 93774.95046709133,
+              "candidate": 91702.60460248125
+            },
+            {
+              "baseline": 96620.10557303375,
+              "candidate": 93008.82246357422
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|1|0",
+          "baseline": 133148.7671240093,
+          "candidate": 135007.3764589388,
+          "ratio": 0.9880624392750783,
+          "minRatio": 0.9862690333055164,
+          "maxRatio": 1.065703205334189,
+          "pairs": [
+            {
+              "baseline": 126683.84197699999,
+              "candidate": 135007.3764589388
+            },
+            {
+              "baseline": 133148.7671240093,
+              "candidate": 131559.29563101797
+            },
+            {
+              "baseline": 146908.5435495599,
+              "candidate": 144891.3472309458
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|1|0",
+          "baseline": 114010.68260055018,
+          "candidate": 121963.59845140764,
+          "ratio": 1.0535012224617184,
+          "minRatio": 0.952566433015258,
+          "maxRatio": 1.073613357987338,
+          "pairs": [
+            {
+              "baseline": 114010.68260055018,
+              "candidate": 122403.39179320524
+            },
+            {
+              "baseline": 112171.1596063329,
+              "candidate": 118172.45377022025
+            },
+            {
+              "baseline": 128036.8426014588,
+              "candidate": 121963.59845140764
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|1|0",
+          "baseline": 146353.01053609417,
+          "candidate": 148087.22178284905,
+          "ratio": 1.0115020939593689,
+          "minRatio": 0.9692735284148645,
+          "maxRatio": 1.0775822944892406,
+          "pairs": [
+            {
+              "baseline": 138007.1345241054,
+              "candidate": 148714.0446763708
+            },
+            {
+              "baseline": 146353.01053609417,
+              "candidate": 148036.37661451683
+            },
+            {
+              "baseline": 152781.66321639743,
+              "candidate": 148087.22178284905
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|1|0",
+          "baseline": 121885.41622247842,
+          "candidate": 125309.59516006366,
+          "ratio": 1.0279165355337958,
+          "minRatio": 0.9741984912553411,
+          "maxRatio": 1.0561362498961833,
+          "pairs": [
+            {
+              "baseline": 119433.59550407158,
+              "candidate": 126138.1496672878
+            },
+            {
+              "baseline": 121885.41622247842,
+              "candidate": 125288.03477550474
+            },
+            {
+              "baseline": 128628.40199905375,
+              "candidate": 125309.59516006366
+            }
+          ]
+        },
+        {
+          "case": "CrossBus|1|1024",
+          "baseline": 86148.6785274356,
+          "candidate": 88716.25606483301,
+          "ratio": 1.0011307857169627,
+          "minRatio": 0.9761734890139657,
+          "maxRatio": 1.1118999543935744,
+          "pairs": [
+            {
+              "baseline": 79986.78499581493,
+              "candidate": 88937.30258893526
+            },
+            {
+              "baseline": 88616.05030085916,
+              "candidate": 88716.25606483301
+            },
+            {
+              "baseline": 86148.6785274356,
+              "candidate": 84096.05609206931
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|1|1024",
+          "baseline": 77600.37511900089,
+          "candidate": 80384.19405749213,
+          "ratio": 1.009041394760324,
+          "minRatio": 0.9725494649809715,
+          "maxRatio": 1.1473424982297455,
+          "pairs": [
+            {
+              "baseline": 72183.2071830747,
+              "candidate": 82818.86125966423
+            },
+            {
+              "baseline": 82653.06491024073,
+              "candidate": 80384.19405749213
+            },
+            {
+              "baseline": 77600.37511900089,
+              "candidate": 78301.99074400101
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|1|1024",
+          "baseline": 116379.06650861881,
+          "candidate": 121231.40443888765,
+          "ratio": 0.9944326426243002,
+          "minRatio": 0.9936479948854264,
+          "maxRatio": 1.1276898476838277,
+          "pairs": [
+            {
+              "baseline": 107504.20843806115,
+              "candidate": 121231.40443888765
+            },
+            {
+              "baseline": 116379.06650861881,
+              "candidate": 115731.14265431499
+            },
+            {
+              "baseline": 143212.61202427233,
+              "candidate": 142302.9247802227
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|1|1024",
+          "baseline": 107655.61242928308,
+          "candidate": 108894.90020404477,
+          "ratio": 0.991757416609132,
+          "minRatio": 0.9716837777096657,
+          "maxRatio": 1.1300061545823752,
+          "pairs": [
+            {
+              "baseline": 96366.64345805255,
+              "candidate": 108894.90020404477
+            },
+            {
+              "baseline": 107655.61242928308,
+              "candidate": 104607.21217693343
+            },
+            {
+              "baseline": 124658.41054257151,
+              "candidate": 123630.9031983013
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|1|1024",
+          "baseline": 109860.31459477436,
+          "candidate": 114709.39330185077,
+          "ratio": 1.00654564843248,
+          "minRatio": 0.9996172526176085,
+          "maxRatio": 1.0971051837902985,
+          "pairs": [
+            {
+              "baseline": 107709.9893809944,
+              "candidate": 118169.18769588697
+            },
+            {
+              "baseline": 114753.31483272374,
+              "candidate": 114709.39330185077
+            },
+            {
+              "baseline": 109860.31459477436,
+              "candidate": 110579.4215907934
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|1|1024",
+          "baseline": 97205.57698012397,
+          "candidate": 101717.96072971521,
+          "ratio": 0.9948035929485641,
+          "minRatio": 0.9857993426054926,
+          "maxRatio": 1.0971359018660491,
+          "pairs": [
+            {
+              "baseline": 92758.43545234634,
+              "candidate": 101768.60973569371
+            },
+            {
+              "baseline": 102249.28965950618,
+              "candidate": 101717.96072971521
+            },
+            {
+              "baseline": 97205.57698012397,
+              "candidate": 95825.19388459381
+            }
+          ]
+        },
+        {
+          "case": "CrossBus|1|65536",
+          "baseline": 16765.207283205484,
+          "candidate": 17479.20004000065,
+          "ratio": 1.0101679085753204,
+          "minRatio": 0.9932664251977271,
+          "maxRatio": 1.042587767913279,
+          "pairs": [
+            {
+              "baseline": 16765.207283205484,
+              "candidate": 17479.20004000065
+            },
+            {
+              "baseline": 17655.51799011723,
+              "candidate": 17536.6332390579
+            },
+            {
+              "baseline": 11645.383018595,
+              "candidate": 11763.792208452662
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|1|65536",
+          "baseline": 16592.661008512532,
+          "candidate": 17152.596386128025,
+          "ratio": 1.0039139777762573,
+          "minRatio": 0.9943761636498752,
+          "maxRatio": 1.041595445978371,
+          "pairs": [
+            {
+              "baseline": 16592.661008512532,
+              "candidate": 17282.84014312954
+            },
+            {
+              "baseline": 17249.605343685147,
+              "candidate": 17152.596386128025
+            },
+            {
+              "baseline": 11599.164752528368,
+              "candidate": 11644.563625592911
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|1|65536",
+          "baseline": 24098.322946167562,
+          "candidate": 24084.761284000248,
+          "ratio": 1.0098963201635465,
+          "minRatio": 0.9984675312884005,
+          "maxRatio": 1.0523960688895002,
+          "pairs": [
+            {
+              "baseline": 22885.643529070523,
+              "candidate": 24084.761284000248
+            },
+            {
+              "baseline": 24098.322946167562,
+              "candidate": 24061.39302025054
+            },
+            {
+              "baseline": 90265.74513039518,
+              "candidate": 91159.04384400666
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|1|65536",
+          "baseline": 23201.683191483793,
+          "candidate": 23338.898353855504,
+          "ratio": 1.0166728565057153,
+          "minRatio": 1.0059140175839516,
+          "maxRatio": 1.0397698344135897,
+          "pairs": [
+            {
+              "baseline": 22377.882173293372,
+              "candidate": 23267.84684185207
+            },
+            {
+              "baseline": 23201.683191483793,
+              "candidate": 23338.898353855504
+            },
+            {
+              "baseline": 80069.98304181625,
+              "candidate": 81404.9783794875
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|1|65536",
+          "baseline": 17901.625245987147,
+          "candidate": 18583.703473128186,
+          "ratio": 1.00536438389665,
+          "minRatio": 1.002855497649758,
+          "maxRatio": 1.0452873545616816,
+          "pairs": [
+            {
+              "baseline": 17901.625245987147,
+              "candidate": 18712.34249573252
+            },
+            {
+              "baseline": 18530.78884912136,
+              "candidate": 18583.703473128186
+            },
+            {
+              "baseline": 12225.018234184765,
+              "candidate": 12290.597925136479
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|1|65536",
+          "baseline": 17471.03001660311,
+          "candidate": 18172.52138188364,
+          "ratio": 1.011862441136202,
+          "minRatio": 1.0039885053060393,
+          "maxRatio": 1.0401516890883873,
+          "pairs": [
+            {
+              "baseline": 17471.03001660311,
+              "candidate": 18172.52138188364
+            },
+            {
+              "baseline": 18038.669075639304,
+              "candidate": 18252.651725724503
+            },
+            {
+              "baseline": 12042.944174550064,
+              "candidate": 12090.977521290592
+            }
+          ]
+        },
+        {
+          "case": "CrossBus|64|0",
+          "baseline": 134510.81526394348,
+          "candidate": 135223.17402991053,
+          "ratio": 0.9960149697198417,
+          "minRatio": 0.9423557738875258,
+          "maxRatio": 1.0212124472790318,
+          "pairs": [
+            {
+              "baseline": 134510.81526394348,
+              "candidate": 133974.7855921079
+            },
+            {
+              "baseline": 132835.7010475458,
+              "candidate": 135653.4713527901
+            },
+            {
+              "baseline": 143494.82199495708,
+              "candidate": 135223.17402991053
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|64|0",
+          "baseline": 118285.92034547223,
+          "candidate": 121031.24769151631,
+          "ratio": 1.0232092487256803,
+          "minRatio": 1.015837937484005,
+          "maxRatio": 1.0261932378692036,
+          "pairs": [
+            {
+              "baseline": 120482.69674631677,
+              "candidate": 122390.89416528927
+            },
+            {
+              "baseline": 116327.14863500219,
+              "candidate": 119374.13330984501
+            },
+            {
+              "baseline": 118285.92034547223,
+              "candidate": 121031.24769151631
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|64|0",
+          "baseline": 201469.45802204954,
+          "candidate": 201843.83555323276,
+          "ratio": 1.0028154050513691,
+          "minRatio": 1.0018582346667266,
+          "maxRatio": 1.011618004740861,
+          "pairs": [
+            {
+              "baseline": 201469.45802204954,
+              "candidate": 201843.83555323276
+            },
+            {
+              "baseline": 187108.85752135905,
+              "candidate": 187635.6447439806
+            },
+            {
+              "baseline": 208644.70643776213,
+              "candidate": 211068.7416263116
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|64|0",
+          "baseline": 165891.80962248048,
+          "candidate": 164883.99267876477,
+          "ratio": 0.9939248541202294,
+          "minRatio": 0.988149062575997,
+          "maxRatio": 1.0163593844956351,
+          "pairs": [
+            {
+              "baseline": 164155.72398706866,
+              "candidate": 162210.324774306
+            },
+            {
+              "baseline": 165891.80962248048,
+              "candidate": 164883.99267876477
+            },
+            {
+              "baseline": 175266.49943035288,
+              "candidate": 178133.75148373804
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|64|0",
+          "baseline": 192219.61992604416,
+          "candidate": 195166.88460143923,
+          "ratio": 1.0283056617479478,
+          "minRatio": 0.9929868219413659,
+          "maxRatio": 1.0387657371764005,
+          "pairs": [
+            {
+              "baseline": 192219.61992604416,
+              "candidate": 190871.54950513985
+            },
+            {
+              "baseline": 196169.7567634026,
+              "candidate": 201722.47154352468
+            },
+            {
+              "baseline": 187883.44437692643,
+              "candidate": 195166.88460143923
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|64|0",
+          "baseline": 169992.6034956615,
+          "candidate": 169710.8621622522,
+          "ratio": 0.9993415247889674,
+          "minRatio": 0.9722866127042732,
+          "maxRatio": 1.0140493330748004,
+          "pairs": [
+            {
+              "baseline": 175526.24985210045,
+              "candidate": 175410.67016768732
+            },
+            {
+              "baseline": 169992.6034956615,
+              "candidate": 165281.5326375773
+            },
+            {
+              "baseline": 167359.57179485037,
+              "candidate": 169710.8621622522
+            }
+          ]
+        },
+        {
+          "case": "CrossBus|64|1024",
+          "baseline": 102973.97176994313,
+          "candidate": 102163.85336115048,
+          "ratio": 0.9834918823001233,
+          "minRatio": 0.9677869588340182,
+          "maxRatio": 1.0725254460259734,
+          "pairs": [
+            {
+              "baseline": 98208.4439696855,
+              "candidate": 105331.05517210376
+            },
+            {
+              "baseline": 102973.97176994313,
+              "candidate": 101274.06532394113
+            },
+            {
+              "baseline": 105564.40384796738,
+              "candidate": 102163.85336115048
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|64|1024",
+          "baseline": 93607.96973134732,
+          "candidate": 93641.40777328794,
+          "ratio": 1.0083421215329962,
+          "minRatio": 0.9868914517824713,
+          "maxRatio": 1.0171510319541854,
+          "pairs": [
+            {
+              "baseline": 92062.44189064122,
+              "candidate": 93641.40777328794
+            },
+            {
+              "baseline": 95209.13048123107,
+              "candidate": 96003.37661875639
+            },
+            {
+              "baseline": 93607.96973134732,
+              "candidate": 92380.90514657898
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|64|1024",
+          "baseline": 178642.94774471992,
+          "candidate": 181472.1297398083,
+          "ratio": 1.015837076306708,
+          "minRatio": 0.9812691757821049,
+          "maxRatio": 1.0487430572576208,
+          "pairs": [
+            {
+              "baseline": 170171.51718500766,
+              "candidate": 178466.19719077268
+            },
+            {
+              "baseline": 178642.94774471992,
+              "candidate": 181472.1297398083
+            },
+            {
+              "baseline": 192221.12637825907,
+              "candidate": 188620.6662491021
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|64|1024",
+          "baseline": 153882.52061373263,
+          "candidate": 161416.86172519656,
+          "ratio": 1.009722201200257,
+          "minRatio": 0.9917980710770593,
+          "maxRatio": 1.063780862107952,
+          "pairs": [
+            {
+              "baseline": 151738.8284325198,
+              "candidate": 161416.86172519656
+            },
+            {
+              "baseline": 153882.52061373263,
+              "candidate": 155378.597440342
+            },
+            {
+              "baseline": 171111.67108594225,
+              "candidate": 169708.22532180973
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|64|1024",
+          "baseline": 133911.27469181715,
+          "candidate": 137114.16263768007,
+          "ratio": 1.0239179856456002,
+          "minRatio": 1.0017558718802433,
+          "maxRatio": 1.0503435932647682,
+          "pairs": [
+            {
+              "baseline": 129807.84192751304,
+              "candidate": 136342.8351240891
+            },
+            {
+              "baseline": 133911.27469181715,
+              "candidate": 137114.16263768007
+            },
+            {
+              "baseline": 138066.25069939645,
+              "candidate": 138308.67734661014
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|64|1024",
+          "baseline": 117084.04919632996,
+          "candidate": 117012.69113477437,
+          "ratio": 0.9993905398553826,
+          "minRatio": 0.9528405496750915,
+          "maxRatio": 1.0649647574152783,
+          "pairs": [
+            {
+              "baseline": 113949.75961775317,
+              "candidate": 121352.47810884977
+            },
+            {
+              "baseline": 117084.04919632996,
+              "candidate": 117012.69113477437
+            },
+            {
+              "baseline": 120930.89746934714,
+              "candidate": 115227.86281739485
+            }
+          ]
+        },
+        {
+          "case": "CrossBus|64|65536",
+          "baseline": 11882.74633905742,
+          "candidate": 11858.932004850376,
+          "ratio": 0.9968780112382308,
+          "minRatio": 0.9943338785781063,
+          "maxRatio": 1.0070317126197672,
+          "pairs": [
+            {
+              "baseline": 11776.12567334118,
+              "candidate": 11858.932004850376
+            },
+            {
+              "baseline": 11882.74633905742,
+              "candidate": 11815.417255474757
+            },
+            {
+              "baseline": 11924.448869571714,
+              "candidate": 11887.22087421062
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|64|65536",
+          "baseline": 11721.01074476445,
+          "candidate": 11719.373087930333,
+          "ratio": 1.001931471962966,
+          "minRatio": 0.9983693676874605,
+          "maxRatio": 1.0075767492742405,
+          "pairs": [
+            {
+              "baseline": 11600.035258896161,
+              "candidate": 11687.925817625168
+            },
+            {
+              "baseline": 11721.01074476445,
+              "candidate": 11743.649548395584
+            },
+            {
+              "baseline": 11738.51428863058,
+              "candidate": 11719.373087930333
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|64|65536",
+          "baseline": 99783.3877078899,
+          "candidate": 100896.84883572512,
+          "ratio": 0.9979384588899273,
+          "minRatio": 0.9904933605176863,
+          "maxRatio": 1.0111587825730552,
+          "pairs": [
+            {
+              "baseline": 98528.64452127898,
+              "candidate": 97591.96821913414
+            },
+            {
+              "baseline": 99783.3877078899,
+              "candidate": 100896.84883572512
+            },
+            {
+              "baseline": 108712.3384469825,
+              "candidate": 108488.2234921019
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|64|65536",
+          "baseline": 90352.3598653259,
+          "candidate": 91831.78676587415,
+          "ratio": 1.0043070538588632,
+          "minRatio": 0.9966168559443228,
+          "maxRatio": 1.0283536470805594,
+          "pairs": [
+            {
+              "baseline": 90352.3598653259,
+              "candidate": 90741.51234554124
+            },
+            {
+              "baseline": 89299.8114282763,
+              "candidate": 91831.78676587415
+            },
+            {
+              "baseline": 97574.72726898523,
+              "candidate": 97244.61791044084
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|64|65536",
+          "baseline": 12193.762046438185,
+          "candidate": 12237.31761941458,
+          "ratio": 1.0031324892547429,
+          "minRatio": 0.9938156396822682,
+          "maxRatio": 1.00357195530063,
+          "pairs": [
+            {
+              "baseline": 12189.262415649036,
+              "candidate": 12113.879624863277
+            },
+            {
+              "baseline": 12193.762046438185,
+              "candidate": 12237.31761941458
+            },
+            {
+              "baseline": 12219.35470787053,
+              "candidate": 12257.631705192827
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|64|65536",
+          "baseline": 12121.548412394533,
+          "candidate": 12097.744816148741,
+          "ratio": 0.9955361546955672,
+          "minRatio": 0.9940788686718215,
+          "maxRatio": 1.005682519832937,
+          "pairs": [
+            {
+              "baseline": 12077.532391471623,
+              "candidate": 12023.620155216817
+            },
+            {
+              "baseline": 12169.803822821837,
+              "candidate": 12097.744816148741
+            },
+            {
+              "baseline": 12121.548412394533,
+              "candidate": 12190.429351653873
+            }
+          ]
+        }
+      ],
+      "rates": [
+        {
+          "case": "CrossBus|1|0",
+          "rate": 98096.62373741897
+        },
+        {
+          "case": "CrossBus + async hooks|1|0",
+          "rate": 85972.75570388089
+        },
+        {
+          "case": "CrossBus compact wire|1|0",
+          "rate": 124438.74964333311
+        },
+        {
+          "case": "CrossBus compact + hooks|1|0",
+          "rate": 112369.3897881246
+        },
+        {
+          "case": "CrossBus compact v2|1|0",
+          "rate": 145883.66411753764
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|1|0",
+          "rate": 126805.74743335227
+        },
+        {
+          "case": "birpc cached|1|0",
+          "rate": 139940.89410478433
+        },
+        {
+          "case": "Penpal cached + timeout|1|0",
+          "rate": 118448.25841153241
+        },
+        {
+          "case": "CrossBus|1|1024",
+          "rate": 80177.08330295197
+        },
+        {
+          "case": "CrossBus + async hooks|1|1024",
+          "rate": 71896.12189931326
+        },
+        {
+          "case": "CrossBus compact wire|1|1024",
+          "rate": 110349.03702145585
+        },
+        {
+          "case": "CrossBus compact + hooks|1|1024",
+          "rate": 99090.8798844356
+        },
+        {
+          "case": "CrossBus compact v2|1|1024",
+          "rate": 123085.39999208885
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|1|1024",
+          "rate": 108352.98046749648
+        },
+        {
+          "case": "birpc cached|1|1024",
+          "rate": 105053.25117498657
+        },
+        {
+          "case": "Penpal cached + timeout|1|1024",
+          "rate": 93213.1645116104
+        },
+        {
+          "case": "CrossBus|1|65536",
+          "rate": 16750.957599817353
+        },
+        {
+          "case": "CrossBus + async hooks|1|65536",
+          "rate": 16381.679240265445
+        },
+        {
+          "case": "CrossBus compact wire|1|65536",
+          "rate": 22966.33547895127
+        },
+        {
+          "case": "CrossBus compact + hooks|1|65536",
+          "rate": 22190.1334497074
+        },
+        {
+          "case": "CrossBus compact v2|1|65536",
+          "rate": 23240.49653343521
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|1|65536",
+          "rate": 22706.059499465933
+        },
+        {
+          "case": "birpc cached|1|65536",
+          "rate": 17684.271425071245
+        },
+        {
+          "case": "Penpal cached + timeout|1|65536",
+          "rate": 17368.572255444473
+        },
+        {
+          "case": "CrossBus|64|0",
+          "rate": 126600.80004535246
+        },
+        {
+          "case": "CrossBus + async hooks|64|0",
+          "rate": 108657.18134040602
+        },
+        {
+          "case": "CrossBus compact wire|64|0",
+          "rate": 177264.53386330596
+        },
+        {
+          "case": "CrossBus compact + hooks|64|0",
+          "rate": 154183.2443768426
+        },
+        {
+          "case": "CrossBus compact v2|64|0",
+          "rate": 217441.03225879176
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|64|0",
+          "rate": 172644.28537509422
+        },
+        {
+          "case": "birpc cached|64|0",
+          "rate": 183196.8831125687
+        },
+        {
+          "case": "Penpal cached + timeout|64|0",
+          "rate": 158665.9048430697
+        },
+        {
+          "case": "CrossBus|64|1024",
+          "rate": 94600.84828044345
+        },
+        {
+          "case": "CrossBus + async hooks|64|1024",
+          "rate": 84276.72790337025
+        },
+        {
+          "case": "CrossBus compact wire|64|1024",
+          "rate": 172603.66090847898
+        },
+        {
+          "case": "CrossBus compact + hooks|64|1024",
+          "rate": 150898.44254827374
+        },
+        {
+          "case": "CrossBus compact v2|64|1024",
+          "rate": 190239.17885787348
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|64|1024",
+          "rate": 159267.4320265199
+        },
+        {
+          "case": "birpc cached|64|1024",
+          "rate": 128914.31673429027
+        },
+        {
+          "case": "Penpal cached + timeout|64|1024",
+          "rate": 110684.25732079586
+        },
+        {
+          "case": "CrossBus|64|65536",
+          "rate": 11361.369561619413
+        },
+        {
+          "case": "CrossBus + async hooks|64|65536",
+          "rate": 11189.481096637772
+        },
+        {
+          "case": "CrossBus compact wire|64|65536",
+          "rate": 94830.45525448212
+        },
+        {
+          "case": "CrossBus compact + hooks|64|65536",
+          "rate": 83217.63927892447
+        },
+        {
+          "case": "CrossBus compact v2|64|65536",
+          "rate": 96377.50919763364
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|64|65536",
+          "rate": 90429.57292536968
+        },
+        {
+          "case": "birpc cached|64|65536",
+          "rate": 11702.74569928165
+        },
+        {
+          "case": "Penpal cached + timeout|64|65536",
+          "rate": 11572.20421302668
+        }
+      ]
+    },
+    {
+      "runtime": "chrome",
+      "runtimeVersion": "HeadlessChrome/155.0.8059.79",
+      "libraries": {
+        "comlink": "4.4.2",
+        "birpc": "4.2.0",
+        "penpal": "8.0.1",
+        "puppeteer-core": "25.17.0"
+      },
+      "wireRows": [
+        {
+          "textBytes": 0,
+          "concurrency": 1,
+          "hooks": false,
+          "baseline": 83083.16428011301,
+          "candidate": 85333.33333333333,
+          "ratio": 1.024539877663295,
+          "minRatio": 1.021276595744681,
+          "maxRatio": 1.027083333581686,
+          "pairs": [
+            {
+              "baseline": 83083.16428011301,
+              "candidate": 85333.33333333333
+            },
+            {
+              "baseline": 81756.48698704138,
+              "candidate": 83762.78117588414
+            },
+            {
+              "baseline": 85333.33333333333,
+              "candidate": 87148.93617021276
+            }
+          ]
+        },
+        {
+          "textBytes": 0,
+          "concurrency": 1,
+          "hooks": true,
+          "baseline": 75851.85185185185,
+          "candidate": 75851.85185185185,
+          "ratio": 1,
+          "minRatio": 0.9853211006986986,
+          "maxRatio": 1.052730697028912,
+          "pairs": [
+            {
+              "baseline": 75851.85185185185,
+              "candidate": 75851.85185185185
+            },
+            {
+              "baseline": 76275.60523108521,
+              "candidate": 75155.9633027523
+            },
+            {
+              "baseline": 73273.70303333193,
+              "candidate": 77137.47646816903
+            }
+          ]
+        },
+        {
+          "textBytes": 0,
+          "concurrency": 64,
+          "hooks": false,
+          "baseline": 105295.62980391746,
+          "candidate": 108647.2148884662,
+          "ratio": 1.031830239211163,
+          "minRatio": 1.0210526311083843,
+          "maxRatio": 1.0729729726507857,
+          "pairs": [
+            {
+              "baseline": 105567.01035793003,
+              "candidate": 107789.47368421052
+            },
+            {
+              "baseline": 103173.80355742891,
+              "candidate": 110702.7027027027
+            },
+            {
+              "baseline": 105295.62980391746,
+              "candidate": 108647.2148884662
+            }
+          ]
+        },
+        {
+          "textBytes": 0,
+          "concurrency": 64,
+          "hooks": true,
+          "baseline": 92252.25230178975,
+          "candidate": 90419.42602477079,
+          "ratio": 0.9908675804492821,
+          "minRatio": 0.96103896015094,
+          "maxRatio": 1.0022075053866053,
+          "pairs": [
+            {
+              "baseline": 92252.25230178975,
+              "candidate": 88658.00862369419
+            },
+            {
+              "baseline": 94377.88017137014,
+              "candidate": 93515.98177333781
+            },
+            {
+              "baseline": 90220.2643053358,
+              "candidate": 90419.42602477079
+            }
+          ]
+        },
+        {
+          "textBytes": 1024,
+          "concurrency": 1,
+          "hooks": false,
+          "baseline": 72367.49117369865,
+          "candidate": 79533.98058252427,
+          "ratio": 1.0271844661351546,
+          "minRatio": 0.9982363316744169,
+          "maxRatio": 1.2407766985661772,
+          "pairs": [
+            {
+              "baseline": 64100.15651843924,
+              "candidate": 79533.98058252427
+            },
+            {
+              "baseline": 72367.49117369865,
+              "candidate": 72239.85892171369
+            },
+            {
+              "baseline": 77429.11152246667,
+              "candidate": 79533.98058252427
+            }
+          ]
+        },
+        {
+          "textBytes": 1024,
+          "concurrency": 1,
+          "hooks": true,
+          "baseline": 67814.56952973169,
+          "candidate": 69659.8639314556,
+          "ratio": 1.0272108842468564,
+          "minRatio": 0.9900000000993412,
+          "maxRatio": 1.051813472038647,
+          "pairs": [
+            {
+              "baseline": 67257.79966501005,
+              "candidate": 70742.65978733396
+            },
+            {
+              "baseline": 67814.56952973169,
+              "candidate": 69659.8639314556
+            },
+            {
+              "baseline": 68956.22894930957,
+              "candidate": 68266.66666666667
+            }
+          ]
+        },
+        {
+          "textBytes": 1024,
+          "concurrency": 64,
+          "hooks": false,
+          "baseline": 94377.88017137014,
+          "candidate": 94377.88017137014,
+          "ratio": 1.0161290319811738,
+          "minRatio": 0.9977011495623095,
+          "maxRatio": 1.0458937199441285,
+          "pairs": [
+            {
+              "baseline": 94377.88017137014,
+              "candidate": 94160.91954022988
+            },
+            {
+              "baseline": 92879.81860665775,
+              "candidate": 94377.88017137014
+            },
+            {
+              "baseline": 94595.84293007689,
+              "candidate": 98937.19805338861
+            }
+          ]
+        },
+        {
+          "textBytes": 1024,
+          "concurrency": 64,
+          "hooks": true,
+          "baseline": 83591.83673469388,
+          "candidate": 84453.60824742269,
+          "ratio": 0.9979633402433469,
+          "minRatio": 0.9958762882911054,
+          "maxRatio": 1.0702479340420514,
+          "pairs": [
+            {
+              "baseline": 84803.31266079505,
+              "candidate": 84453.60824742269
+            },
+            {
+              "baseline": 79073.35910065526,
+              "candidate": 84628.09921524154
+            },
+            {
+              "baseline": 83591.83673469388,
+              "candidate": 83421.5886048316
+            }
+          ]
+        },
+        {
+          "textBytes": 65536,
+          "concurrency": 1,
+          "hooks": false,
+          "baseline": 17002.905769608366,
+          "candidate": 16932.616783377733,
+          "ratio": 0.9958660603556205,
+          "minRatio": 0.9872164948699401,
+          "maxRatio": 1.0079002079249915,
+          "pairs": [
+            {
+              "baseline": 17109.440266909023,
+              "candidate": 16890.721649484538
+            },
+            {
+              "baseline": 16897.689768561395,
+              "candidate": 17031.185031185032
+            },
+            {
+              "baseline": 17002.905769608366,
+              "candidate": 16932.616783377733
+            }
+          ]
+        },
+        {
+          "textBytes": 65536,
+          "concurrency": 1,
+          "hooks": true,
+          "baseline": 16562.87909341915,
+          "candidate": 16556.184316496834,
+          "ratio": 1.002035830618942,
+          "minRatio": 0.9892000000476836,
+          "maxRatio": 1.016572352441151,
+          "pairs": [
+            {
+              "baseline": 16643.64079682732,
+              "candidate": 16677.524430372174
+            },
+            {
+              "baseline": 16286.28230616302,
+              "candidate": 16556.184316496834
+            },
+            {
+              "baseline": 16562.87909341915,
+              "candidate": 16384
+            }
+          ]
+        },
+        {
+          "textBytes": 65536,
+          "concurrency": 64,
+          "hooks": false,
+          "baseline": 18669.097538234837,
+          "candidate": 19113.39243944074,
+          "ratio": 1.0237984134099667,
+          "minRatio": 0.9995398066091283,
+          "maxRatio": 1.033866415749205,
+          "pairs": [
+            {
+              "baseline": 18635.122840460517,
+              "candidate": 19266.227658113057
+            },
+            {
+              "baseline": 18858.195212821396,
+              "candidate": 18849.51679602069
+            },
+            {
+              "baseline": 18669.097538234837,
+              "candidate": 19113.39243944074
+            }
+          ]
+        },
+        {
+          "textBytes": 65536,
+          "concurrency": 64,
+          "hooks": true,
+          "baseline": 18293.881196475926,
+          "candidate": 18425.55105614193,
+          "ratio": 0.9937022043352645,
+          "minRatio": 0.9933451641527936,
+          "maxRatio": 1.0071974808544928,
+          "pairs": [
+            {
+              "baseline": 18542.326844225798,
+              "candidate": 18425.551058612124
+            },
+            {
+              "baseline": 18293.881196475926,
+              "candidate": 18425.55105614193
+            },
+            {
+              "baseline": 18293.881196475926,
+              "candidate": 18172.138420105082
+            }
+          ]
+        }
+      ],
+      "guardRows": [
+        {
+          "case": "CrossBus|1|0",
+          "baseline": 81593.6255173839,
+          "candidate": 82084.16837589256,
+          "ratio": 1.0040080163923237,
+          "minRatio": 0.9941634238932657,
+          "maxRatio": 1.0458333330849805,
+          "pairs": [
+            {
+              "baseline": 81756.48703567479,
+              "candidate": 82084.16837589256
+            },
+            {
+              "baseline": 81593.6255173839,
+              "candidate": 85333.33333333333
+            },
+            {
+              "baseline": 80156.55578234384,
+              "candidate": 79688.7159440665
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|1|0",
+          "baseline": 73405.01790546495,
+          "candidate": 72882.56225439072,
+          "ratio": 0.9911190058551246,
+          "minRatio": 0.9892086331995709,
+          "maxRatio": 1.0017793593239808,
+          "pairs": [
+            {
+              "baseline": 73405.01790546495,
+              "candidate": 72753.10837124204
+            },
+            {
+              "baseline": 74472.72727272726,
+              "candidate": 73669.06475609895
+            },
+            {
+              "baseline": 72753.10833273029,
+              "candidate": 72882.56225439072
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|1|0",
+          "baseline": 83934.42620900458,
+          "candidate": 82747.47474747476,
+          "ratio": 0.9858585860994128,
+          "minRatio": 0.9761431419740885,
+          "maxRatio": 1.0084033608394494,
+          "pairs": [
+            {
+              "baseline": 85333.33333333333,
+              "candidate": 86050.42012496635
+            },
+            {
+              "baseline": 83934.42620900458,
+              "candidate": 82747.47474747476
+            },
+            {
+              "baseline": 83421.58855419703,
+              "candidate": 81431.41155976355
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|1|0",
+          "baseline": 75294.11763880904,
+          "candidate": 75851.85185185185,
+          "ratio": 1.0092592592592593,
+          "minRatio": 1.0074074075177866,
+          "maxRatio": 1.0206766921821118,
+          "pairs": [
+            {
+              "baseline": 75294.11763880904,
+              "candidate": 75851.85185185185
+            },
+            {
+              "baseline": 75155.9633027523,
+              "candidate": 75851.85185185185
+            },
+            {
+              "baseline": 75432.7808305851,
+              "candidate": 76992.48122025981
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|1|0",
+          "baseline": 112219.17808219178,
+          "candidate": 110404.31268620111,
+          "ratio": 1.0080862528885932,
+          "minRatio": 0.9811827952272871,
+          "maxRatio": 1.0167597763642386,
+          "pairs": [
+            {
+              "baseline": 109518.71664735641,
+              "candidate": 110404.31268620111
+            },
+            {
+              "baseline": 112527.47250904626,
+              "candidate": 114413.4077831309
+            },
+            {
+              "baseline": 112219.17808219178,
+              "candidate": 110107.52682879365
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|1|0",
+          "baseline": 100392.15683341256,
+          "candidate": 96376.47058823529,
+          "ratio": 0.9788732392937468,
+          "minRatio": 0.9600000002804923,
+          "maxRatio": 0.9951219515102665,
+          "pairs": [
+            {
+              "baseline": 100392.15683341256,
+              "candidate": 99902.43902439025
+            },
+            {
+              "baseline": 100392.15683341256,
+              "candidate": 96376.47058823529
+            },
+            {
+              "baseline": 98225.41969234863,
+              "candidate": 96150.23475523709
+            }
+          ]
+        },
+        {
+          "case": "CrossBus|1|1024",
+          "baseline": 74608.37886257377,
+          "candidate": 71985.94027620877,
+          "ratio": 0.9648506156232741,
+          "minRatio": 0.9215358928645457,
+          "maxRatio": 1.007490636814903,
+          "pairs": [
+            {
+              "baseline": 76133.8289794129,
+              "candidate": 76704.11984162561
+            },
+            {
+              "baseline": 74608.37886257377,
+              "candidate": 71985.94027620877
+            },
+            {
+              "baseline": 74202.89856674941,
+              "candidate": 68380.63438384674
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|1|1024",
+          "baseline": 67037.64321439568,
+          "candidate": 68840.33613445378,
+          "ratio": 1.0145395800625816,
+          "minRatio": 1.0136054423768495,
+          "maxRatio": 1.026890756202345,
+          "pairs": [
+            {
+              "baseline": 67037.64321439568,
+              "candidate": 68840.33613445378
+            },
+            {
+              "baseline": 68724.83218727302,
+              "candidate": 69659.8639314556
+            },
+            {
+              "baseline": 65222.92992392488,
+              "candidate": 66171.24393546993
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|1|1024",
+          "baseline": 78167.93892240616,
+          "candidate": 76417.91045625907,
+          "ratio": 0.9701492538392262,
+          "minRatio": 0.9209138844976585,
+          "maxRatio": 1.0386100386011532,
+          "pairs": [
+            {
+              "baseline": 78167.93892240616,
+              "candidate": 71985.94027620877
+            },
+            {
+              "baseline": 76133.8289794129,
+              "candidate": 79073.35905516162
+            },
+            {
+              "baseline": 78769.23076923078,
+              "candidate": 76417.91045625907
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|1|1024",
+          "baseline": 66493.50649994046,
+          "candidate": 68609.7152565811,
+          "ratio": 1.0175438600327114,
+          "minRatio": 0.9863945576231508,
+          "maxRatio": 1.0318257957510863,
+          "pairs": [
+            {
+              "baseline": 64200.62694725186,
+              "candidate": 65326.95376042676
+            },
+            {
+              "baseline": 66493.50649994046,
+              "candidate": 68609.7152565811
+            },
+            {
+              "baseline": 70620.6896551724,
+              "candidate": 69659.8639314556
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|1|1024",
+          "baseline": 103959.39084721709,
+          "candidate": 99659.36733878189,
+          "ratio": 1.002544529109649,
+          "minRatio": 0.9403341288867694,
+          "maxRatio": 1.1265206801766485,
+          "pairs": [
+            {
+              "baseline": 103959.39084721709,
+              "candidate": 104223.91854344921
+            },
+            {
+              "baseline": 88466.52271235216,
+              "candidate": 99659.36733878189
+            },
+            {
+              "baseline": 103959.39084721709,
+              "candidate": 97756.56323191707
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|1|1024",
+          "baseline": 89432.3143872027,
+          "candidate": 89432.31444539683,
+          "ratio": 0.9890829700787579,
+          "minRatio": 0.9349593492536915,
+          "maxRatio": 1.0338600451376154,
+          "pairs": [
+            {
+              "baseline": 89432.3143872027,
+              "candidate": 92460.49658911479
+            },
+            {
+              "baseline": 90419.42602477079,
+              "candidate": 89432.31444539683
+            },
+            {
+              "baseline": 89043.47826086957,
+              "candidate": 83252.03249006784
+            }
+          ]
+        },
+        {
+          "case": "CrossBus|1|65536",
+          "baseline": 17800.956106501962,
+          "candidate": 17808.695652173912,
+          "ratio": 1.001304347877917,
+          "minRatio": 0.9973992196627858,
+          "maxRatio": 1.0017436791889716,
+          "pairs": [
+            {
+              "baseline": 17824.194951207654,
+              "candidate": 17855.274629004245
+            },
+            {
+              "baseline": 17800.956106501962,
+              "candidate": 17754.65972987656
+            },
+            {
+              "baseline": 17785.49717667382,
+              "candidate": 17808.695652173912
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|1|65536",
+          "baseline": 17231.80479682549,
+          "candidate": 17400.16992309383,
+          "ratio": 1.006796941350888,
+          "minRatio": 1.0059146600584423,
+          "maxRatio": 1.010629251701219,
+          "pairs": [
+            {
+              "baseline": 17282.70042194093,
+              "candidate": 17400.16992309383
+            },
+            {
+              "baseline": 17202.855941158552,
+              "candidate": 17304.60498608486
+            },
+            {
+              "baseline": 17231.80479682549,
+              "candidate": 17414.96598727722
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|1|65536",
+          "baseline": 16988.8013276701,
+          "candidate": 16828.26622801847,
+          "ratio": 0.9917830731308503,
+          "minRatio": 0.9901437371418463,
+          "maxRatio": 1.0008302199587968,
+          "pairs": [
+            {
+              "baseline": 16967.68848342529,
+              "candidate": 16828.26622801847
+            },
+            {
+              "baseline": 16988.8013276701,
+              "candidate": 16821.355236139632
+            },
+            {
+              "baseline": 16988.8013276701,
+              "candidate": 17002.905769608366
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|1|65536",
+          "baseline": 16536.132419043708,
+          "candidate": 16469.64213991288,
+          "ratio": 1.0020226537217805,
+          "minRatio": 0.989208633022828,
+          "maxRatio": 1.0028146361797947,
+          "pairs": [
+            {
+              "baseline": 16549.49494949495,
+              "candidate": 16370.903276208097
+            },
+            {
+              "baseline": 16423.4161984848,
+              "candidate": 16469.64213991288
+            },
+            {
+              "baseline": 16536.132419043708,
+              "candidate": 16569.57928882494
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|1|65536",
+          "baseline": 18172.138420105082,
+          "candidate": 18318.42575833298,
+          "ratio": 1.0008944543294176,
+          "minRatio": 0.993827160467871,
+          "maxRatio": 1.0112107623318385,
+          "pairs": [
+            {
+              "baseline": 18172.138420105082,
+              "candidate": 18059.964725682137
+            },
+            {
+              "baseline": 18302.05540563817,
+              "candidate": 18318.42575833298
+            },
+            {
+              "baseline": 18164.079822616408,
+              "candidate": 18367.713004484303
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|1|65536",
+          "baseline": 18204.444444444445,
+          "candidate": 18220.640568428797,
+          "ratio": 1,
+          "minRatio": 0.9950848972559095,
+          "maxRatio": 1.0040035587451637,
+          "pairs": [
+            {
+              "baseline": 18147.984048185594,
+              "candidate": 18220.640568428797
+            },
+            {
+              "baseline": 18392.456220113407,
+              "candidate": 18302.055408075365
+            },
+            {
+              "baseline": 18204.444444444445,
+              "candidate": 18204.444444444445
+            }
+          ]
+        },
+        {
+          "case": "CrossBus|64|0",
+          "baseline": 98698.7951807229,
+          "candidate": 100146.69925190903,
+          "ratio": 1.0101265816748897,
+          "minRatio": 1.002364066052278,
+          "maxRatio": 1.014669926502496,
+          "pairs": [
+            {
+              "baseline": 98698.7951807229,
+              "candidate": 100146.69925190903
+            },
+            {
+              "baseline": 102656.6416653515,
+              "candidate": 103696.20253164557
+            },
+            {
+              "baseline": 96603.7735713254,
+              "candidate": 96832.1512729473
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|64|0",
+          "baseline": 88086.02150537635,
+          "candidate": 85690.37654766718,
+          "ratio": 0.9823399555913819,
+          "minRatio": 0.9548254622460451,
+          "maxRatio": 0.9874476988725964,
+          "pairs": [
+            {
+              "baseline": 88086.02150537635,
+              "candidate": 84106.77620128605
+            },
+            {
+              "baseline": 86779.66098407327,
+              "candidate": 85690.37654766718
+            },
+            {
+              "baseline": 92044.94382022471,
+              "candidate": 90419.42602477079
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|64|0",
+          "baseline": 105295.62988458722,
+          "candidate": 105839.79331425604,
+          "ratio": 1.0209973748620411,
+          "minRatio": 0.9693877546598468,
+          "maxRatio": 1.03875968993442,
+          "pairs": [
+            {
+              "baseline": 101890.54729389626,
+              "candidate": 105839.79331425604
+            },
+            {
+              "baseline": 105295.62988458722,
+              "candidate": 107506.56169660864
+            },
+            {
+              "baseline": 107789.47368421052,
+              "candidate": 104489.79587070348
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|64|0",
+          "baseline": 93729.97707835188,
+          "candidate": 94160.91954022988,
+          "ratio": 0.9816091951282545,
+          "minRatio": 0.9583333332244067,
+          "maxRatio": 1.0207373266367405,
+          "pairs": [
+            {
+              "baseline": 93729.97707835188,
+              "candidate": 89824.56135654419
+            },
+            {
+              "baseline": 92460.49665131653,
+              "candidate": 94377.88017137014
+            },
+            {
+              "baseline": 95925.0585747896,
+              "candidate": 94160.91954022988
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|64|0",
+          "baseline": 114413.4077831309,
+          "candidate": 112837.46552768243,
+          "ratio": 1,
+          "minRatio": 0.9614325067355177,
+          "maxRatio": 1.016438356001083,
+          "pairs": [
+            {
+              "baseline": 114413.4077831309,
+              "candidate": 114413.4077831309
+            },
+            {
+              "baseline": 117363.89682809332,
+              "candidate": 112837.46552768243
+            },
+            {
+              "baseline": 110404.31268620111,
+              "candidate": 112219.17808219178
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|64|0",
+          "baseline": 111607.62946404541,
+          "candidate": 111002.71000916997,
+          "ratio": 0.9944903584569313,
+          "minRatio": 0.9918918915697046,
+          "maxRatio": 1.0406504064974986,
+          "pairs": [
+            {
+              "baseline": 113462.60380318118,
+              "candidate": 112837.46552768243
+            },
+            {
+              "baseline": 106666.66665010982,
+              "candidate": 111002.71000916997
+            },
+            {
+              "baseline": 111607.62946404541,
+              "candidate": 110702.7027027027
+            }
+          ]
+        },
+        {
+          "case": "CrossBus|64|1024",
+          "baseline": 89824.56141524992,
+          "candidate": 90619.46905044842,
+          "ratio": 1.0088495576563266,
+          "minRatio": 0.9699570820528494,
+          "maxRatio": 1.0410022781703083,
+          "pairs": [
+            {
+              "baseline": 89824.56141524992,
+              "candidate": 90619.46905044842
+            },
+            {
+              "baseline": 89628.00871766578,
+              "candidate": 93302.96126295833
+            },
+            {
+              "baseline": 90619.46899069907,
+              "candidate": 87896.99571939713
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|64|1024",
+          "baseline": 79379.84492456273,
+          "candidate": 79073.35905516162,
+          "ratio": 0.9961389963700185,
+          "minRatio": 0.9903660886330912,
+          "maxRatio": 1.0176470589404012,
+          "pairs": [
+            {
+              "baseline": 79379.84492456273,
+              "candidate": 79073.35905516162
+            },
+            {
+              "baseline": 78921.00191771859,
+              "candidate": 80313.72549019608
+            },
+            {
+              "baseline": 79688.7159440665,
+              "candidate": 78921.00191771859
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|64|1024",
+          "baseline": 95925.0585747896,
+          "candidate": 94160.91954022988,
+          "ratio": 0.9816091951282545,
+          "minRatio": 0.9595505615298667,
+          "maxRatio": 0.9930232555367225,
+          "pairs": [
+            {
+              "baseline": 95925.0585747896,
+              "candidate": 92044.94382022471
+            },
+            {
+              "baseline": 95925.0585747896,
+              "candidate": 94160.91954022988
+            },
+            {
+              "baseline": 95925.0585747896,
+              "candidate": 95255.81395348837
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|64|1024",
+          "baseline": 81920,
+          "candidate": 83421.5886048316,
+          "ratio": 1.0183299390238232,
+          "minRatio": 0.9816700615831487,
+          "maxRatio": 1.030737704299821,
+          "pairs": [
+            {
+              "baseline": 81431.41155976355,
+              "candidate": 83934.42620900458
+            },
+            {
+              "baseline": 81920,
+              "candidate": 83421.5886048316
+            },
+            {
+              "baseline": 84979.25308050732,
+              "candidate": 83421.5886048316
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|64|1024",
+          "baseline": 105839.79331425604,
+          "candidate": 104757.03326405116,
+          "ratio": 0.9897698208178659,
+          "minRatio": 0.9344660196878567,
+          "maxRatio": 1.0130890052396866,
+          "pairs": [
+            {
+              "baseline": 105839.79331425604,
+              "candidate": 107225.13092351369
+            },
+            {
+              "baseline": 105839.79331425604,
+              "candidate": 104757.03326405116
+            },
+            {
+              "baseline": 106389.6103896104,
+              "candidate": 99417.47575692108
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|64|1024",
+          "baseline": 97292.16153396454,
+          "candidate": 98937.19805338861,
+          "ratio": 1.0241545893685031,
+          "minRatio": 0.9700460826787467,
+          "maxRatio": 1.0269607841794517,
+          "pairs": [
+            {
+              "baseline": 97756.56330144864,
+              "candidate": 100392.15690674391
+            },
+            {
+              "baseline": 97292.16153396454,
+              "candidate": 94377.88017137014
+            },
+            {
+              "baseline": 96603.7735713254,
+              "candidate": 98937.19805338861
+            }
+          ]
+        },
+        {
+          "case": "CrossBus|64|65536",
+          "baseline": 19663.946233085062,
+          "candidate": 19635.66634483149,
+          "ratio": 1.0095877277074372,
+          "minRatio": 0.9899665550706056,
+          "maxRatio": 1.009694619341164,
+          "pairs": [
+            {
+              "baseline": 19768.33976947711,
+              "candidate": 19569.9952210545
+            },
+            {
+              "baseline": 19663.946233085062,
+              "candidate": 19854.580706559937
+            },
+            {
+              "baseline": 19449.192780324287,
+              "candidate": 19635.66634483149
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|64|65536",
+          "baseline": 18989.337043237694,
+          "candidate": 19194.00187387814,
+          "ratio": 1.0107778818278086,
+          "minRatio": 0.993956299478593,
+          "maxRatio": 1.0253402157463818,
+          "pairs": [
+            {
+              "baseline": 18989.337043237694,
+              "candidate": 19194.00187387814
+            },
+            {
+              "baseline": 18745.995423340963,
+              "candidate": 19221.02299174911
+            },
+            {
+              "baseline": 19158.09167339391,
+              "candidate": 19042.305904758254
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|64|65536",
+          "baseline": 18703.19634703196,
+          "candidate": 18823.529412280317,
+          "ratio": 1.0115473441108547,
+          "minRatio": 0.9835916135189529,
+          "maxRatio": 1.0197610294670896,
+          "pairs": [
+            {
+              "baseline": 18980.537533705905,
+              "candidate": 18669.097538234837
+            },
+            {
+              "baseline": 18458.765209058034,
+              "candidate": 18823.529412280317
+            },
+            {
+              "baseline": 18703.19634703196,
+              "candidate": 18919.168591224017
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|64|65536",
+          "baseline": 18277.554663582963,
+          "candidate": 18293.881196475926,
+          "ratio": 0.9995533720677228,
+          "minRatio": 0.997773820124607,
+          "maxRatio": 1.010272443107904,
+          "pairs": [
+            {
+              "baseline": 18277.554663582963,
+              "candidate": 18236.8655392195
+            },
+            {
+              "baseline": 18107.86914092045,
+              "candidate": 18293.881196475926
+            },
+            {
+              "baseline": 18302.05540563817,
+              "candidate": 18293.881196475926
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|64|65536",
+          "baseline": 20167.405219695753,
+          "candidate": 20307.387209926044,
+          "ratio": 1.0069410015173188,
+          "minRatio": 0.9925889328065423,
+          "maxRatio": 1.0084283590380856,
+          "pairs": [
+            {
+              "baseline": 20137.659783087365,
+              "candidate": 20307.387209926044
+            },
+            {
+              "baseline": 20167.405219695753,
+              "candidate": 20307.387209926044
+            },
+            {
+              "baseline": 20388.252861515564,
+              "candidate": 20237.154149601665
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|64|65536",
+          "baseline": 20227.16049382716,
+          "candidate": 20137.659783087365,
+          "ratio": 0.9980334316325037,
+          "minRatio": 0.9854014598540147,
+          "maxRatio": 1.002992518673514,
+          "pairs": [
+            {
+              "baseline": 20227.16049382716,
+              "candidate": 19931.873479318736
+            },
+            {
+              "baseline": 20177.339901477833,
+              "candidate": 20137.659783087365
+            },
+            {
+              "baseline": 20367.976131881664,
+              "candidate": 20428.927680798006
+            }
+          ]
+        }
+      ],
+      "rates": [
+        {
+          "case": "CrossBus|1|0",
+          "rate": 80948.61661032592
+        },
+        {
+          "case": "CrossBus + async hooks|1|0",
+          "rate": 72495.57522123893
+        },
+        {
+          "case": "CrossBus compact wire|1|0",
+          "rate": 83083.16428011301
+        },
+        {
+          "case": "CrossBus compact + hooks|1|0",
+          "rate": 75851.85185185185
+        },
+        {
+          "case": "CrossBus compact v2|1|0",
+          "rate": 85333.33333333333
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|1|0",
+          "rate": 75851.85185185185
+        },
+        {
+          "case": "birpc cached|1|0",
+          "rate": 110107.52691700494
+        },
+        {
+          "case": "Penpal cached + timeout|1|0",
+          "rate": 100886.69952220029
+        },
+        {
+          "case": "CrossBus|1|1024",
+          "rate": 76417.91045625907
+        },
+        {
+          "case": "CrossBus + async hooks|1|1024",
+          "rate": 67814.56952973169
+        },
+        {
+          "case": "CrossBus compact wire|1|1024",
+          "rate": 72367.49117369865
+        },
+        {
+          "case": "CrossBus compact + hooks|1|1024",
+          "rate": 67814.56952973169
+        },
+        {
+          "case": "CrossBus compact v2|1|1024",
+          "rate": 79533.98058252427
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|1|1024",
+          "rate": 69659.8639314556
+        },
+        {
+          "case": "birpc cached|1|1024",
+          "rate": 101386.13859890326
+        },
+        {
+          "case": "Penpal cached + timeout|1|1024",
+          "rate": 89824.56141524992
+        },
+        {
+          "case": "CrossBus|1|65536",
+          "rate": 18012.31310418926
+        },
+        {
+          "case": "CrossBus + async hooks|1|65536",
+          "rate": 17414.96598507056
+        },
+        {
+          "case": "CrossBus compact wire|1|65536",
+          "rate": 17002.905769608366
+        },
+        {
+          "case": "CrossBus compact + hooks|1|65536",
+          "rate": 16562.87909341915
+        },
+        {
+          "case": "CrossBus compact v2|1|65536",
+          "rate": 16932.616783377733
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|1|65536",
+          "rate": 16556.184316496834
+        },
+        {
+          "case": "birpc cached|1|65536",
+          "rate": 18285.714285714286
+        },
+        {
+          "case": "Penpal cached + timeout|1|65536",
+          "rate": 18293.881196475926
+        },
+        {
+          "case": "CrossBus|64|0",
+          "rate": 99417.47575692108
+        },
+        {
+          "case": "CrossBus + async hooks|64|0",
+          "rate": 87708.77946564391
+        },
+        {
+          "case": "CrossBus compact wire|64|0",
+          "rate": 105295.62980391746
+        },
+        {
+          "case": "CrossBus compact + hooks|64|0",
+          "rate": 92252.25230178975
+        },
+        {
+          "case": "CrossBus compact v2|64|0",
+          "rate": 108647.2148884662
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|64|0",
+          "rate": 90419.42602477079
+        },
+        {
+          "case": "birpc cached|64|0",
+          "rate": 112527.47250904626
+        },
+        {
+          "case": "Penpal cached + timeout|64|0",
+          "rate": 108647.21480257921
+        },
+        {
+          "case": "CrossBus|64|1024",
+          "rate": 87896.99566318396
+        },
+        {
+          "case": "CrossBus + async hooks|64|1024",
+          "rate": 78467.4329681112
+        },
+        {
+          "case": "CrossBus compact wire|64|1024",
+          "rate": 94377.88017137014
+        },
+        {
+          "case": "CrossBus compact + hooks|64|1024",
+          "rate": 83591.83673469388
+        },
+        {
+          "case": "CrossBus compact v2|64|1024",
+          "rate": 94377.88017137014
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|64|1024",
+          "rate": 84453.60824742269
+        },
+        {
+          "case": "birpc cached|64|1024",
+          "rate": 106945.1696795069
+        },
+        {
+          "case": "Penpal cached + timeout|64|1024",
+          "rate": 96376.47058823529
+        },
+        {
+          "case": "CrossBus|64|65536",
+          "rate": 19787.43961352657
+        },
+        {
+          "case": "CrossBus + async hooks|64|65536",
+          "rate": 19033.457247489103
+        },
+        {
+          "case": "CrossBus compact wire|64|65536",
+          "rate": 18669.097538234837
+        },
+        {
+          "case": "CrossBus compact + hooks|64|65536",
+          "rate": 18293.881196475926
+        },
+        {
+          "case": "CrossBus compact v2|64|65536",
+          "rate": 19113.39243944074
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|64|65536",
+          "rate": 18425.55105614193
+        },
+        {
+          "case": "birpc cached|64|65536",
+          "rate": 20317.46031806102
+        },
+        {
+          "case": "Penpal cached + timeout|64|65536",
+          "rate": 20227.16049382716
+        }
+      ]
+    },
+    {
+      "runtime": "chrome-worker",
+      "runtimeVersion": "HeadlessChrome/155.0.8059.79",
+      "libraries": {
+        "comlink": "4.4.2",
+        "birpc": "4.2.0",
+        "penpal": "8.0.1",
+        "puppeteer-core": "25.17.0"
+      },
+      "wireRows": [
+        {
+          "textBytes": 0,
+          "concurrency": 1,
+          "hooks": false,
+          "baseline": 41001.0009985547,
+          "candidate": 40474.3082932437,
+          "ratio": 0.9713438731694626,
+          "minRatio": 0.9699029126792278,
+          "maxRatio": 1.1034482760496753,
+          "pairs": [
+            {
+              "baseline": 41001.0009985547,
+              "candidate": 39766.99029126213
+            },
+            {
+              "baseline": 41668.362164243015,
+              "candidate": 40474.3082932437
+            },
+            {
+              "baseline": 37647.05881940452,
+              "candidate": 41541.582152612646
+            }
+          ]
+        },
+        {
+          "textBytes": 0,
+          "concurrency": 1,
+          "hooks": true,
+          "baseline": 37820.867955209054,
+          "candidate": 37372.262765592845,
+          "ratio": 1.0065851362935143,
+          "minRatio": 0.9592559787971949,
+          "maxRatio": 1.0301094888813935,
+          "pairs": [
+            {
+              "baseline": 36279.893709333526,
+              "candidate": 37372.262765592845
+            },
+            {
+              "baseline": 38280.3738317757,
+              "candidate": 38532.455310824625
+            },
+            {
+              "baseline": 37820.867955209054,
+              "candidate": 36279.893709333526
+            }
+          ]
+        },
+        {
+          "textBytes": 0,
+          "concurrency": 64,
+          "hooks": false,
+          "baseline": 179649.12271308838,
+          "candidate": 167183.67346938775,
+          "ratio": 0.9306122453845278,
+          "minRatio": 0.8410852725938439,
+          "maxRatio": 1.004149377347065,
+          "pairs": [
+            {
+              "baseline": 179649.12271308838,
+              "candidate": 167183.67346938775
+            },
+            {
+              "baseline": 188755.7602131237,
+              "candidate": 158759.69003251338
+            },
+            {
+              "baseline": 169256.19843048308,
+              "candidate": 169958.50626610089
+            }
+          ]
+        },
+        {
+          "textBytes": 0,
+          "concurrency": 64,
+          "hooks": true,
+          "baseline": 149489.05122496703,
+          "candidate": 152835.82082753937,
+          "ratio": 0.962264150943396,
+          "minRatio": 0.8683385583920279,
+          "maxRatio": 1.022388058357102,
+          "pairs": [
+            {
+              "baseline": 147870.03600562736,
+              "candidate": 128401.25389450372
+            },
+            {
+              "baseline": 149489.05122496703,
+              "candidate": 152835.82082753937
+            },
+            {
+              "baseline": 160627.45098039217,
+              "candidate": 154566.03773584904
+            }
+          ]
+        },
+        {
+          "textBytes": 1024,
+          "concurrency": 1,
+          "hooks": false,
+          "baseline": 37474.839896341284,
+          "candidate": 38244.631187936095,
+          "ratio": 1.0205415498431514,
+          "minRatio": 1.0092336100654442,
+          "maxRatio": 1.0382409174883933,
+          "pairs": [
+            {
+              "baseline": 37716.39042564279,
+              "candidate": 39158.69979986983
+            },
+            {
+              "baseline": 37474.839896341284,
+              "candidate": 37820.867955209054
+            },
+            {
+              "baseline": 37474.839896341284,
+              "candidate": 38244.631187936095
+            }
+          ]
+        },
+        {
+          "textBytes": 1024,
+          "concurrency": 1,
+          "hooks": true,
+          "baseline": 35371.329884563806,
+          "candidate": 34889.267459898154,
+          "ratio": 0.9863713796953949,
+          "minRatio": 0.9738175673675186,
+          "maxRatio": 1.0325991191002766,
+          "pairs": [
+            {
+              "baseline": 35524.718132135575,
+              "candidate": 34594.59459285304
+            },
+            {
+              "baseline": 35371.329884563806,
+              "candidate": 34889.267459898154
+            },
+            {
+              "baseline": 34948.80545541866,
+              "candidate": 36088.10572687225
+            }
+          ]
+        },
+        {
+          "textBytes": 1024,
+          "concurrency": 64,
+          "hooks": false,
+          "baseline": 137449.66451200642,
+          "candidate": 144225.3520824067,
+          "ratio": 1.0492957737980395,
+          "minRatio": 0.9606557380957682,
+          "maxRatio": 1.1535580509921868,
+          "pairs": [
+            {
+              "baseline": 137449.66451200642,
+              "candidate": 144225.3520824067
+            },
+            {
+              "baseline": 132987.01306422055,
+              "candidate": 153408.23959763473
+            },
+            {
+              "baseline": 139795.22178612667,
+              "candidate": 134295.08196721313
+            }
+          ]
+        },
+        {
+          "textBytes": 1024,
+          "concurrency": 64,
+          "hooks": true,
+          "baseline": 121183.43201677303,
+          "candidate": 118381.50291056672,
+          "ratio": 0.9768786123682444,
+          "minRatio": 0.9710982658909749,
+          "maxRatio": 1.01123595522549,
+          "pairs": [
+            {
+              "baseline": 113777.77777777777,
+              "candidate": 115056.17979454462
+            },
+            {
+              "baseline": 121183.43201677303,
+              "candidate": 118381.50291056672
+            },
+            {
+              "baseline": 121904.76192638716,
+              "candidate": 118381.50291056672
+            }
+          ]
+        },
+        {
+          "textBytes": 65536,
+          "concurrency": 1,
+          "hooks": false,
+          "baseline": 15808.568120780496,
+          "candidate": 15031.19266055046,
+          "ratio": 0.960733944997875,
+          "minRatio": 0.7277325091195906,
+          "maxRatio": 0.9931008048605603,
+          "pairs": [
+            {
+              "baseline": 15814.671814671816,
+              "candidate": 11508.850800593991
+            },
+            {
+              "baseline": 15808.568120780496,
+              "candidate": 15699.501724440106
+            },
+            {
+              "baseline": 15645.530938936176,
+              "candidate": 15031.19266055046
+            }
+          ]
+        },
+        {
+          "textBytes": 65536,
+          "concurrency": 1,
+          "hooks": true,
+          "baseline": 15346.571749376273,
+          "candidate": 15221.10739535758,
+          "ratio": 1.0007432182009877,
+          "minRatio": 0.9847922848882412,
+          "maxRatio": 1.007169811343247,
+          "pairs": [
+            {
+              "baseline": 15427.49529190207,
+              "candidate": 15192.878338614824
+            },
+            {
+              "baseline": 15346.571749376273,
+              "candidate": 15456.603773584906
+            },
+            {
+              "baseline": 15209.803192791256,
+              "candidate": 15221.10739535758
+            }
+          ]
+        },
+        {
+          "textBytes": 65536,
+          "concurrency": 64,
+          "hooks": false,
+          "baseline": 27397.99331103679,
+          "candidate": 27270.30625507569,
+          "ratio": 0.9953395471518105,
+          "minRatio": 0.9947472093771614,
+          "maxRatio": 1.0094530722891073,
+          "pairs": [
+            {
+              "baseline": 27036.303630363036,
+              "candidate": 26894.28758817725
+            },
+            {
+              "baseline": 27397.99331103679,
+              "candidate": 27270.30625507569
+            },
+            {
+              "baseline": 27397.99331103679,
+              "candidate": 27656.9885223825
+            }
+          ]
+        },
+        {
+          "textBytes": 65536,
+          "concurrency": 64,
+          "hooks": true,
+          "baseline": 26614.684864421986,
+          "candidate": 26876.640418896342,
+          "ratio": 1.009848982271061,
+          "minRatio": 1.0078585460915046,
+          "maxRatio": 1.0157480313390044,
+          "pairs": [
+            {
+              "baseline": 26614.684864421986,
+              "candidate": 26823.837592139917
+            },
+            {
+              "baseline": 26631.989594814837,
+              "candidate": 26894.28758817725
+            },
+            {
+              "baseline": 26459.948323469904,
+              "candidate": 26876.640418896342
+            }
+          ]
+        }
+      ],
+      "guardRows": [
+        {
+          "case": "CrossBus|1|0",
+          "baseline": 39805.636538024686,
+          "candidate": 39960.9756097561,
+          "ratio": 1.003902439082541,
+          "minRatio": 0.9216417912584677,
+          "maxRatio": 1.030511810957796,
+          "pairs": [
+            {
+              "baseline": 39121.29894269777,
+              "candidate": 40314.96062046079
+            },
+            {
+              "baseline": 39805.636538024686,
+              "candidate": 39960.9756097561
+            },
+            {
+              "baseline": 41457.48987354037,
+              "candidate": 38208.95522812953
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|1|0",
+          "baseline": 37612.488529814065,
+          "candidate": 37304.18944141212,
+          "ratio": 0.991803278632905,
+          "minRatio": 0.9533039646526792,
+          "maxRatio": 1.0204841714875168,
+          "pairs": [
+            {
+              "baseline": 37372.262765592845,
+              "candidate": 38137.80260495979
+            },
+            {
+              "baseline": 37612.488529814065,
+              "candidate": 37304.18944141212
+            },
+            {
+              "baseline": 37855.82255500255,
+              "candidate": 36088.10572687225
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|1|0",
+          "baseline": 42489.62656652522,
+          "candidate": 41415.57128162936,
+          "ratio": 0.9656218401844735,
+          "minRatio": 0.9469548133071894,
+          "maxRatio": 0.9989637303228823,
+          "pairs": [
+            {
+              "baseline": 42489.62656652522,
+              "candidate": 42445.59585492228
+            },
+            {
+              "baseline": 42890.05235602095,
+              "candidate": 41415.57128162936
+            },
+            {
+              "baseline": 42489.62655338944,
+              "candidate": 40235.756380357096
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|1|0",
+          "baseline": 38568.738234084514,
+          "candidate": 38066.914500249964,
+          "ratio": 0.9702602231574688,
+          "minRatio": 0.969863013589763,
+          "maxRatio": 1.0028037384291675,
+          "pairs": [
+            {
+              "baseline": 39233.716472855835,
+              "candidate": 38066.914500249964
+            },
+            {
+              "baseline": 38173.34575531164,
+              "candidate": 38280.3738317757
+            },
+            {
+              "baseline": 38568.738234084514,
+              "candidate": 37406.39269406392
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|1|0",
+          "baseline": 51328.32081350654,
+          "candidate": 50257.66871165644,
+          "ratio": 0.979038224192277,
+          "minRatio": 0.952267302753779,
+          "maxRatio": 1.0085889569089457,
+          "pairs": [
+            {
+              "baseline": 49829.68370552331,
+              "candidate": 50257.66871165644
+            },
+            {
+              "baseline": 51586.901778714455,
+              "candidate": 50505.548709014016
+            },
+            {
+              "baseline": 51328.32081350654,
+              "candidate": 48878.281615958535
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|1|0",
+          "baseline": 47026.406432609634,
+          "candidate": 46598.40727784132,
+          "ratio": 0.9908987484429275,
+          "minRatio": 0.9478357381976693,
+          "maxRatio": 1.0011481055573637,
+          "pairs": [
+            {
+              "baseline": 47026.406432609634,
+              "candidate": 46598.40727784132
+            },
+            {
+              "baseline": 46972.4770706417,
+              "candidate": 47026.406432609634
+            },
+            {
+              "baseline": 47962.529270657156,
+              "candidate": 45460.59933708065
+            }
+          ]
+        },
+        {
+          "case": "CrossBus|1|1024",
+          "baseline": 39384.61538461539,
+          "candidate": 36934.174930386434,
+          "ratio": 0.937781785341843,
+          "minRatio": 0.9112478032251182,
+          "maxRatio": 1.0065789475361109,
+          "pairs": [
+            {
+              "baseline": 39384.61538461539,
+              "candidate": 36934.174930386434
+            },
+            {
+              "baseline": 38244.6311772939,
+              "candidate": 38496.24059934723
+            },
+            {
+              "baseline": 39498.553512957675,
+              "candidate": 35992.97011925246
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|1|1024",
+          "baseline": 36441.28113685759,
+          "candidate": 35772.925764192136,
+          "ratio": 0.9833770778148528,
+          "minRatio": 0.9772925762109881,
+          "maxRatio": 0.9886858136479243,
+          "pairs": [
+            {
+              "baseline": 36441.28113685759,
+              "candidate": 35835.52055619254
+            },
+            {
+              "baseline": 36056.33803006085,
+              "candidate": 35648.38990241531
+            },
+            {
+              "baseline": 36604.11082102511,
+              "candidate": 35772.925764192136
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|1|1024",
+          "baseline": 38173.34575531164,
+          "candidate": 37890.84181522523,
+          "ratio": 0.9835013750484238,
+          "minRatio": 0.9824236817200256,
+          "maxRatio": 1.0185013876050906,
+          "pairs": [
+            {
+              "baseline": 37202.54314461166,
+              "candidate": 37890.84181522523
+            },
+            {
+              "baseline": 38568.738234084514,
+              "candidate": 37890.84181522523
+            },
+            {
+              "baseline": 38173.34575531164,
+              "candidate": 37543.53804054791
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|1|1024",
+          "baseline": 35371.329884563806,
+          "candidate": 36183.74557732318,
+          "ratio": 1.0106571935003783,
+          "minRatio": 0.9965694684718815,
+          "maxRatio": 1.0229681975603047,
+          "pairs": [
+            {
+              "baseline": 35992.970128678426,
+              "candidate": 36376.554175993086
+            },
+            {
+              "baseline": 35371.329884563806,
+              "candidate": 36183.74557732318
+            },
+            {
+              "baseline": 35249.56970197667,
+              "candidate": 35128.64494176143
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|1|1024",
+          "baseline": 47627.90697674418,
+          "candidate": 46178.128529317764,
+          "ratio": 0.9763513517493235,
+          "minRatio": 0.9695603158011055,
+          "maxRatio": 0.9906759905383478,
+          "pairs": [
+            {
+              "baseline": 47627.90697674418,
+              "candidate": 46178.128529317764
+            },
+            {
+              "baseline": 47243.36792566577,
+              "candidate": 46126.12613541441
+            },
+            {
+              "baseline": 48188.23529411764,
+              "candidate": 47738.927732294964
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|1|1024",
+          "baseline": 44473.39848279134,
+          "candidate": 43713.98079531602,
+          "ratio": 0.9904255321685304,
+          "minRatio": 0.9797225186104355,
+          "maxRatio": 1.0199335546166222,
+          "pairs": [
+            {
+              "baseline": 44618.73639213339,
+              "candidate": 43713.98079531602
+            },
+            {
+              "baseline": 44473.39848279134,
+              "candidate": 45359.91140043486
+            },
+            {
+              "baseline": 43995.70353330892,
+              "candidate": 43574.46808510638
+            }
+          ]
+        },
+        {
+          "case": "CrossBus|1|65536",
+          "baseline": 16862.90654548987,
+          "candidate": 16911.643270857152,
+          "ratio": 1.0028901734843758,
+          "minRatio": 0.9752535497199208,
+          "maxRatio": 1.0132890366200955,
+          "pairs": [
+            {
+              "baseline": 16786.88524590164,
+              "candidate": 17009.96677867177
+            },
+            {
+              "baseline": 16862.90654548987,
+              "candidate": 16911.643270857152
+            },
+            {
+              "baseline": 17038.269550326306,
+              "candidate": 16616.63286004057
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|1|65536",
+          "baseline": 16443.195504207182,
+          "candidate": 16215.360253747629,
+          "ratio": 0.9876592356933962,
+          "minRatio": 0.9861441013456747,
+          "maxRatio": 0.9964412811153056,
+          "pairs": [
+            {
+              "baseline": 16509.47198551545,
+              "candidate": 16305.732482915726
+            },
+            {
+              "baseline": 16443.195504207182,
+              "candidate": 16215.360253747629
+            },
+            {
+              "baseline": 16253.968253968253,
+              "candidate": 16196.124950191632
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|1|65536",
+          "baseline": 15943.94706074335,
+          "candidate": 15950.155762499453,
+          "ratio": 1.00038940807646,
+          "minRatio": 0.7542550014617612,
+          "maxRatio": 1.0271333071397446,
+          "pairs": [
+            {
+              "baseline": 15681.470136751888,
+              "candidate": 16106.960282375108
+            },
+            {
+              "baseline": 15943.94706074335,
+              "candidate": 15950.155762499453
+            },
+            {
+              "baseline": 16215.360253747629,
+              "candidate": 12230.516571893402
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|1|65536",
+          "baseline": 12129.108675697704,
+          "candidate": 15615.7072047802,
+          "ratio": 1.290408865239833,
+          "minRatio": 0.9685511045438203,
+          "maxRatio": 1.2969881813672046,
+          "pairs": [
+            {
+              "baseline": 12129.108675697704,
+              "candidate": 15651.509362577686
+            },
+            {
+              "baseline": 12039.97648484282,
+              "candidate": 15615.7072047802
+            },
+            {
+              "baseline": 15833.01120880125,
+              "candidate": 15335.08049453914
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|1|65536",
+          "baseline": 17123.745820251384,
+          "candidate": 12393.343419062028,
+          "ratio": 0.7149773071465082,
+          "minRatio": 0.6963609897760671,
+          "maxRatio": 1.3865511550568277,
+          "pairs": [
+            {
+              "baseline": 12186.849152254208,
+              "candidate": 16897.689768561395
+            },
+            {
+              "baseline": 17333.897586937637,
+              "candidate": 12393.343419062028
+            },
+            {
+              "baseline": 17123.745820251384,
+              "candidate": 11924.308588064046
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|1|65536",
+          "baseline": 17466.950959488273,
+          "candidate": 12322.503008202624,
+          "ratio": 0.7054753309139442,
+          "minRatio": 0.690779721291922,
+          "maxRatio": 0.9763681591315968,
+          "pairs": [
+            {
+              "baseline": 17392.781316348195,
+              "candidate": 16981.75787602132
+            },
+            {
+              "baseline": 17466.950959488273,
+              "candidate": 12322.503008202624
+            },
+            {
+              "baseline": 17579.3991416309,
+              "candidate": 12143.492439535246
+            }
+          ]
+        },
+        {
+          "case": "CrossBus|64|0",
+          "baseline": 144225.3520824067,
+          "candidate": 141241.3793103448,
+          "ratio": 0.9793103450331193,
+          "minRatio": 0.8327868854413268,
+          "maxRatio": 1.215447153796861,
+          "pairs": [
+            {
+              "baseline": 136989.96666441788,
+              "candidate": 166504.06508099358
+            },
+            {
+              "baseline": 144225.3520824067,
+              "candidate": 141241.3793103448
+            },
+            {
+              "baseline": 161259.84248184317,
+              "candidate": 134295.08196721313
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|64|0",
+          "baseline": 155741.44497280888,
+          "candidate": 137912.45782942537,
+          "ratio": 0.8619528612332196,
+          "minRatio": 0.7050938330754218,
+          "maxRatio": 1.0795454543017202,
+          "pairs": [
+            {
+              "baseline": 160000.0000372529,
+              "candidate": 137912.45782942537
+            },
+            {
+              "baseline": 143719.29824561402,
+              "candidate": 155151.5151164858
+            },
+            {
+              "baseline": 155741.44497280888,
+              "candidate": 109812.3324045827
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|64|0",
+          "baseline": 187889.90815413662,
+          "candidate": 183677.1301921257,
+          "ratio": 0.9403669719628419,
+          "minRatio": 0.7508417505410551,
+          "maxRatio": 0.977578476654771,
+          "pairs": [
+            {
+              "baseline": 199804.8780487805,
+              "candidate": 187889.90815413662
+            },
+            {
+              "baseline": 187889.90815413662,
+              "candidate": 183677.1301921257
+            },
+            {
+              "baseline": 183677.1301921257,
+              "candidate": 137912.45796781295
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|64|0",
+          "baseline": 151143.9114723575,
+          "candidate": 155741.44497280888,
+          "ratio": 0.9619771874191033,
+          "minRatio": 0.9033333331346513,
+          "maxRatio": 1.0608365028490379,
+          "pairs": [
+            {
+              "baseline": 161897.23312529782,
+              "candidate": 155741.44497280888
+            },
+            {
+              "baseline": 146810.0358109299,
+              "candidate": 155741.44497280888
+            },
+            {
+              "baseline": 151143.9114723575,
+              "candidate": 136533.33333333334
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|64|0",
+          "baseline": 173559.32185856032,
+          "candidate": 167183.67346938775,
+          "ratio": 1.0087336252440882,
+          "minRatio": 0.7788778890352898,
+          "maxRatio": 1.05714285616972,
+          "pairs": [
+            {
+              "baseline": 158146.71829229774,
+              "candidate": 167183.67346938775
+            },
+            {
+              "baseline": 177316.01736176995,
+              "candidate": 178864.62900718188
+            },
+            {
+              "baseline": 173559.32185856032,
+              "candidate": 135181.51823159188
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|64|0",
+          "baseline": 144734.98242360647,
+          "candidate": 156335.87793372784,
+          "ratio": 1.150406503616893,
+          "minRatio": 0.7469135797415778,
+          "maxRatio": 1.1946564895481813,
+          "pairs": [
+            {
+              "baseline": 130862.61975846633,
+              "candidate": 156335.87793372784
+            },
+            {
+              "baseline": 144734.98242360647,
+              "candidate": 166504.06508099358
+            },
+            {
+              "baseline": 169256.19843048308,
+              "candidate": 126419.75306316295
+            }
+          ]
+        },
+        {
+          "case": "CrossBus|64|1024",
+          "baseline": 156335.87793372784,
+          "candidate": 136533.33333333334,
+          "ratio": 0.8533333331346512,
+          "minRatio": 0.7727272719960689,
+          "maxRatio": 0.9492753610669051,
+          "pairs": [
+            {
+              "baseline": 156335.87793372784,
+              "candidate": 148405.7969732511
+            },
+            {
+              "baseline": 160000.0000372529,
+              "candidate": 136533.33333333334
+            },
+            {
+              "baseline": 150588.23536011588,
+              "candidate": 116363.63630452432
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|64|1024",
+          "baseline": 129620.25306675989,
+          "candidate": 126419.75317944697,
+          "ratio": 0.9811320765857043,
+          "minRatio": 0.9753086425317458,
+          "maxRatio": 0.9938271608572148,
+          "pairs": [
+            {
+              "baseline": 127204.96899119258,
+              "candidate": 126419.75317944697
+            },
+            {
+              "baseline": 129620.25306675989,
+              "candidate": 126419.75306316295
+            },
+            {
+              "baseline": 131282.05120681072,
+              "candidate": 128805.03151896897
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|64|1024",
+          "baseline": 159377.4319805419,
+          "candidate": 141730.10392315258,
+          "ratio": 0.889273356722526,
+          "minRatio": 0.8284789658121144,
+          "maxRatio": 1.0196078431372548,
+          "pairs": [
+            {
+              "baseline": 159377.4319805419,
+              "candidate": 141730.10392315258
+            },
+            {
+              "baseline": 157538.46153846156,
+              "candidate": 160627.45098039217
+            },
+            {
+              "baseline": 159999.9998509884,
+              "candidate": 132556.63440648533
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|64|1024",
+          "baseline": 134736.84221093345,
+          "candidate": 120470.58823529411,
+          "ratio": 0.9148936166743569,
+          "minRatio": 0.8941176463575923,
+          "maxRatio": 0.9507246380266937,
+          "pairs": [
+            {
+              "baseline": 124878.04873510175,
+              "candidate": 118724.63768115942
+            },
+            {
+              "baseline": 134736.84221093345,
+              "candidate": 120470.58823529411
+            },
+            {
+              "baseline": 136079.7342462159,
+              "candidate": 124498.48022060581
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|64|1024",
+          "baseline": 159377.4319805419,
+          "candidate": 169256.19822204392,
+          "ratio": 0.9958677688443948,
+          "minRatio": 0.8771331050383219,
+          "maxRatio": 1.2042553196562096,
+          "pairs": [
+            {
+              "baseline": 144734.98227118817,
+              "candidate": 174297.87234042553
+            },
+            {
+              "baseline": 169958.50605592836,
+              "candidate": 169256.19822204392
+            },
+            {
+              "baseline": 159377.4319805419,
+              "candidate": 139795.22178612667
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|64|1024",
+          "baseline": 146285.7142857143,
+          "candidate": 153408.23959763473,
+          "ratio": 1.048689137874456,
+          "minRatio": 0.7291066288360968,
+          "maxRatio": 1.1584905655878892,
+          "pairs": [
+            {
+              "baseline": 133420.195491547,
+              "candidate": 154566.03773584904
+            },
+            {
+              "baseline": 146285.7142857143,
+              "candidate": 153408.23959763473
+            },
+            {
+              "baseline": 161897.23312529782,
+              "candidate": 118040.34586187755
+            }
+          ]
+        },
+        {
+          "case": "CrossBus|64|65536",
+          "baseline": 29789.090909090908,
+          "candidate": 29215.406558328017,
+          "ratio": 0.9807417973071539,
+          "minRatio": 0.8780645162828506,
+          "maxRatio": 1.002158273467057,
+          "pairs": [
+            {
+              "baseline": 29404.16367300413,
+              "candidate": 29467.625899280578
+            },
+            {
+              "baseline": 29789.090909090908,
+              "candidate": 29215.406558328017
+            },
+            {
+              "baseline": 30095.517996197406,
+              "candidate": 26425.8064516129
+            }
+          ]
+        },
+        {
+          "case": "CrossBus + async hooks|64|65536",
+          "baseline": 28523.676881406787,
+          "candidate": 27920.927064300227,
+          "ratio": 0.9768234493767252,
+          "minRatio": 0.9122042339866211,
+          "maxRatio": 0.9842357780500721,
+          "pairs": [
+            {
+              "baseline": 28523.676881406787,
+              "candidate": 28074.023308220265
+            },
+            {
+              "baseline": 28583.39148401437,
+              "candidate": 27920.927064300227
+            },
+            {
+              "baseline": 27959.044368600684,
+              "candidate": 25504.35865125734
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact wire|64|65536",
+          "baseline": 28170.563960330746,
+          "candidate": 27234.042552112183,
+          "ratio": 0.9660904253747358,
+          "minRatio": 0.8914776211604787,
+          "maxRatio": 0.9746497664324895,
+          "pairs": [
+            {
+              "baseline": 28035.59206137649,
+              "candidate": 27324.883254417153
+            },
+            {
+              "baseline": 28189.951827282006,
+              "candidate": 27234.042552112183
+            },
+            {
+              "baseline": 28170.563960330746,
+              "candidate": 25113.427346104767
+            }
+          ]
+        },
+        {
+          "case": "CrossBus compact + hooks|64|65536",
+          "baseline": 26631.989594814837,
+          "candidate": 26172.52396166134,
+          "ratio": 0.9833865815077345,
+          "minRatio": 0.9071555293398433,
+          "maxRatio": 0.9909793815962262,
+          "pairs": [
+            {
+              "baseline": 26631.989594814837,
+              "candidate": 26391.75257934674
+            },
+            {
+              "baseline": 26614.684859268124,
+              "candidate": 26172.52396166134
+            },
+            {
+              "baseline": 26701.434158023778,
+              "candidate": 24222.353637755034
+            }
+          ]
+        },
+        {
+          "case": "birpc cached|64|65536",
+          "baseline": 28683.473392947482,
+          "candidate": 28683.47338696125,
+          "ratio": 0.9999999997913003,
+          "minRatio": 0.8981132074347082,
+          "maxRatio": 1.0305180980251174,
+          "pairs": [
+            {
+              "baseline": 28209.366387710586,
+              "candidate": 29070.262596357188
+            },
+            {
+              "baseline": 28683.473392947482,
+              "candidate": 28683.47338696125
+            },
+            {
+              "baseline": 28683.473392947482,
+              "candidate": 25761.006289308178
+            }
+          ]
+        },
+        {
+          "case": "Penpal cached + timeout|64|65536",
+          "baseline": 30521.609540714202,
+          "candidate": 30139.80868814267,
+          "ratio": 0.9778924097302528,
+          "minRatio": 0.9230769229667073,
+          "maxRatio": 0.9874908021458623,
+          "pairs": [
+            {
+              "baseline": 30866.616423873864,
+              "candidate": 30184.229914961412
+            },
+            {
+              "baseline": 30521.609540714202,
+              "candidate": 30139.80868814267
+            },
+            {
+              "baseline": 30476.1904748389,
+              "candidate": 28131.868127261565
+            }
+          ]
+        }
+      ],
+      "rates": [
+        {
+          "case": "CrossBus|1|0",
+          "rate": 39728.41901296605
+        },
+        {
+          "case": "CrossBus + async hooks|1|0",
+          "rate": 36408.88888888889
+        },
+        {
+          "case": "CrossBus compact wire|1|0",
+          "rate": 41001.0009985547
+        },
+        {
+          "case": "CrossBus compact + hooks|1|0",
+          "rate": 37820.867955209054
+        },
+        {
+          "case": "CrossBus compact v2|1|0",
+          "rate": 40474.3082932437
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|1|0",
+          "rate": 37372.262765592845
+        },
+        {
+          "case": "birpc cached|1|0",
+          "rate": 49408.926413817855
+        },
+        {
+          "case": "Penpal cached + timeout|1|0",
+          "rate": 46126.126119933935
+        },
+        {
+          "case": "CrossBus|1|1024",
+          "rate": 38031.56916731608
+        },
+        {
+          "case": "CrossBus + async hooks|1|1024",
+          "rate": 34919.01108801706
+        },
+        {
+          "case": "CrossBus compact wire|1|1024",
+          "rate": 37474.839896341284
+        },
+        {
+          "case": "CrossBus compact + hooks|1|1024",
+          "rate": 35371.329884563806
+        },
+        {
+          "case": "CrossBus compact v2|1|1024",
+          "rate": 38244.631187936095
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|1|1024",
+          "rate": 34889.267459898154
+        },
+        {
+          "case": "birpc cached|1|1024",
+          "rate": 47080.45977011494
+        },
+        {
+          "case": "Penpal cached + timeout|1|1024",
+          "rate": 42935.01047949777
+        },
+        {
+          "case": "CrossBus|1|65536",
+          "rate": 16576.28490329741
+        },
+        {
+          "case": "CrossBus + async hooks|1|65536",
+          "rate": 16234.64130119024
+        },
+        {
+          "case": "CrossBus compact wire|1|65536",
+          "rate": 15808.568120780496
+        },
+        {
+          "case": "CrossBus compact + hooks|1|65536",
+          "rate": 15346.571749376273
+        },
+        {
+          "case": "CrossBus compact v2|1|65536",
+          "rate": 15031.19266055046
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|1|65536",
+          "rate": 15221.10739535758
+        },
+        {
+          "case": "birpc cached|1|65536",
+          "rate": 16650.406504065042
+        },
+        {
+          "case": "Penpal cached + timeout|1|65536",
+          "rate": 17224.558451617606
+        },
+        {
+          "case": "CrossBus|64|0",
+          "rate": 147870.03616472014
+        },
+        {
+          "case": "CrossBus + async hooks|64|0",
+          "rate": 134295.08196721313
+        },
+        {
+          "case": "CrossBus compact wire|64|0",
+          "rate": 179649.12271308838
+        },
+        {
+          "case": "CrossBus compact + hooks|64|0",
+          "rate": 149489.05122496703
+        },
+        {
+          "case": "CrossBus compact v2|64|0",
+          "rate": 167183.67346938775
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|64|0",
+          "rate": 152835.82082753937
+        },
+        {
+          "case": "birpc cached|64|0",
+          "rate": 164497.9919284946
+        },
+        {
+          "case": "Penpal cached + timeout|64|0",
+          "rate": 134736.8420788456
+        },
+        {
+          "case": "CrossBus|64|1024",
+          "rate": 126419.75306316295
+        },
+        {
+          "case": "CrossBus + async hooks|64|1024",
+          "rate": 118724.63768115942
+        },
+        {
+          "case": "CrossBus compact wire|64|1024",
+          "rate": 137449.66451200642
+        },
+        {
+          "case": "CrossBus compact + hooks|64|1024",
+          "rate": 121183.43201677303
+        },
+        {
+          "case": "CrossBus compact v2|64|1024",
+          "rate": 144225.3520824067
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|64|1024",
+          "rate": 118381.50291056672
+        },
+        {
+          "case": "birpc cached|64|1024",
+          "rate": 141730.10377699733
+        },
+        {
+          "case": "Penpal cached + timeout|64|1024",
+          "rate": 117701.14938496819
+        },
+        {
+          "case": "CrossBus|64|65536",
+          "rate": 29767.441861754563
+        },
+        {
+          "case": "CrossBus + async hooks|64|65536",
+          "rate": 28287.292815350753
+        },
+        {
+          "case": "CrossBus compact wire|64|65536",
+          "rate": 27397.99331103679
+        },
+        {
+          "case": "CrossBus compact + hooks|64|65536",
+          "rate": 26614.684864421986
+        },
+        {
+          "case": "CrossBus compact v2|64|65536",
+          "rate": 27270.30625507569
+        },
+        {
+          "case": "CrossBus compact v2 + hooks|64|65536",
+          "rate": 26876.640418896342
+        },
+        {
+          "case": "birpc cached|64|65536",
+          "rate": 29531.362655746514
+        },
+        {
+          "case": "Penpal cached + timeout|64|65536",
+          "rate": 30408.31477626203
+        }
+      ]
+    }
+  ]
+}

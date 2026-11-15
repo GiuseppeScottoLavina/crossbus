@@ -58,7 +58,7 @@ export async function runBrowserSuite(otherOrigin) {
         await fn();
         cases.push({ name, passed: true, elapsedMs: performance.now() - start });
     };
-    for (const wireFormat of ['standard', 'compact'])
+    for (const wireFormat of ['standard', 'compact', 'compact-v2'])
         await run(wireFormat + ' RPC, graph cloning, async hooks and handler guards', async () => {
             const p = pair({ wireFormat });
             let protectedCalls = 0,

@@ -1,6 +1,6 @@
-# 0.1.6 development optimization
+# 0.1.6 development optimization — snapshot before RPC v2
 
-Version 0.1.6 is unpublished. This study compares its frozen candidate with the exact published 0.1.5 minified runtime, SHA-256 `a03f24df92d7d7ea94676720cc986975618985deb8c8b07b4e8e3d33f9bfa9e9`. The baseline comes from the registry/CI-identical archive recorded in [RELEASING.md](RELEASING.md). The 0.1.5 tag and archive remain unchanged.
+Version 0.1.6 is unpublished. This historical snapshot precedes the [RPC v2 update](RPC_WIRE_V2.md); its measurements and functional receipts apply to the frozen runtime identified below. This study compares its frozen candidate with the exact published 0.1.5 minified runtime, SHA-256 `a03f24df92d7d7ea94676720cc986975618985deb8c8b07b4e8e3d33f9bfa9e9`. The baseline comes from the registry/CI-identical archive recorded in [RELEASING.md](RELEASING.md). The 0.1.5 tag and archive remain unchanged.
 
 ## Changes and boundaries
 

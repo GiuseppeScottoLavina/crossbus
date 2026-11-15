@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.6] - Unreleased
 
+- Add opt-in MessageChannel `compact-v2` encoding with numeric tags and constant-field omission for successful responses, reconstructing the original protocol fields. Both endpoints must support the decoder; default standard encoding and compact-v1 compatibility remain available.
+- Route standard MessageChannel objects directly to protocol validation, avoiding the compact-array decoder call. Retain paired-process and within-process RPC comparisons, controls, rejected prototypes and Worker follow-up evidence in docs/RPC_WIRE_V2.md.
+
 - Accelerate the Node base64 stream fallback using the existing Buffer global, preserving canonical chunks, strict atob decoding, exact owned storage and standard typed-array codec precedence.
 - Store queued stream data and captured byte charges in one FIFO; remove redundant private async wrappers while preserving public promise/error/cancellation behavior.
 - Retain the RPC implementation and core runtime after rejecting small bundle reductions with unfavorable measured RPC tradeoffs.

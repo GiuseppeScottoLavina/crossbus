@@ -1,5 +1,7 @@
 # Reproducible performance measurements
 
+The newer [compact-v2 RPC study](RPC_WIRE_V2.md) records repeated within-process format comparisons, separate existing-codec controls and Worker follow-up data against the earlier unpublished 0.1.6 snapshot.
+
 For the unpublished 0.1.6 candidate, see the [separate optimization study](OPTIMIZATION_016.md), including its frozen 0.1.5 baseline, raw samples, source snapshots and offline verifiers.
 
 Run after building, with other benchmark/test workloads stopped:
