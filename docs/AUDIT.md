@@ -1,5 +1,9 @@
 # Local audit
 
+## 0.1.6 publication record
+
+On 15 November 2026, npm **0.1.6** and its `latest` tag were verified against the exact archive from [CI 43702995538](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43702995538), source commit `fe5df57a6123141efe9cfe33414a29a21fcd4ef5`. The downloaded registry tarball matches that archive byte for byte, SHA-256 `7c75d12a4e11622ea37b8d50ada5a9c54155320f52329f88b16e9bb222b7bd49`, and a local `npm pack` of the same commit reproduces it. Isolated registry consumers passed on Node 18.18.0, 20.20.0, 22.19.0 and 24.15.0, including all 12 exports, ESM/CommonJS/minified RPC, standard/compact/compact-v2 MessageChannel RPC and bounded binary streams. The jsDelivr copy of `dist/crossbus.min.js` matches the archive. The [GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.6) preserves the archive, checksum and release manifest. This publication record is separate from the qualification below and does not broaden its measured scope.
+
 ## 0.1.6 release qualification
 
 The evidence for the 0.1.6 runtime is the [compact-v2 study](RPC_WIRE_V2.md#functional-qualification): **1,269 tests across 88 files** (1,225 unit/package/browser/integration/documentation tests plus 44 experimental tests), source line coverage **96.25% (5,060/5,257)** against the 90% gate, and an eleven-case focused browser suite in Chrome, Firefox and desktop Safari. The earlier [optimization snapshot](OPTIMIZATION_016.md) covers the Node base64 stream fallback.

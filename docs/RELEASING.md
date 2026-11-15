@@ -1,14 +1,24 @@
 # Releasing CrossBus
 
-## 0.1.5 publication — 14 November 2026
+## 0.1.6 publication — 15 November 2026
 
-Version **0.1.5 is [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.5)** and is the `latest` tag. Its registry tarball was downloaded and compared byte for byte with the archive from [CI 43585215006](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43585215006), which passed all seven jobs, including packaged consumers on Node 18/20/22/24. The same registry version passed isolated consumers on Node 18.20.8 and 24.15.0, covering all 12 exports, declaration-file inclusion, ESM/CommonJS/minified RPC and base64/native flow streams.
+Version **0.1.6 is [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.6)** and is the `latest` tag. Its registry tarball was downloaded and compared byte for byte with the archive from [CI 43702995538](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43702995538), which passed all seven jobs, including packaged consumers on Node 18/20/22/24. A local `npm pack` of the same commit reproduces the archive exactly. The registry version passed isolated consumers on Node 18.18.0, 20.20.0, 22.19.0 and 24.15.0, covering all 12 exports, ESM/CommonJS/minified RPC, standard/compact/compact-v2 MessageChannel RPC and bounded binary streams.
+
+Annotated tag **`v0.1.6`** pins tested source commit `fe5df57a6123141efe9cfe33414a29a21fcd4ef5`. The [GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.6) preserves `crossbus-0.1.6.tgz`, `SHA256SUMS` and `release-manifest.json`. Its archive SHA-256 is `7c75d12a4e11622ea37b8d50ada5a9c54155320f52329f88b16e9bb222b7bd49`; registry integrity is `sha512-ANlu1j2w84wbc/za4Ym33WOO3UaE3zjUcF8uQlHyQfOenNB295HwPlitdAGThT2LEOwmDezRARMUbIdCor6njQ==`. Later publication-documentation commits do not replace that tag or those bytes.
+
+The native adapters are unchanged from 0.1.5; CocoaPods and Maven Central are not published by this npm release. The physical iPad/Pixel receipts cover 0.1.5 only.
+
+## Earlier publication records
+
+### 0.1.5 — 14 November 2026
+
+Version **0.1.5 is [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.5)**. Its registry tarball was downloaded and compared byte for byte with the archive from [CI 43585215006](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43585215006), which passed all seven jobs, including packaged consumers on Node 18/20/22/24. The same registry version passed isolated consumers on Node 18.20.8 and 24.15.0, covering all 12 exports, declaration-file inclusion, ESM/CommonJS/minified RPC and base64/native flow streams.
 
 Annotated tag **`v0.1.5`** pins tested source commit `1114ea83cfaff39cdf074ee5ff2812b032c64971`. The [GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.5) preserves `crossbus-0.1.5.tgz`, `SHA256SUMS` and `release-manifest.json`. Its archive SHA-256 is `093d973dfd7393cb2895335fb4a656e54292342bbf52d2926772d4cd9cc612aa`; registry integrity is `sha512-ViUYR9RIqJRu5ir36XZZYQNhutftKG1JUkYrrc1qAVKNspcKaHL5qbNLDBWfpGjemKb07A9ateKjc0/0b3hQ/g==`. Later publication-documentation commits do not replace that tag or those bytes. The archive's documentation describes the qualified release; the live publication record is maintained here after registry verification.
 
-CocoaPods and Maven Central are not published by this npm release. SwiftPM source is available at the versioned Git tag; the Android AAR can be built locally using the included configuration.
+CocoaPods and Maven Central are not published by that npm release. SwiftPM source is available at the versioned Git tag; the Android AAR can be built locally using the included configuration.
 
-## Earlier publication records
+### 0.1.4 and earlier
 
 Version **0.1.4 is [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.4)**. Its reported registry integrity was verified on 13 November 2026 against the exact CI archive attached to the GitHub release. Publishing a GitHub release and publishing to npm are separate operations; creating a tag alone does not publish a package.
 

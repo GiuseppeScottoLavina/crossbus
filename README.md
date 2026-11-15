@@ -333,7 +333,7 @@ CrossBus is pre-1.0. Read the [changelog](CHANGELOG.md) before upgrading. Wire f
 
 | Version | Status | Main changes | Evidence |
 |---|---|---|---|
-| [0.1.6](https://www.npmjs.com/package/crossbus/v/0.1.6) | Current release ([publication record](docs/RELEASING.md)) | Opt-in `compact-v2` MessageChannel RPC (0.1.6+ receivers); faster Node base64 streams | [compact-v2 study](docs/RPC_WIRE_V2.md), [optimization snapshot](docs/OPTIMIZATION_016.md), [audit](docs/AUDIT.md) |
+| [0.1.6](https://www.npmjs.com/package/crossbus/v/0.1.6) | npm `latest` ([publication record](docs/RELEASING.md)) | Opt-in `compact-v2` MessageChannel RPC (0.1.6+ receivers); faster Node base64 streams | [compact-v2 study](docs/RPC_WIRE_V2.md), [optimization snapshot](docs/OPTIMIZATION_016.md), [audit](docs/AUDIT.md) |
 | [0.1.5](https://www.npmjs.com/package/crossbus/v/0.1.5) | Published | Bounded streams with flow control; shared RPC timeout timer; native SDK packaging | [release comparison](docs/NEXT_RELEASE.md), [qualification](docs/QUALIFICATION.md), [publication record](docs/RELEASING.md) |
 | [0.1.4](https://www.npmjs.com/package/crossbus/v/0.1.4) | Published | Pooled browser UUIDs; serializer and transfer fixes | [Worker RPC study](docs/WORKER_RPC.md) |
 | [0.1.3](https://www.npmjs.com/package/crossbus/v/0.1.3) | Published | Opt-in compact encoding; WebSocket and stream fixes | [competitor study](docs/COMPETITOR_ANALYSIS.md), [RPC grouping prototype](docs/RPC_BATCHING.md) |
