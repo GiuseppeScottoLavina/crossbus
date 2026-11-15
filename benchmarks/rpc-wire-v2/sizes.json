@@ -1,0 +1,50 @@
+{
+  "gzipLevel": 9,
+  "results": [
+    {
+      "file": "crossbus.js",
+      "baseline": {
+        "rawBytes": 271391,
+        "gzipBytes": 57323,
+        "brotliBytes": 47018,
+        "sha256": "99c10518dd85dc4c495ecee19ff071df2ab1a2d26d5f9c1c10ce256c58ab4d07"
+      },
+      "candidate": {
+        "rawBytes": 273430,
+        "gzipBytes": 57709,
+        "brotliBytes": 47382,
+        "sha256": "20e0bc9b0900b103576f7daf828e34b2ffbac4dfc0930ed4741c7d8828562db7"
+      }
+    },
+    {
+      "file": "crossbus.min.js",
+      "baseline": {
+        "rawBytes": 73307,
+        "gzipBytes": 22050,
+        "brotliBytes": 19559,
+        "sha256": "f96eae45eed69fe2ecca25595a4242dc2be0411f84400a0a04331879ef5cddc1"
+      },
+      "candidate": {
+        "rawBytes": 74185,
+        "gzipBytes": 22267,
+        "brotliBytes": 19773,
+        "sha256": "a7c8cb0d5d98f23d7b15a539414a721a4ae330b573d86e2394f07a8d1ddfcdf7"
+      }
+    },
+    {
+      "file": "nano.min.js",
+      "baseline": {
+        "rawBytes": 535,
+        "gzipBytes": 331,
+        "brotliBytes": 315,
+        "sha256": "20131cf41a41f0bc084606c5028301cffc87b6e7345c475c7aa3005b1d3a5b70"
+      },
+      "candidate": {
+        "rawBytes": 535,
+        "gzipBytes": 331,
+        "brotliBytes": 315,
+        "sha256": "20131cf41a41f0bc084606c5028301cffc87b6e7345c475c7aa3005b1d3a5b70"
+      }
+    }
+  ]
+}

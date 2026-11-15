@@ -47,3 +47,8 @@ describe('README executable examples', () => {
         } finally { await page.close(); }
     }, 15000);
 });
+
+it('runs the development compact-v2 example against the checkout package', async () => {
+    const {stdout,stderr}=await promisify(execFile)('node',[fileURLToPath(new URL('examples/quickstart/rpc-compact-v2.mjs',root))],{timeout:5000});
+    expect(stdout.trim()).toBe('5');expect(stderr).toBe('');
+});

@@ -6,7 +6,7 @@ Signals and request/response messaging for browser windows, iframes, workers, ta
 
 [API](docs/API.md) · [Getting started](docs/GETTING_STARTED.md) · [Benchmarks](docs/BENCHMARKS.md) · [Competitor study](docs/COMPETITOR_ANALYSIS.md) · [Native bridges](native/README.md) · [Security](SECURITY.md)
 
-Development toward **0.1.6** improves the measured Node base64 stream workload by **2.85–3.16x** against 0.1.5 in three process pairs, with mixed RPC results and +47 bytes for the whole minified gzip bundle. See the [complete optimization report](docs/OPTIMIZATION_016.md) for workloads, regressions and limits. It is not published; retained physical iPad/Pixel qualification applies to 0.1.5.
+Unpublished **0.1.6 development** includes the [Node base64 optimization snapshot](docs/OPTIMIZATION_016.md) and a newer opt-in [compact-v2 RPC encoding](docs/RPC_WIRE_V2.md). The studies retain exact builds, controls, gains and regressions. npm 0.1.5 does not support compact-v2; physical iPad/Pixel receipts remain scoped to 0.1.5.
 
 ## Run your first request
 

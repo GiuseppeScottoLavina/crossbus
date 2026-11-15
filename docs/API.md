@@ -153,9 +153,26 @@ Refer to [architecture](ARCHITECTURE.md), [integration patterns](ADVANCED.md), [
 
 ## Compact MessageChannel encoding
 
-`new MessageChannelTransport({ wireFormat: 'compact' })` and `MessageChannelTransport.fromPort(port, { wireFormat: 'compact' })` select a versioned array encoding for ordinary signals and RPC. `transport.wireFormat` reports the outgoing format. Both receivers must support compact packets (CrossBus 0.1.3+); there is no automatic capability negotiation. The default is `'standard'`, including communication with 0.1.2.
+The default is `'standard'`. `transport.wireFormat` reports the selected outgoing format; updated receivers accept standard and both compact versions.
 
-The receiver reconstructs the same protocol-v1 envelope before applying payload limits, validation hooks, handler permissions and response-peer matching. Transfer lists retain their ownership behavior. Messages with extension fields, custom metadata or other protocol shapes use the standard object encoding. Compact mode requires the default content type. The application data graph is structured-cloned, including cycles. Compact mode reconstructs wrapper objects; raw transport code that depends on reference identity between application data and envelope/payload-wrapper objects should use standard mode. This option reduces serialization work; it does not remove security checks or guarantee a speedup for every payload/runtime. See [the competitor study](COMPETITOR_ANALYSIS.md).
+| Outgoing format | Required receiver | Boundary |
+|---|---|---|
+| `standard` | Includes 0.1.2 | Default object envelope |
+| `compact` | 0.1.3+ | Original tagged-array encoding |
+| `compact-v2` | 0.1.6+ | Numeric message tags; successful replies omit constants reconstructed by the decoder |
+
+Version 0.1.6 is still unpublished; npm 0.1.5 does not support `compact-v2`. Use the development checkout example below until release. Configure matching decoder support on the receiving endpoints before selecting a compact format; capability negotiation and silent downgrade are not provided.
+
+```js
+const channel = new MessageChannelTransport({ wireFormat: 'compact-v2' });
+const remote = MessageChannelTransport.fromPort(channel.remotePort, { wireFormat: 'compact-v2' });
+```
+
+This snippet only constructs the transport pair. Run the [complete development example](../examples/quickstart/rpc-compact-v2.mjs) from a built checkout to connect both buses, register a handler, perform RPC and close both endpoints.
+
+Both compact modes reconstruct the same protocol-v1 fields, including IDs, timestamps, source/destination and success/error values, before applying payload limits, hooks, permissions and response-peer matching. Transfer lists retain their ownership behavior. Extensions, custom metadata and other message shapes use the standard object fallback. Compact modes require the exact default `contentType: 'application/json'`, which uses structured clone. Application data graphs retain structured-clone behavior, including cycles. Wrapper objects are reconstructed; raw transport code relying on reference identity between application data and envelope/payload wrappers should use standard mode.
+
+See [the RPC v2 study](RPC_WIRE_V2.md) for measured gains, regressions and compatibility limits. A compact format does not guarantee a speedup for every payload or runtime.
 
 ## Transport origin labels
 

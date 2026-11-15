@@ -19,6 +19,8 @@ Use `hub.handle(name, handler)` for RPC, `hub.request(peerId, name, data)` for a
 
 `addTransport()` binds a transport to one known peer and returns a cleanup function. Window transports must use exact `targetOrigin` and `allowedOrigins`; the actual event origin is checked by the bus. MessageChannel, BroadcastChannel, SharedWorker and ServiceWorker report the fixed labels `channel`, `broadcast`, `sharedworker` and `serviceworker`; include the matching label in the bus allowlist. The `origin` option is only a fallback when a transport supplies no origin (for example native/WebSocket adapters); choose an explicit application trust label there. `destroy()` closes attached transports and cancels requests. A manually supplied `handleMessage(message, origin, peerId)` must use an authenticated channel identity, never a peer ID taken from an untrusted payload.
 
+MessageChannel defaults to standard object encoding. Optional `wireFormat: 'compact'` requires 0.1.3+ receivers; `compact-v2` requires 0.1.6+ receivers. The latter is development-only until 0.1.6 is published. There is no automatic negotiation or downgrade. See `docs/RPC_WIRE_V2.md` for scope and measurements.
+
 The native JavaScript transport requires a native host. See `native/README.md` for Swift WKWebView and Java AndroidX adapters. A native build check is separate from runtime verification on iOS/Android.
 
 Use `VectorClock` and `CausalOrderer` as explicit utilities; CrossBus does not automatically provide causal delivery. Presence and streaming likewise require their managers to be wired into the application's message handling. SharedWorker and ServiceWorker transports do not by themselves persist data or implement offline delivery.

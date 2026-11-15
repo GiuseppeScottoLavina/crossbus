@@ -88,7 +88,7 @@ await local.emit('tick', 42);
 assert.equal(delivered.data, 42);
 assert.match(delivered.messageId, /^[0-9a-f-]{36}$/);
 for (const entry of ['./dist/crossbus.js', './dist/crossbus.min.js', './dist/crossbus.cjs'])
-    for (const wireFormat of ['standard', 'compact']) {
+    for (const wireFormat of ['standard', 'compact', 'compact-v2']) {
         const lib = entry.endsWith('.cjs')
             ? require(resolve(root, entry))
             : await import(pathToFileURL(resolve(root, entry)).href);
@@ -102,9 +102,13 @@ for (const entry of ['./dist/crossbus.js', './dist/crossbus.min.js', './dist/cro
             origin: 'channel'
         });
         const { withSchemaValidation } = await import('crossbus/plugins/schema-validation');
+        let protectedCalls = 0;
         b.handle(
             'echo',
-            withSchemaValidation({ type: 'object', required: ['value'] }, (payload) => payload)
+            withSchemaValidation({ type: 'object', required: ['value'] }, (payload) => {
+                protectedCalls++;
+                return payload;
+            })
         );
         try {
             assert.deepEqual(
@@ -115,6 +119,7 @@ for (const entry of ['./dist/crossbus.js', './dist/crossbus.min.js', './dist/cro
                 a.request('b', 'echo', {}, { timeout: 1000 }),
                 (error) => error.code === 'ERR_INVALID_PAYLOAD'
             );
+            assert.equal(protectedCalls, 1, 'Rejected schema payload executed the protected handler');
         } finally {
             a.destroy();
             b.destroy();
@@ -132,6 +137,7 @@ console.log(
         commonjs: true,
         minifiedRpc: true,
         compactRpc: true,
+        compactV2Rpc: true,
         schemaValidation: true,
         nativeSources: true,
         nativeSdkConfiguration: true,
