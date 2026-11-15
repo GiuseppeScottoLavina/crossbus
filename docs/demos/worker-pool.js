@@ -8,6 +8,10 @@ const trace = new BusTrace($('#trace'), { lanes: [{ id: 'main', label: 'main' }]
 const cores = Math.max(1, navigator.hardwareConcurrency || 4);
 const TILE = 80;
 const HOME = { cx: -0.62, cy: 0, span: 3.1 };
+// The renderer works in 64-bit floats. Near |z| = 2 adjacent doubles are
+// 2^-51 apart; below about 64 of those per pixel, neighbouring pixels round
+// to the same point and the image breaks into blocks, so zoom stops here.
+const MIN_SCALE = 2 ** -45;
 
 const state = {
     workers: Math.min(4, cores),
@@ -61,6 +65,7 @@ function sizeCanvas() {
         canvas.width = width;
         canvas.height = height;
     }
+    state.view.span = Math.max(state.view.span, MIN_SCALE * canvas.width);
     state.view.scale = state.view.span / canvas.width;
 }
 
@@ -186,8 +191,15 @@ function zoom(factor, px = canvas.width / 2, py = canvas.height / 2) {
     const { view } = state;
     view.cx += (px - canvas.width / 2) * view.scale;
     view.cy += (py - canvas.height / 2) * view.scale;
-    view.span = Math.min(HOME.span * 1.5, view.span * factor);
-    $('#coords').textContent = `centre ${view.cx.toFixed(6)} ${view.cy >= 0 ? '+' : '−'} ${Math.abs(view.cy).toFixed(6)}i · width ${view.span.toPrecision(3)}`;
+    const minSpan = MIN_SCALE * canvas.width;
+    view.span = Math.min(HOME.span * 1.5, Math.max(minSpan, view.span * factor));
+    const deepest = view.span <= minSpan * 1.0001;
+    // Enough decimals to tell this view from its neighbour.
+    const digits = Math.min(16, Math.max(6, Math.ceil(-Math.log10(view.span)) + 3));
+    $('#coords').textContent = `centre ${view.cx.toFixed(digits)} ${view.cy >= 0 ? '+' : '−'} ${Math.abs(view.cy).toFixed(digits)}i · width ${view.span.toPrecision(3)}`
+        + (deepest ? ' · deepest zoom 64-bit floats can draw' : '');
+    $('#zoom-in').disabled = deepest;
+    canvas.dataset.deepest = String(deepest);
     render();
 }
 

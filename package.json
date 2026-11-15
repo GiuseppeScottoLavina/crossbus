@@ -1,7 +1,7 @@
 {
     "name": "crossbus",
     "version": "0.1.7",
-    "description": "Modern cross-context messaging for browsers - iframes, workers, tabs, and native bridges",
+    "description": "Signals, RPC and bounded streams between browser windows, iframes, Web Workers, tabs and native WebViews: one API over postMessage, MessageChannel, BroadcastChannel and WebSocket",
     "type": "module",
     "main": "dist/crossbus.cjs",
     "module": "dist/crossbus.js",
@@ -123,12 +123,26 @@
     "keywords": [
         "postmessage",
         "iframe",
+        "web-worker",
         "worker",
         "service-worker",
+        "shared-worker",
+        "broadcast-channel",
+        "message-channel",
+        "rpc",
+        "pubsub",
+        "event-bus",
+        "event-emitter",
         "messaging",
         "cross-origin",
-        "pub-sub",
-        "event-emitter",
+        "micro-frontends",
+        "webview",
+        "wkwebview",
+        "android-webview",
+        "websocket",
+        "streams",
+        "encryption",
+        "typescript",
         "browser"
     ],
     "author": "Giuseppe Scotto Lavina",
@@ -140,7 +154,7 @@
     "bugs": {
         "url": "https://github.com/giuseppescottolavina/crossbus/issues"
     },
-    "homepage": "https://github.com/giuseppescottolavina/crossbus#readme",
+    "homepage": "https://giuseppescottolavina.github.io/crossbus/",
     "devDependencies": {
         "@eslint/js": "^10.0.1",
         "@rollup/plugin-terser": "^1.0.0",

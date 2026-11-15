@@ -77,9 +77,16 @@ describe('live demos on the Pages source', () => {
             generation = await rendered(generation);
             expect(await page.$eval('#src-worker pre', el => el.textContent)).toContain("bus.handle('tile'");
             await page.click('input[name="runon"][value="main"]');
-            await rendered(generation);
+            generation = await rendered(generation);
             expect(await page.$eval('#r-by', el => el.textContent)).toBe('Main thread');
             expect(Number(await page.$eval('#trace .k-req b', el => el.textContent))).toBeGreaterThan(0);
+            // Zoom stops before 64-bit floats run out, instead of drawing blocks.
+            for (let i = 0; i < 60 && !(await page.$eval('#zoom-in', el => el.disabled)); i++) await page.click('#zoom-in');
+            expect(await page.$eval('#zoom-in', el => el.disabled)).toBe(true);
+            expect(await page.$eval('#coords', el => el.textContent)).toContain('deepest zoom');
+            expect(await page.$eval('#fractal', el => el.dataset.deepest)).toBe('true');
+            await page.click('#reset');
+            expect(await page.$eval('#zoom-in', el => el.disabled)).toBe(false);
         } finally { await page.close(); }
     }, 60000);
 

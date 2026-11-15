@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - Add live demos to the GitHub Pages site (`docs/demos/`): a fractal rendered across Web Workers with request/response, tabs kept in sync over BroadcastChannel, and an encrypted channel whose replay, forgery and tampering attempts are refused. Each page draws a live trace of the real envelopes it sends and shows the source it runs. A Chrome test runs every demo from the Pages folder alone. The build also copies `dist/plugins/encryption.min.js` into `docs/assets/plugins/`.
+- The worker-pool demo stops zooming in at about 2.8e-14 per pixel. Past that depth 64-bit floats cannot tell neighbouring pixels apart and the image broke into blocks. The `+` button is then disabled and the caption says why.
+- Pages site discoverability: add a sitemap, canonical URLs, Open Graph and Twitter cards with a social image (`docs/og-card.png`) and JSON-LD on the home page. Documentation pages now take their title and description from the document they show. The orphaned `site.html` redirects to the home page, and unused images that still showed the project's former name were removed. In `package.json`, `homepage` now points to the Pages site, the keywords are broader and the description matches the README. npm shows these from the next release.
 
 ## [0.1.7] - 2026-11-15
 

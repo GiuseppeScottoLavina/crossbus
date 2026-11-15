@@ -7,6 +7,15 @@
     <title>CrossBus — Documentation</title>
     <meta name="description" content="CrossBus documentation and API reference.">
     <link rel="icon" type="image/png" href="favicon.png">
+    <meta property="og:site_name" content="CrossBus">
+    <meta property="og:title" content="CrossBus documentation">
+    <meta property="og:description" content="CrossBus documentation and API reference.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://giuseppescottolavina.github.io/crossbus/og-card.png">
+    <meta property="og:image:width" content="1280">
+    <meta property="og:image:height" content="640">
+    <meta property="og:image:alt" content="CrossBus: signals, RPC and streams across browser contexts">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
@@ -471,6 +480,21 @@
                 const content = document.getElementById('content');
                 content.innerHTML = marked.parse(md);
                 rewriteDocumentationLinks(content);
+
+                // Per-document title, description and canonical URL for search engines.
+                const heading = content.querySelector('h1')?.textContent.trim();
+                if (heading) document.title = `${heading} — CrossBus docs`;
+                const summary = [...content.querySelectorAll('p')].map(p => p.textContent.trim().replace(/\s+/g, ' ')).find(text => text.length > 60);
+                if (summary) {
+                    const text = summary.length > 160 ? summary.slice(0, summary.lastIndexOf(' ', 157)) + '…' : summary;
+                    document.querySelector('meta[name="description"]').content = text;
+                    document.querySelector('meta[property="og:description"]').content = text;
+                }
+                const canonical = document.createElement('link');
+                canonical.rel = 'canonical';
+                canonical.href = `https://giuseppescottolavina.github.io/crossbus/doc.html?file=${file}`;
+                document.head.appendChild(canonical);
+                document.querySelector('meta[property="og:title"]').content = document.title;
 
                 // Add IDs to headings and build TOC
                 const headings = content.querySelectorAll('h2, h3');
