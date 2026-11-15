@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Secure channel — CrossBus demos</title>
+    <meta name="description" content="Replay, forge and tamper with encrypted CrossBus RPC on a visible wire, and see each attempt refused.">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Schibsted+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="demo.css">
+</head>
+<body data-encrypted="true">
+    <header class="topbar">
+        <div class="wrap">
+            <a class="brand" href="./"><img src="../logo-400.png" alt="">CrossBus <small>demos</small></a>
+            <nav class="demo-nav" aria-label="Demos">
+                <a href="worker-pool.html">Worker pool</a>
+                <a href="tabs.html">Tabs in sync</a>
+                <a href="secure-channel.html" aria-current="page">Secure channel</a>
+            </nav>
+            <a class="version" href="https://www.npmjs.com/package/crossbus">npm</a>
+        </div>
+    </header>
+
+    <main class="wrap">
+        <div class="page-head">
+            <ul class="eyebrow" aria-label="Uses">
+                <li>withEncryption</li><li>AES-256-GCM</li><li>request / handle</li><li>hooks</li>
+            </ul>
+            <h1>Try to break an encrypted channel</h1>
+            <p class="lede">A client and a server exchange RPC over a wire this page controls. You play the attacker: you can read, copy, change and inject envelopes, but you do not have the key. Turn encryption off to see the same attacks succeed.</p>
+        </div>
+
+        <div class="bench">
+            <div class="surface stage">
+                <div class="channel">
+                    <section class="endpoint" aria-label="Client">
+                        <h2 class="panel-title">Client</h2>
+                        <div class="btn-row stack">
+                            <button class="btn" id="pay" type="button">Send €25 to Alex</button>
+                            <button class="btn ghost" id="check" type="button">Check balance</button>
+                        </div>
+                        <p class="result" id="client-result" role="status" aria-live="polite">Connecting…</p>
+                    </section>
+
+                    <section class="wire-col" aria-label="Wire">
+                        <div class="wire-head">
+                            <h2 class="panel-title">On the wire</h2>
+                            <span class="mode" id="mode">Encrypted with AES-256-GCM</span>
+                        </div>
+                        <ol class="wire" id="wire" reversed></ol>
+                        <p class="empty" id="wire-empty">Envelopes appear here as they travel. Open one to see the full message.</p>
+                    </section>
+
+                    <section class="endpoint" aria-label="Server">
+                        <h2 class="panel-title">Server</h2>
+                        <p class="balance-label">Account balance</p>
+                        <p class="balance" id="balance">€1,000.00</p>
+                        <ul class="ledger" id="ledger"></ul>
+                        <p class="empty" id="ledger-empty">No transfers yet.</p>
+                    </section>
+                </div>
+            </div>
+
+            <div class="rail">
+                <section class="surface">
+                    <h2>Channel</h2>
+                    <div class="field">
+                        <span>Encryption</span>
+                        <div class="segmented" id="encryption" role="radiogroup" aria-label="Encryption">
+                            <label><input type="radio" name="encryption" value="on" checked><span>On</span></label>
+                            <label><input type="radio" name="encryption" value="off"><span>Off</span></label>
+                        </div>
+                    </div>
+                    <button class="btn ghost block" id="reset" type="button">Reset ledger and wire</button>
+                </section>
+
+                <section class="surface">
+                    <h2>Attack the wire</h2>
+                    <div class="attacks">
+                        <button class="attack" id="attack-replay" type="button"><b>Replay the last transfer</b><span>Send a captured envelope again, byte for byte.</span></button>
+                        <button class="attack" id="attack-forge" type="button"><b>Forge a transfer</b><span>Inject a new plaintext request for €500 to Mallory.</span></button>
+                        <button class="attack" id="attack-tamper" type="button"><b>Change the amount</b><span>Rewrite a captured transfer as €400 to Mallory. Without the key, only blind byte changes are possible.</span></button>
+                    </div>
+                    <ol class="attempts" id="attempts" reversed aria-live="polite"></ol>
+                    <p class="note" id="attempts-empty">Each attempt and the server's verdict will be listed here.</p>
+                </section>
+            </div>
+        </div>
+
+        <section class="surface trace" id="trace" aria-label="Bus trace">
+            <div class="trace-head">
+                <h2 class="panel-title">Bus trace · ✕ marks a message the server refused</h2>
+                <ul class="legend">
+                    <li class="k-req"><i></i>request <b>0</b></li>
+                    <li class="k-res"><i></i>response <b>0</b></li>
+                    <li class="k-sig"><i></i>signal <b>0</b></li>
+                    <li class="k-bad"><i></i>error / refused <b>0</b></li>
+                </ul>
+            </div>
+            <canvas aria-hidden="true"></canvas>
+            <div class="trace-foot">Envelopes are held for 220 ms on the wire so you can follow them.</div>
+        </section>
+
+        <section class="wiring">
+            <h2>How it is wired</h2>
+            <p>Both endpoints share one key, provisioned by the application. Since 0.1.7 the plugin authenticates the message type, the handler name and the reply's request ID, rejects plaintext and remembers recent messages to refuse replays. Envelope metadata such as names and IDs stays visible on the wire.</p>
+            <div class="sources">
+                <article class="surface source" id="src-wiring"><header><span>secure-channel.js · both endpoints</span><a href="secure-channel.js">full file</a></header><pre></pre></article>
+            </div>
+        </section>
+    </main>
+
+    <footer class="foot">
+        <div class="wrap">
+            <span>CrossBus is Apache-2.0. Source on <a href="https://github.com/GiuseppeScottoLavina/crossbus">GitHub</a>.</span>
+            <span>Next: <a href="worker-pool.html">Worker pool →</a></span>
+        </div>
+    </footer>
+
+    <script type="module" src="secure-channel.js"></script>
+</body>
+</html>

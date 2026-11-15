@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Live demos — CrossBus</title>
+    <meta name="description" content="Live CrossBus demos: Web Worker RPC, tabs kept in sync over BroadcastChannel, and an encrypted channel you can try to break.">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Schibsted+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="demo.css">
+</head>
+<body>
+    <header class="topbar">
+        <div class="wrap">
+            <a class="brand" href="./" aria-current="page"><img src="../logo-400.png" alt="">CrossBus <small>demos</small></a>
+            <nav class="demo-nav" aria-label="Demos">
+                <a href="worker-pool.html">Worker pool</a>
+                <a href="tabs.html">Tabs in sync</a>
+                <a href="secure-channel.html">Secure channel</a>
+            </nav>
+            <a class="version" href="https://www.npmjs.com/package/crossbus">npm</a>
+        </div>
+    </header>
+
+    <main class="wrap">
+        <div class="page-head hero">
+            <ul class="eyebrow" aria-label="About">
+                <li>Live in your browser</li><li>No server</li><li>Apache-2.0</li>
+            </ul>
+            <h1>Watch messages cross between browser contexts</h1>
+            <p class="lede">Each demo runs the published CrossBus bundle across real boundaries: Web Workers, separate tabs, and a channel you can attack. The strip below is live too.</p>
+        </div>
+
+        <section class="surface trace hero-trace" id="trace" aria-label="Live bus trace">
+            <div class="trace-head">
+                <h2 class="panel-title">Live · this page asks a Web Worker to render a small tile every 300 ms</h2>
+                <ul class="legend">
+                    <li class="k-req"><i></i>request <b>0</b></li>
+                    <li class="k-res"><i></i>response <b>0</b></li>
+                    <li class="k-sig"><i></i>signal <b>0</b></li>
+                    <li class="k-bad"><i></i>error <b>0</b></li>
+                </ul>
+            </div>
+            <canvas aria-hidden="true"></canvas>
+            <div class="trace-foot" id="hero-status" role="status">Starting a module Worker…</div>
+        </section>
+
+        <section class="demos" aria-label="Demos">
+            <article class="demo-row">
+                <div class="demo-copy">
+                    <p class="demo-kind">Page ↔ Web Workers · MessageChannel · request/response</p>
+                    <h2><a href="worker-pool.html">Render a fractal across Web Workers</a></h2>
+                    <p>Every tile is a request to a module Worker that answers with its pixels. Change the number of Workers and the wire format, then move the work to the main thread and watch its heartbeat stop.</p>
+                    <a class="btn" href="worker-pool.html">Open the worker pool</a>
+                </div>
+                <figure class="demo-figure" aria-hidden="true">
+                    <svg viewBox="0 0 320 180">
+                        <text x="16" y="94" class="lbl">main</text>
+                        <line x1="64" y1="90" x2="300" y2="90" class="lane"/>
+                        <g class="fan">
+                            <path d="M110 90 L230 30" style="stroke:var(--req)"/><path d="M110 90 L230 70" style="stroke:var(--req)"/>
+                            <path d="M110 90 L230 110" style="stroke:var(--req)"/><path d="M110 90 L230 150" style="stroke:var(--req)"/>
+                            <path d="M244 36 L124 96" style="stroke:var(--res)"/><path d="M244 116 L124 98" style="stroke:var(--res)"/>
+                        </g>
+                        <g class="nodes">
+                            <rect x="230" y="20" width="70" height="20" rx="4"/><text x="265" y="34">w1</text>
+                            <rect x="230" y="60" width="70" height="20" rx="4"/><text x="265" y="74">w2</text>
+                            <rect x="230" y="100" width="70" height="20" rx="4"/><text x="265" y="114">w3</text>
+                            <rect x="230" y="140" width="70" height="20" rx="4"/><text x="265" y="154">w4</text>
+                        </g>
+                    </svg>
+                </figure>
+            </article>
+
+            <article class="demo-row">
+                <div class="demo-copy">
+                    <p class="demo-kind">Tab ↔ tab · BroadcastChannel · signals</p>
+                    <h2><a href="tabs.html">Draw in one tab, see it in every tab</a></h2>
+                    <p>Open the page twice and draw. Strokes, cursors and presence travel between tabs of the same origin as signals, with a snapshot for tabs that join late.</p>
+                    <a class="btn" href="tabs.html">Open tabs in sync</a>
+                </div>
+                <figure class="demo-figure" aria-hidden="true">
+                    <svg viewBox="0 0 320 180">
+                        <g class="nodes">
+                            <rect x="24" y="30" width="84" height="54" rx="6"/><text x="66" y="61">tab A</text>
+                            <rect x="212" y="30" width="84" height="54" rx="6"/><text x="254" y="61">tab B</text>
+                            <rect x="118" y="112" width="84" height="54" rx="6"/><text x="160" y="143">tab C</text>
+                        </g>
+                        <g class="fan">
+                            <path d="M108 52 L212 62" style="stroke:var(--sig)"/>
+                            <path d="M90 84 L130 112" style="stroke:var(--sig)"/>
+                            <path d="M230 84 L190 112" style="stroke:var(--sig)"/>
+                        </g>
+                        <text x="160" y="22" class="lbl" text-anchor="middle">crossbus-demo:tabs</text>
+                    </svg>
+                </figure>
+            </article>
+
+            <article class="demo-row">
+                <div class="demo-copy">
+                    <p class="demo-kind">Client ↔ server · withEncryption · hooks</p>
+                    <h2><a href="secure-channel.html">Try to break an encrypted channel</a></h2>
+                    <p>You hold the wire but not the key. Replay a payment, forge one, or change its amount, and see the server refuse each attempt. Switch encryption off and the same attacks empty the account.</p>
+                    <a class="btn" href="secure-channel.html">Open the secure channel</a>
+                </div>
+                <figure class="demo-figure" aria-hidden="true">
+                    <svg viewBox="0 0 320 180">
+                        <g class="nodes">
+                            <rect x="16" y="66" width="80" height="48" rx="6"/><text x="56" y="94">client</text>
+                            <rect x="224" y="66" width="80" height="48" rx="6"/><text x="264" y="94">server</text>
+                        </g>
+                        <line x1="96" y1="90" x2="224" y2="90" class="lane"/>
+                        <g class="fan">
+                            <path d="M100 80 L220 80" style="stroke:var(--req)"/><path d="M220 100 L100 100" style="stroke:var(--res)"/>
+                            <path d="M160 30 L214 82" style="stroke:var(--bad)" class="dashed"/>
+                        </g>
+                        <text x="160" y="24" class="lbl" text-anchor="middle">attacker</text>
+                        <path d="M208 76 l12 12 m0 -12 l-12 12" style="stroke:var(--bad)" class="cross"/>
+                    </svg>
+                </figure>
+            </article>
+        </section>
+
+        <section class="more">
+            <p>These pages load <code>assets/crossbus.min.js</code>, a copy of the repository's <code>dist/crossbus.min.js</code> made by the build. Prefer plain consoles? The <a href="../playground.html">playground</a> covers signals, RPC, iframes and a Worker. To install, read <a href="../doc.html?file=GETTING_STARTED.md">Getting started</a>.</p>
+        </section>
+    </main>
+
+    <footer class="foot">
+        <div class="wrap">
+            <span>CrossBus is Apache-2.0. Source on <a href="https://github.com/GiuseppeScottoLavina/crossbus">GitHub</a>.</span>
+            <span><a href="../">Project home</a></span>
+        </div>
+    </footer>
+
+    <script type="module" src="index.js"></script>
+</body>
+</html>

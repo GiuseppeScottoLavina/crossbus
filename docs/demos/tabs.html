@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tabs in sync — CrossBus demos</title>
+    <meta name="description" content="Draw in one browser tab and watch strokes and cursors appear in every other tab, carried as CrossBus signals over BroadcastChannel.">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Schibsted+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="demo.css">
+</head>
+<body>
+    <header class="topbar">
+        <div class="wrap">
+            <a class="brand" href="./"><img src="../logo-400.png" alt="">CrossBus <small>demos</small></a>
+            <nav class="demo-nav" aria-label="Demos">
+                <a href="worker-pool.html">Worker pool</a>
+                <a href="tabs.html" aria-current="page">Tabs in sync</a>
+                <a href="secure-channel.html">Secure channel</a>
+            </nav>
+            <a class="version" href="https://www.npmjs.com/package/crossbus">npm</a>
+        </div>
+    </header>
+
+    <main class="wrap">
+        <div class="page-head">
+            <ul class="eyebrow" aria-label="Uses">
+                <li>BroadcastChannelTransport</li><li>signal / on</li><li>same-origin tabs</li>
+            </ul>
+            <h1>Draw in one tab, see it in every tab</h1>
+            <p class="lede">Open this page in a second tab or window and place them side by side. Strokes and cursors travel between tabs as CrossBus signals over a BroadcastChannel, with no server involved.</p>
+        </div>
+
+        <div class="bench">
+            <figure class="surface stage board-stage" style="margin:0">
+                <div class="board-wrap">
+                    <canvas id="board" aria-label="Shared drawing board. Draw with a mouse, pen or finger."></canvas>
+                    <div id="cursors" aria-hidden="true"></div>
+                    <p class="board-empty" id="empty">Draw here. Every connected tab draws the same stroke.</p>
+                </div>
+                <figcaption class="stage-caption">
+                    <span>Strokes are sent every 40 ms while you draw; cursors up to 30 times a second.</span>
+                    <button class="linklike" id="clear" type="button">Clear for every tab</button>
+                </figcaption>
+            </figure>
+
+            <div class="rail">
+                <section class="surface">
+                    <h2>This tab</h2>
+                    <div class="me">
+                        <i id="me-swatch"></i>
+                        <div><strong id="me-label">—</strong><code id="me-id"></code></div>
+                    </div>
+                    <button class="btn block" id="open-tab" type="button">Open another tab</button>
+                </section>
+
+                <section class="surface">
+                    <h2>Connected tabs</h2>
+                    <ul class="tab-list" id="tab-list"></ul>
+                    <p class="note" id="alone">Only this tab is connected. Open another tab, then draw in either one.</p>
+                </section>
+
+                <section class="surface">
+                    <h2>Traffic from this tab</h2>
+                    <dl class="readouts">
+                        <div class="readout"><dt>Tabs</dt><dd id="r-tabs">1</dd></div>
+                        <div class="readout"><dt>Last delivery</dt><dd id="r-latency">—</dd></div>
+                        <div class="readout"><dt>Signals sent</dt><dd id="r-sent">0</dd></div>
+                        <div class="readout"><dt>Received</dt><dd id="r-received">0</dd></div>
+                    </dl>
+                    <p class="note">Delivery time compares wall clocks of two tabs, so it has millisecond resolution.</p>
+                </section>
+            </div>
+        </div>
+
+        <section class="surface trace" id="trace" aria-label="Bus trace">
+            <div class="trace-head">
+                <h2 class="panel-title">Bus trace · signals between this tab and the others</h2>
+                <ul class="legend">
+                    <li class="k-req"><i></i>request <b>0</b></li>
+                    <li class="k-res"><i></i>response <b>0</b></li>
+                    <li class="k-sig"><i></i>signal <b>0</b></li>
+                    <li class="k-bad"><i></i>error <b>0</b></li>
+                </ul>
+            </div>
+            <canvas aria-hidden="true"></canvas>
+            <div class="trace-foot">One BroadcastChannel reaches every other tab, so they share one lane. Presence announcements run every 2.5 s.</div>
+        </section>
+
+        <section class="wiring">
+            <h2>How it is wired</h2>
+            <p>Each tab binds the BroadcastChannel to one peer and only uses signals. A request would be ambiguous here: every other tab would receive it. The excerpt is loaded from the file this page runs.</p>
+            <div class="sources">
+                <article class="surface source" id="src-wiring"><header><span>tabs.js · every tab</span><a href="tabs.js">full file</a></header><pre></pre></article>
+            </div>
+        </section>
+    </main>
+
+    <footer class="foot">
+        <div class="wrap">
+            <span>CrossBus is Apache-2.0. Source on <a href="https://github.com/GiuseppeScottoLavina/crossbus">GitHub</a>.</span>
+            <span>Next: <a href="secure-channel.html">Secure channel →</a></span>
+        </div>
+    </footer>
+
+    <script type="module" src="tabs.js"></script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Worker pool — CrossBus demos</title>
+    <meta name="description" content="A Mandelbrot set rendered tile by tile across Web Workers with CrossBus request/response over MessageChannel.">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Schibsted+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="demo.css">
+</head>
+<body>
+    <header class="topbar">
+        <div class="wrap">
+            <a class="brand" href="./"><img src="../logo-400.png" alt="">CrossBus <small>demos</small></a>
+            <nav class="demo-nav" aria-label="Demos">
+                <a href="worker-pool.html" aria-current="page">Worker pool</a>
+                <a href="tabs.html">Tabs in sync</a>
+                <a href="secure-channel.html">Secure channel</a>
+            </nav>
+            <a class="version" href="https://www.npmjs.com/package/crossbus">npm</a>
+        </div>
+    </header>
+
+    <main class="wrap">
+        <div class="page-head">
+            <ul class="eyebrow" aria-label="Uses">
+                <li>Module Workers</li><li>MessageChannelTransport</li><li>request / handle</li><li>autoTransfer</li>
+            </ul>
+            <h1>Render a fractal across Web Workers</h1>
+            <p class="lede">Every tile below is one CrossBus request to a module Worker, answered with its pixels. Change the number of Workers or the wire format, or move the work onto the main thread and watch the heartbeat stop.</p>
+        </div>
+
+        <div class="bench">
+            <figure class="surface stage" style="margin:0">
+                <canvas id="fractal" width="1100" height="638" aria-label="Mandelbrot set. Click to zoom in, shift-click to zoom out."></canvas>
+                <figcaption class="stage-caption">
+                    <span id="coords">centre −0.620000 + 0.000000i · width 3.10</span>
+                    <span>Click to zoom in · Shift-click to zoom out</span>
+                </figcaption>
+                <dl class="band" aria-label="Last render">
+                    <div class="readout"><dt>Time</dt><dd id="r-time">—</dd></div>
+                    <div class="readout"><dt>Tiles</dt><dd id="r-tiles">—</dd></div>
+                    <div class="readout"><dt>Median round trip</dt><dd id="r-rtt">—</dd></div>
+                    <div class="readout"><dt>Peak in flight</dt><dd id="r-inflight">—</dd></div>
+                    <div class="readout beat-cell"><dt>Longest main-thread frame</dt><dd id="r-frame">—</dd>
+                        <div class="beat" aria-hidden="true"><div class="beat-track"><div class="beat-dot-wrap" id="beat-dot"><div class="beat-dot"></div></div></div></div>
+                    </div>
+                    <div class="readout"><dt>Rendered by</dt><dd id="r-by">—</dd></div>
+                </dl>
+            </figure>
+
+            <div class="rail">
+                <section class="surface" id="controls" aria-label="Controls">
+                    <h2>Setup</h2>
+                    <div class="field">
+                        <span>Run on</span>
+                        <div class="segmented" role="radiogroup" aria-label="Run on">
+                            <label><input type="radio" name="runon" value="workers" checked><span>Workers</span></label>
+                            <label><input type="radio" name="runon" value="main"><span>Main thread</span></label>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <span>Workers</span>
+                        <div class="segmented" role="radiogroup" aria-label="Workers">
+                            <label><input type="radio" name="workers" value="1"><span>1</span></label>
+                            <label><input type="radio" name="workers" value="2"><span>2</span></label>
+                            <label><input type="radio" name="workers" value="4"><span>4</span></label>
+                            <label><input type="radio" name="workers" value="8"><span>8</span></label>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <span>Wire format</span>
+                        <div class="segmented" role="radiogroup" aria-label="Wire format">
+                            <label><input type="radio" name="wire" value="standard" checked><span>standard</span></label>
+                            <label><input type="radio" name="wire" value="compact-v2"><span>compact-v2</span></label>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <span>Detail (iterations)</span>
+                        <div class="segmented" role="radiogroup" aria-label="Detail">
+                            <label><input type="radio" name="detail" value="256"><span>256</span></label>
+                            <label><input type="radio" name="detail" value="1024" checked><span>1,024</span></label>
+                            <label><input type="radio" name="detail" value="4096"><span>4,096</span></label>
+                        </div>
+                    </div>
+                    <button class="btn block" id="again" type="button">Render again</button>
+                    <div class="btn-row zoom-row">
+                        <button class="btn ghost" id="zoom-out" type="button" aria-label="Zoom out">−</button>
+                        <button class="btn ghost" id="zoom-in" type="button" aria-label="Zoom in">+</button>
+                        <button class="btn ghost" id="reset" type="button">Reset view</button>
+                    </div>
+                    <p class="note" id="status" role="status" aria-live="polite">Starting Workers…</p>
+                    <p class="note"><span id="cores"></span>. Times are measured in your browser, on this page; they are not a benchmark.</p>
+                </section>
+
+            </div>
+        </div>
+
+        <section class="surface trace" id="trace" aria-label="Bus trace">
+            <div class="trace-head">
+                <h2 class="panel-title">Bus trace · every envelope crossing a Worker boundary</h2>
+                <ul class="legend">
+                    <li class="k-req"><i></i>request <b>0</b></li>
+                    <li class="k-res"><i></i>response <b>0</b></li>
+                    <li class="k-sig"><i></i>signal <b>0</b></li>
+                    <li class="k-bad"><i></i>error <b>0</b></li>
+                </ul>
+            </div>
+            <canvas aria-hidden="true"></canvas>
+            <div class="trace-foot">Drawn from the transport: each stroke is a real message sent or received by the bus in this page.</div>
+        </section>
+
+        <section class="wiring">
+            <h2>How it is wired</h2>
+            <p>The page creates one bus and attaches one MessageChannel per Worker. Each Worker binds the transferred port to its own bus and registers a <code>tile</code> handler. These excerpts are loaded from the files this page runs.</p>
+            <div class="sources">
+                <article class="surface source" id="src-main"><header><span>worker-pool.js · page</span><a href="worker-pool.js">full file</a></header><pre></pre></article>
+                <article class="surface source" id="src-worker"><header><span>fractal-worker.js · Worker</span><a href="fractal-worker.js">full file</a></header><pre></pre></article>
+            </div>
+        </section>
+    </main>
+
+    <footer class="foot">
+        <div class="wrap">
+            <span>CrossBus is Apache-2.0. Source on <a href="https://github.com/GiuseppeScottoLavina/crossbus">GitHub</a>.</span>
+            <span>Next: <a href="tabs.html">Tabs in sync →</a></span>
+        </div>
+    </footer>
+
+    <script type="module" src="worker-pool.js"></script>
+</body>
+</html>

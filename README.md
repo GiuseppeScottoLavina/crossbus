@@ -345,6 +345,7 @@ The `compact-v2` example ([rpc-compact-v2.mjs](examples/quickstart/rpc-compact-v
 
 | Guide | Covers |
 |---|---|
+| [Live demos](https://giuseppescottolavina.github.io/crossbus/demos/) | Worker pool, tabs in sync and an encrypted channel you can attack, running in the browser |
 | [Getting started](docs/GETTING_STARTED.md) | First endpoints and connecting separate contexts |
 | [API reference](docs/API.md) | Every option, default, error and transport |
 | [Architecture](docs/ARCHITECTURE.md) | Protocol, routing and responsibilities |
