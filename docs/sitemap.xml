@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://giuseppescottolavina.github.io/crossbus/</loc></url>
+  <url><loc>https://giuseppescottolavina.github.io/crossbus/demos/</loc></url>
+  <url><loc>https://giuseppescottolavina.github.io/crossbus/demos/worker-pool.html</loc></url>
+  <url><loc>https://giuseppescottolavina.github.io/crossbus/demos/tabs.html</loc></url>
+  <url><loc>https://giuseppescottolavina.github.io/crossbus/demos/secure-channel.html</loc></url>
+  <url><loc>https://giuseppescottolavina.github.io/crossbus/playground.html</loc></url>
+  <url><loc>https://giuseppescottolavina.github.io/crossbus/doc.html?file=GETTING_STARTED.md</loc></url>
+  <url><loc>https://giuseppescottolavina.github.io/crossbus/doc.html?file=API.md</loc></url>
+  <url><loc>https://giuseppescottolavina.github.io/crossbus/doc.html?file=EXAMPLES.md</loc></url>
+  <url><loc>https://giuseppescottolavina.github.io/crossbus/doc.html?file=ADVANCED.md</loc></url>
+  <url><loc>https://giuseppescottolavina.github.io/crossbus/doc.html?file=ARCHITECTURE.md</loc></url>
+  <url><loc>https://giuseppescottolavina.github.io/crossbus/doc.html?file=STREAMING.md</loc></url>
+  <url><loc>https://giuseppescottolavina.github.io/crossbus/doc.html?file=WORKER_RPC.md</loc></url>
+  <url><loc>https://giuseppescottolavina.github.io/crossbus/doc.html?file=RPC_WIRE_V2.md</loc></url>
+  <url><loc>https://giuseppescottolavina.github.io/crossbus/doc.html?file=RPC_BATCHING.md</loc></url>
+  <url><loc>https://giuseppescottolavina.github.io/crossbus/doc.html?file=BENCHMARKS.md</loc></url>
+  <url><loc>https://giuseppescottolavina.github.io/crossbus/doc.html?file=PERFORMANCE.md</loc></url>
+  <url><loc>https://giuseppescottolavina.github.io/crossbus/doc.html?file=AI-GUIDE.md</loc></url>
+  <url><loc>https://giuseppescottolavina.github.io/crossbus/doc.html?file=AUDIT.md</loc></url>
+</urlset>

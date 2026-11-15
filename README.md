@@ -12,7 +12,7 @@
 
 You get one messaging API across postMessage, MessageChannel, BroadcastChannel, SharedWorker, ServiceWorker, WebSocket and WKWebView/AndroidX bridges. CrossBus requires explicit origin allowlists, binds each peer identity to its channel and enforces payload and request budgets. The npm package has no runtime dependencies and ships ESM, CommonJS and TypeScript declarations.
 
-[Documentation](https://giuseppescottolavina.github.io/crossbus/) · [API](docs/API.md) · [Getting started](docs/GETTING_STARTED.md) · [Security](SECURITY.md) · [Benchmarks](docs/BENCHMARKS.md) · [Changelog](CHANGELOG.md)
+[Documentation](https://giuseppescottolavina.github.io/crossbus/) · [Live demos](https://giuseppescottolavina.github.io/crossbus/demos/) · [API](docs/API.md) · [Getting started](docs/GETTING_STARTED.md) · [Security](SECURITY.md) · [Benchmarks](docs/BENCHMARKS.md) · [Changelog](CHANGELOG.md)
 
 ## Highlights
 
