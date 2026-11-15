@@ -1,4 +1,4 @@
-/*! CrossBus v0.1.6 | Apache-2.0 */
+/*! CrossBus v0.1.7 | Apache-2.0 */
 'use strict';
 
 /**

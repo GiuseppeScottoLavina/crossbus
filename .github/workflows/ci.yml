@@ -139,7 +139,7 @@ jobs:
       - name: Package Android SDK in local Maven repository
         run: native/android/gradlew -p native/android --no-daemon publishReleasePublicationToQualificationRepository
       - name: Verify AAR, source and license
-        run: python3 tests/native/check-artifact.py artifacts/native-maven/io/github/giuseppescottolavina/crossbus-native/0.1.5-SNAPSHOT
+        run: python3 tests/native/check-artifact.py artifacts/native-maven/io/github/giuseppescottolavina/crossbus-native/0.1.7-SNAPSHOT
       - name: Build isolated AAR consumer
         run: native/android/gradlew -p tests/native/android-host --no-daemon -PusePublishedBridge=true :app:assembleDebug
       - uses: actions/upload-artifact@v4

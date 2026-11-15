@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
   spec.name = 'CrossBusNative'
-  spec.version = '0.1.5'
+  spec.version = '0.1.7'
   spec.summary = 'Origin-restricted WKWebView transport for CrossBus.'
   spec.homepage = 'https://github.com/GiuseppeScottoLavina/crossbus'
   spec.license = { :type => 'Apache-2.0', :file => 'LICENSE' }

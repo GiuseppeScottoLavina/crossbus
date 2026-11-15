@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'io.github.giuseppescottolavina'
-version = '0.1.5-SNAPSHOT'
+version = '0.1.7-SNAPSHOT'
 
 android {
     namespace 'io.crossbus'
