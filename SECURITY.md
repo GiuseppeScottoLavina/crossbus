@@ -8,6 +8,7 @@
 | 0.1.3 | Published release; qualification is recorded in the audit |
 | 0.1.4 | Published release; qualification and limitations are recorded in the audit |
 | 0.1.5 | Published release; focused browser/device qualification and bounded stream regressions are recorded in the audit |
+| 0.1.6 | Release qualification; opt-in compact-v2 RPC and focused browser checks are recorded in the audit. Physical-device receipts cover 0.1.5 only |
 
 See [the audit](docs/AUDIT.md) for measured coverage and outstanding browser/device qualification. A passing suite does not establish that a version has no vulnerabilities.
 

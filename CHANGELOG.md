@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.6] - Unreleased
+## [0.1.6] - 2026-11-15
 
 - Add opt-in MessageChannel `compact-v2` encoding with numeric tags and constant-field omission for successful responses, reconstructing the original protocol fields. Both endpoints must support the decoder; default standard encoding and compact-v1 compatibility remain available.
 - Route standard MessageChannel objects directly to protocol validation, avoiding the compact-array decoder call. Retain paired-process and within-process RPC comparisons, controls, rejected prototypes and Worker follow-up evidence in docs/RPC_WIRE_V2.md.
@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix pattern scaffolds: use the Subscription object returned by `on()`, install iframe transports and ready listeners before navigation, register the requested agent handler, describe `'*'` and `isHub` accurately and drop a nonexistent related pattern. Remove a no-op metadata assignment from the tool-agent template.
 - Remove wildcard origins from all pattern scaffolds and templates; they now use `createSecure()` with exact origins or the `channel` label. Worker scaffolds use a module Worker over a transferred MessageChannel with a ready handshake and an explicit payload budget. Agent templates announce `agent:ready` on connect, and the orchestrator identifies agents by their bound peer rather than a payload ID, installs iframe transports before navigation and clears tool timeouts. These flows were checked in headless Chrome across two local origins and a module Worker.
 - Restructure the README around installation, runnable Node/iframe/Worker examples, core concepts, security responsibilities, scoped performance evidence, compatibility and a version/evidence table; move release-by-release narrative to the versioned studies. The documentation tests now run the inline iframe and Worker snippets in Chrome, and the release guide lists the README fields to refresh per version.
-- Align contributing guides with the actual scripts, install command and 90% coverage gate; point stale 0.1.3/0.1.5 "current" references to the 0.1.6 studies and record the 0.1.6 development status in docs/AUDIT.md.
+- Align contributing guides with the actual scripts, install command and 90% coverage gate; point stale 0.1.3/0.1.5 "current" references to the 0.1.6 studies and record the 0.1.6 qualification status in docs/AUDIT.md.
 
 ## [0.1.5] - 2026-11-14
 

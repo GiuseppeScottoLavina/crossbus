@@ -1,6 +1,6 @@
 # Reproducible performance measurements
 
-The current unpublished 0.1.6 development evidence is the [compact-v2 RPC study](RPC_WIRE_V2.md). It records repeated within-process format comparisons, separate existing-codec controls, Worker follow-up data, current bundle sizes and functional qualification against the earlier 0.1.6 snapshot.
+The current 0.1.6 evidence is the [compact-v2 RPC study](RPC_WIRE_V2.md). It records repeated within-process format comparisons, separate existing-codec controls, Worker follow-up data, current bundle sizes and functional qualification against the earlier 0.1.6 snapshot.
 
 That earlier snapshot is the [0.1.6 optimization study](OPTIMIZATION_016.md), including its frozen 0.1.5 baseline, raw samples, source snapshots and offline verifiers. Its bundle sizes and browser checks predate compact-v2.
 

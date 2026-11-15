@@ -161,14 +161,14 @@ The default is `'standard'`. `transport.wireFormat` reports the selected outgoin
 | `compact` | 0.1.3+ | Original tagged-array encoding |
 | `compact-v2` | 0.1.6+ | Numeric message tags; successful replies omit constants reconstructed by the decoder |
 
-Version 0.1.6 is still unpublished; npm 0.1.5 does not support `compact-v2`. Use the development checkout example below until release. Configure matching decoder support on the receiving endpoints before selecting a compact format; capability negotiation and silent downgrade are not provided.
+`compact-v2` requires 0.1.6 or later; 0.1.5 receivers do not support it. Configure matching decoder support on the receiving endpoints before selecting a compact format; capability negotiation and silent downgrade are not provided.
 
 ```js
 const channel = new MessageChannelTransport({ wireFormat: 'compact-v2' });
 const remote = MessageChannelTransport.fromPort(channel.remotePort, { wireFormat: 'compact-v2' });
 ```
 
-This snippet only constructs the transport pair. Run the [complete development example](../examples/quickstart/rpc-compact-v2.mjs) from a built checkout to connect both buses, register a handler, perform RPC and close both endpoints.
+This snippet only constructs the transport pair. Run the [complete example](../examples/quickstart/rpc-compact-v2.mjs) from a built checkout to connect both buses, register a handler, perform RPC and close both endpoints.
 
 Both compact modes reconstruct the same protocol-v1 fields, including IDs, timestamps, source/destination and success/error values, before applying payload limits, hooks, permissions and response-peer matching. Transfer lists retain their ownership behavior. Extensions, custom metadata and other message shapes use the standard object fallback. Compact modes require the exact default `contentType: 'application/json'`, which uses structured clone. Application data graphs retain structured-clone behavior, including cycles. Wrapper objects are reconstructed; raw transport code relying on reference identity between application data and envelope/payload wrappers should use standard mode.
 

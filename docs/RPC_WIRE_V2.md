@@ -1,6 +1,6 @@
-# Compact v2 RPC development study — 15 November 2026
+# Compact v2 RPC study — 15 November 2026
 
-Version 0.1.6 is unpublished. The new `compact-v2` format is available in this development checkout, not npm 0.1.5. It requires updated receiving endpoints and has no automatic negotiation or downgrade. Standard remains the default; compact v1 remains compatible with 0.1.3+ receivers. The [API guide](API.md#compact-messagechannel-encoding) records options and boundaries.
+The `compact-v2` format is available from version 0.1.6; npm 0.1.5 does not support it. This study measured the 0.1.6 candidate at commit `b79f7e7`; the released runtime differs only by an unreachable strict-mode branch removed afterwards (see the [audit](AUDIT.md)). It requires updated receiving endpoints and has no automatic negotiation or downgrade. Standard remains the default; compact v1 remains compatible with 0.1.3+ receivers. The [API guide](API.md#compact-messagechannel-encoding) records options and boundaries.
 
 ## Implementation and compatibility
 

@@ -1,6 +1,6 @@
-# 0.1.6 development optimization — snapshot before RPC v2
+# 0.1.6 optimization — snapshot before RPC v2
 
-Version 0.1.6 is unpublished. This historical snapshot precedes the [RPC v2 update](RPC_WIRE_V2.md); its measurements and functional receipts apply to the frozen runtime identified below. This study compares its frozen candidate with the exact published 0.1.5 minified runtime, SHA-256 `a03f24df92d7d7ea94676720cc986975618985deb8c8b07b4e8e3d33f9bfa9e9`. The baseline comes from the registry/CI-identical archive recorded in [RELEASING.md](RELEASING.md). The 0.1.5 tag and archive remain unchanged.
+This historical snapshot of the 0.1.6 candidate precedes the [RPC v2 update](RPC_WIRE_V2.md); its measurements and functional receipts apply to the frozen runtime identified below. This study compares its frozen candidate with the exact published 0.1.5 minified runtime, SHA-256 `a03f24df92d7d7ea94676720cc986975618985deb8c8b07b4e8e3d33f9bfa9e9`. The baseline comes from the registry/CI-identical archive recorded in [RELEASING.md](RELEASING.md). The 0.1.5 tag and archive remain unchanged.
 
 ## Changes and boundaries
 
@@ -64,7 +64,7 @@ The exact minified runtime passed the focused ten-case browser suite in Chrome 1
 Isolated packed-package checks cover all 12 exports, declaration inclusion, ESM/CommonJS/minified and compact RPC, and base64/native flow-controlled streams. Their Node 18/24 receipts are retained beside the browser receipts. No npm publication is performed by these checks.
 
 
-Physical iPad/Pixel receipts in [QUALIFICATION.md](QUALIFICATION.md) remain scoped to 0.1.5. This development candidate has no new physical-device or native throughput claim.
+Physical iPad/Pixel receipts in [QUALIFICATION.md](QUALIFICATION.md) remain scoped to 0.1.5. Version 0.1.6 has no new physical-device or native throughput claim.
 
 Verify preserved evidence without timing or hardware:
 

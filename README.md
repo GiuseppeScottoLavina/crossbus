@@ -55,7 +55,7 @@ CrossBus needs Node.js 18+ or a modern browser. To use it in the browser without
 
 ```html
 <script type="importmap">
-  { "imports": { "crossbus": "https://cdn.jsdelivr.net/npm/crossbus@0.1.5/dist/crossbus.min.js" } }
+  { "imports": { "crossbus": "https://cdn.jsdelivr.net/npm/crossbus@0.1.6/dist/crossbus.min.js" } }
 </script>
 <script type="module">
   import { CrossBus } from 'crossbus';
@@ -333,12 +333,12 @@ CrossBus is pre-1.0. Read the [changelog](CHANGELOG.md) before upgrading. Wire f
 
 | Version | Status | Main changes | Evidence |
 |---|---|---|---|
-| 0.1.6 | In development on `master`, unpublished | Opt-in `compact-v2` MessageChannel RPC (0.1.6+ receivers); faster Node base64 streams | [compact-v2 study](docs/RPC_WIRE_V2.md), [optimization snapshot](docs/OPTIMIZATION_016.md), [audit](docs/AUDIT.md) |
-| [0.1.5](https://www.npmjs.com/package/crossbus/v/0.1.5) | npm `latest` | Bounded streams with flow control; shared RPC timeout timer; native SDK packaging | [release comparison](docs/NEXT_RELEASE.md), [qualification](docs/QUALIFICATION.md), [publication record](docs/RELEASING.md) |
+| [0.1.6](https://www.npmjs.com/package/crossbus/v/0.1.6) | Current release ([publication record](docs/RELEASING.md)) | Opt-in `compact-v2` MessageChannel RPC (0.1.6+ receivers); faster Node base64 streams | [compact-v2 study](docs/RPC_WIRE_V2.md), [optimization snapshot](docs/OPTIMIZATION_016.md), [audit](docs/AUDIT.md) |
+| [0.1.5](https://www.npmjs.com/package/crossbus/v/0.1.5) | Published | Bounded streams with flow control; shared RPC timeout timer; native SDK packaging | [release comparison](docs/NEXT_RELEASE.md), [qualification](docs/QUALIFICATION.md), [publication record](docs/RELEASING.md) |
 | [0.1.4](https://www.npmjs.com/package/crossbus/v/0.1.4) | Published | Pooled browser UUIDs; serializer and transfer fixes | [Worker RPC study](docs/WORKER_RPC.md) |
 | [0.1.3](https://www.npmjs.com/package/crossbus/v/0.1.3) | Published | Opt-in compact encoding; WebSocket and stream fixes | [competitor study](docs/COMPETITOR_ANALYSIS.md), [RPC grouping prototype](docs/RPC_BATCHING.md) |
 
-The `compact-v2` example ([rpc-compact-v2.mjs](examples/quickstart/rpc-compact-v2.mjs)) requires a built checkout until 0.1.6 is published.
+The `compact-v2` example ([rpc-compact-v2.mjs](examples/quickstart/rpc-compact-v2.mjs)) requires 0.1.6 or later on both endpoints.
 
 ## Documentation
 
@@ -367,7 +367,7 @@ bun run test:experiments   # repository-only prototypes
 bun run test:native        # Swift/Java adapter compile check (requires native SDKs)
 ```
 
-Browser tests need Chrome; set `CHROME_PATH` if it is not found automatically. The latest local run on the 0.1.6 development tree passed 1,271 tests across 88 files with zero failures. Source line coverage was 96.25%; this is line coverage, not branch coverage. See the [audit record](docs/AUDIT.md) for scope, plus the [development](docs/DEVELOPMENT.md), [contributing](https://github.com/GiuseppeScottoLavina/crossbus/blob/master/CONTRIBUTING.md) and [release](docs/RELEASING.md) guides.
+Browser tests need Chrome; set `CHROME_PATH` if it is not found automatically. The 0.1.6 release qualification passed 1,271 tests across 88 files with zero failures. Source line coverage was 96.25%; this is line coverage, not branch coverage. See the [audit record](docs/AUDIT.md) for scope, plus the [development](docs/DEVELOPMENT.md), [contributing](https://github.com/GiuseppeScottoLavina/crossbus/blob/master/CONTRIBUTING.md) and [release](docs/RELEASING.md) guides.
 
 ## License
 
