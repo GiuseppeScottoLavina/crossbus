@@ -13,7 +13,7 @@ android {
 }
 dependencies {
     if (providers.gradleProperty('usePublishedBridge').orNull == 'true') {
-        implementation 'io.github.giuseppescottolavina:crossbus-native:0.1.5-SNAPSHOT'
+        implementation 'io.github.giuseppescottolavina:crossbus-native:0.1.7-SNAPSHOT'
     } else {
         implementation project(':bridge')
     }
