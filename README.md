@@ -261,7 +261,7 @@ service.handle('save', withSchemaValidation({
 |---|---|
 | `crossbus/plugins/retry` | `withRetry`, `createRetryWrapper` |
 | `crossbus/plugins/circuit-breaker` | `CircuitBreaker`, `createPeerCircuitBreaker` |
-| `crossbus/plugins/encryption` | AES-256-GCM via Web Crypto; key distribution is up to you |
+| `crossbus/plugins/encryption` | AES-256-GCM via the global Web Crypto API (Node 18 needs `--experimental-global-webcrypto`); key distribution is up to you |
 | `crossbus/plugins/compression` | `Compression`, `withCompression` |
 | `crossbus/plugins/rate-limiter` | `RateLimiter`, `withRateLimiter` |
 | `crossbus/plugins/batch` | `withBatching` and batchers (enable unbatching on receivers) |
@@ -333,7 +333,7 @@ CrossBus is pre-1.0. Read the [changelog](CHANGELOG.md) before upgrading. Wire f
 
 | Version | Status | Main changes | Evidence |
 |---|---|---|---|
-| [0.1.7](https://www.npmjs.com/package/crossbus/v/0.1.7) | Current release ([publication record](docs/RELEASING.md)) | Security fixes for the encryption, compression, schema, rate-limiter and tracing plugins and the iOS adapter; faster sequential RPC. Encrypted endpoints must upgrade together | [security audit](docs/AUDIT.md), [deadline-timer record](https://github.com/GiuseppeScottoLavina/crossbus/tree/master/benchmarks/deadline-timer-0.1.7), [changelog](CHANGELOG.md) |
+| [0.1.7](https://www.npmjs.com/package/crossbus/v/0.1.7) | npm `latest` ([publication record](docs/RELEASING.md)) | Security fixes for the encryption, compression, schema, rate-limiter and tracing plugins and the iOS adapter; faster sequential RPC. Encrypted endpoints must upgrade together | [security audit](docs/AUDIT.md), [deadline-timer record](https://github.com/GiuseppeScottoLavina/crossbus/tree/master/benchmarks/deadline-timer-0.1.7), [changelog](CHANGELOG.md) |
 | [0.1.6](https://www.npmjs.com/package/crossbus/v/0.1.6) | Published | Opt-in `compact-v2` MessageChannel RPC (0.1.6+ receivers); faster Node base64 streams | [compact-v2 study](docs/RPC_WIRE_V2.md), [optimization snapshot](docs/OPTIMIZATION_016.md), [audit](docs/AUDIT.md) |
 | [0.1.5](https://www.npmjs.com/package/crossbus/v/0.1.5) | Published | Bounded streams with flow control; shared RPC timeout timer; native SDK packaging | [release comparison](docs/NEXT_RELEASE.md), [qualification](docs/QUALIFICATION.md), [publication record](docs/RELEASING.md) |
 | [0.1.4](https://www.npmjs.com/package/crossbus/v/0.1.4) | Published | Pooled browser UUIDs; serializer and transfer fixes | [Worker RPC study](docs/WORKER_RPC.md) |
