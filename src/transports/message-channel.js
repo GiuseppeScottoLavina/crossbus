@@ -18,7 +18,7 @@ import { encodeCompact, decodeCompact } from '../common/compact-wire.js';
  * @typedef {Object} MessageChannelTransportOptions
  * @property {boolean} [autoTransfer=false] - Auto-detect and transfer transferable objects.
  * @property {string} [contentType='application/json'] - Serialization format.
- * @property {'standard'|'compact'} [wireFormat='standard'] - Compact encoding requires a receiver supporting it (CrossBus 0.1.3+).
+ * @property {'standard'|'compact'|'compact-v2'} [wireFormat='standard'] - Compact requires 0.1.3+ receivers; compact-v2 requires 0.1.6+ receivers.
  */
 
 /**
@@ -76,7 +76,7 @@ export class MessageChannelTransport {
     /** @type {boolean} */
     #autoTransfer;
 
-    /** @type {'standard'|'compact'} */
+    /** @type {'standard'|'compact'|'compact-v2'} */
     #wireFormat;
 
     /** @type {import('../common/serialization.js').Serializer} */
@@ -136,8 +136,8 @@ export class MessageChannelTransport {
 
         this.#contentType = options.contentType ?? 'application/json';
         this.#wireFormat = options.wireFormat ?? 'standard';
-        if (!['standard','compact'].includes(this.#wireFormat) || (this.#wireFormat === 'compact' && this.#contentType !== 'application/json')) {
-            throw new TypeError('wireFormat must be standard, or compact with the default contentType');
+        if (!['standard','compact','compact-v2'].includes(this.#wireFormat) || (this.#wireFormat !== 'standard' && this.#contentType !== 'application/json')) {
+            throw new TypeError('wireFormat must be standard, or a compact mode with the default contentType');
         }
 
         const channel = port ? null : new MessageChannel();
@@ -162,7 +162,7 @@ export class MessageChannelTransport {
         return this.#remotePort;
     }
 
-    /** Gets the selected outgoing wire encoding. Receivers accept both formats. */
+    /** Gets the selected outgoing encoding. Receivers accept standard and both compact versions. */
     get wireFormat() { return this.#wireFormat; }
 
     /**
@@ -202,7 +202,7 @@ export class MessageChannelTransport {
             ...message
         };
 
-        let dataToSend = this.#wireFormat === 'compact' ? encodeCompact(envelope) : envelope;
+        let dataToSend = this.#wireFormat !== 'standard' ? encodeCompact(envelope, this.#wireFormat === 'compact-v2') : envelope;
         if (this.#contentType !== 'application/json') {
             if (transfer?.length) throw new TypeError('Transfer lists require structured-clone MessageChannel encoding');
             dataToSend = this.#serializer.serialize(envelope);
@@ -290,7 +290,7 @@ export class MessageChannelTransport {
             try { packet = this.#serializer.deserialize(packet); }
             catch { return; }
         }
-        const data = decodeCompact(packet);
+        const data = Array.isArray(packet) ? decodeCompact(packet) : packet;
 
         // Skip non-protocol messages
         if (!isProtocolMessage(data)) return;
