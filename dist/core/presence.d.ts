@@ -9,7 +9,7 @@
  * const bus = new CrossBus({ peerId: 'my-peer' });
  * const presence = createPresence(bus);
  *
- * presence.on('join', (peerId) => console.log(`${peerId} joined`));
+ * presence.on('join', ({ peerId }) => console.log(`${peerId} joined`));
  */
 export function createPresence(bus: import("./cross-bus.js").CrossBus, options?: PresenceOptions): PresenceManager;
 /**
@@ -39,8 +39,9 @@ export function createPresence(bus: import("./cross-bus.js").CrossBus, options?:
  * @example
  * const presence = new PresenceManager(sendFn, { peerId: 'my-peer' });
  *
- * presence.on('join', (peerId, meta) => console.log(`${peerId} is online`));
- * presence.on('leave', (peerId) => console.log(`${peerId} went offline`));
+ * // Listeners receive one raw object (emitted with emitSync).
+ * presence.on('join', ({ peerId, meta }) => console.log(`${peerId} is online`, meta));
+ * presence.on('leave', ({ peerId }) => console.log(`${peerId} went offline`));
  *
  * // Get all online peers
  * const online = presence.getOnlinePeers();

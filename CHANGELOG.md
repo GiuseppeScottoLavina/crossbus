@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Retain the RPC implementation and core runtime after rejecting small bundle reductions with unfavorable measured RPC tradeoffs.
 - Retain separate 0.1.5/candidate process-paired stream/RPC evidence, source snapshots, controls and rejected experiments in docs/OPTIMIZATION_016.md. The 0.1.5 physical-device receipts remain historical evidence.
 
+- Declare `success` in the `signal()` return type, matching the runtime result, and check it in the consumer declaration test. Correct shipped JSDoc examples for `broadcastRequest()` results, `healthCheck()` shape, presence listener arguments and the class overview.
+- Remove an unreachable strict-mode wildcard branch from the development warning path; the constructor rejection is unchanged and independent of `NODE_ENV`.
+- Fix pattern scaffolds: use the Subscription object returned by `on()`, install iframe transports and ready listeners before navigation, register the requested agent handler, describe `'*'` and `isHub` accurately and drop a nonexistent related pattern. Remove a no-op metadata assignment from the tool-agent template.
+- Align contributing guides with the actual scripts, install command and 90% coverage gate; point stale 0.1.3/0.1.5 "current" references to the 0.1.6 studies and record the 0.1.6 development status in docs/AUDIT.md.
+
 ## [0.1.5] - 2026-11-14
 
 - Add opt-in stream consumption acknowledgements, bounded credit windows, acknowledgement/lifetime deadlines, cancellation, native binary chunks and serialized concurrent writes/end. Default base64 framing remains compatible with 0.1.4; flow mode requires compatible 0.1.5 endpoints and does not silently downgrade.

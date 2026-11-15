@@ -18,7 +18,7 @@
             "order": 1,
             "action": "create-hub",
             "title": "Create the Hub",
-            "explanation": "Create the central hub that will coordinate all agents. Set isHub: true to enable hub mode.",
+            "explanation": "Create the central hub that will coordinate all agents. isHub: true is reported by diagnostics; it does not add routing. Each agent still needs its own transport.",
             "code": "const hub = new CrossBus({ isHub: true, peerId: 'hub', allowedOrigins: ['*'] });"
         },
         {
@@ -53,8 +53,7 @@
     "completeExample": "./hub-spoke.js",
     "relatedPatterns": [
         "multi-tab-sync",
-        "worker-offload",
-        "pipeline"
+        "worker-offload"
     ],
     "tips": [
         "Always use unique peerIds for each agent",

@@ -52,8 +52,7 @@
     ],
     "completeExample": "./worker-offload.js",
     "relatedPatterns": [
-        "hub-spoke",
-        "pipeline"
+        "hub-spoke"
     ],
     "tips": [
         "Workers can't access DOM - only pure computation",

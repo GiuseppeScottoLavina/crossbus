@@ -19,14 +19,14 @@
             "action": "create-bus",
             "title": "Create CrossBus with unique peerId",
             "explanation": "Each tab needs a unique peerId. Using timestamp ensures uniqueness.",
-            "code": "const bus = new CrossBus({ peerId: `tab-${Date.now()}`, allowedOrigins: ['*'] });"
+            "code": "const bus = new CrossBus({ peerId: `tab-${Date.now()}`, allowedOrigins: ['broadcast'] });"
         },
         {
             "order": 2,
             "action": "add-transport",
             "title": "Add BroadcastChannel Transport",
-            "explanation": "BroadcastChannelTransport enables cross-tab communication. Use peerId: '*' for broadcast mode.",
-            "code": "bus.addTransport(new BroadcastChannelTransport('my-app-channel'), { peerId: '*' });"
+            "explanation": "BroadcastChannelTransport enables same-origin cross-tab communication. The peerId is a label for the shared channel, not a wildcard; all tabs on it appear as that peer, so identify the sending tab in the payload.",
+            "code": "bus.addTransport(new BroadcastChannelTransport('my-app-channel'), { peerId: 'app-tabs' });"
         },
         {
             "order": 3,

@@ -79,11 +79,8 @@ export class ToolAgent {
             fn,
         });
 
-        // Update capabilities
-        this.#bus.meta = {
-            ...this.#bus.meta,
-            tools: Array.from(this.#tools.keys()),
-        };
+        // Bus metadata is fixed at construction; callers discover registered
+        // tools at runtime through the 'describe' handler.
     }
 
     /**

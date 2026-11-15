@@ -68,7 +68,7 @@ export async function processWithProgress(data, onProgress) {
     console.log(`[Main] Processing ${data.length} items with progress`);
 
     // Listen for progress updates
-    const unsubscribe = bus.on('worker:progress', (event) => {
+    const subscription = bus.on('worker:progress', (event) => {
         onProgress?.(event.data.payload);
     });
 
@@ -79,7 +79,7 @@ export async function processWithProgress(data, onProgress) {
         });
         return result;
     } finally {
-        unsubscribe();
+        subscription.unsubscribe();
     }
 }
 

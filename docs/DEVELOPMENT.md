@@ -45,7 +45,7 @@ npm run lint     # No lint errors
 | Architecture | `docs/ARCHITECTURE.md` |
 | Types/Enums | JSDoc in source |
 | New feature | Add to `README.md` |
-| Native | `docs/native/*.md` |
+| Native | `native/README.md` |
 
 ❌ **NEVER** merge undocumented changes.
 

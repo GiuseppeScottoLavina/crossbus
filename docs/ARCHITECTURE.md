@@ -27,6 +27,6 @@ The 0.1.5 [stream manager](STREAMING.md) binds stream IDs and control responses 
 
 Performance and memory behavior must be measured for a specific workload/runtime. See [benchmarks](BENCHMARKS.md); no architecture choice alone establishes fastest throughput or absence of all leaks.
 
-The 0.1.3 candidate handles completed inbound responses without building an additional asynchronous dispatch chain; public `handleMessage()` still returns a Promise. Handler/hook errors remain rejected Promises, and destruction during an asynchronous inbound hook stops subsequent dispatch.
+Since 0.1.3, CrossBus handles completed inbound responses without building an additional asynchronous dispatch chain; public `handleMessage()` still returns a Promise. Handler/hook errors remain rejected Promises, and destruction during an asynchronous inbound hook stops subsequent dispatch.
 
 MessageChannel compact mode is opt-in and requires a supporting receiver. It encodes only exact protocol-v1 signal/request/response shapes with empty metadata. Other shapes retain the object representation. Decoding precedes all bus validation and peer authorization. The standard wire format remains the default.

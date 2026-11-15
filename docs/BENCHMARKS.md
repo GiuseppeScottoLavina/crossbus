@@ -1,8 +1,8 @@
 # Reproducible performance measurements
 
-The newer [compact-v2 RPC study](RPC_WIRE_V2.md) records repeated within-process format comparisons, separate existing-codec controls and Worker follow-up data against the earlier unpublished 0.1.6 snapshot.
+The current unpublished 0.1.6 development evidence is the [compact-v2 RPC study](RPC_WIRE_V2.md). It records repeated within-process format comparisons, separate existing-codec controls, Worker follow-up data, current bundle sizes and functional qualification against the earlier 0.1.6 snapshot.
 
-For the unpublished 0.1.6 candidate, see the [separate optimization study](OPTIMIZATION_016.md), including its frozen 0.1.5 baseline, raw samples, source snapshots and offline verifiers.
+That earlier snapshot is the [0.1.6 optimization study](OPTIMIZATION_016.md), including its frozen 0.1.5 baseline, raw samples, source snapshots and offline verifiers. Its bundle sizes and browser checks predate compact-v2.
 
 Run after building, with other benchmark/test workloads stopped:
 
@@ -37,7 +37,7 @@ Older JSON under `tests/benchmarks/` and `tests/perf/` is marked `historical-unv
 
 See [AUDIT.md](AUDIT.md) for the current local validation status and outstanding qualification work.
 
-## Current 0.1.3 candidate study
+## 0.1.3 candidate study (historical)
 
 The later [explicit RPC grouping experiment](RPC_BATCHING.md) retains separate raw data and adapters outside the npm export map. It includes a strict transparent negative control, paired fresh processes, real Workers, latency, native-send counts, payload/hook guard conditions and teardown checks. Its bulk operation has different object-graph semantics from independent calls; it does not change the approved runtime or establish an equivalent competitor bulk comparison.
 

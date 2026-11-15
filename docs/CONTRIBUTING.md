@@ -11,15 +11,12 @@ Thank you for considering contributing to CrossBus!
 git clone https://github.com/giuseppescottolavina/crossbus.git
 cd crossbus
 
-# Install dependencies
-npm install
+# Install dependencies (Node 24 and Bun for development)
+npm ci --legacy-peer-deps
 
-# Build and run source/package tests
+# Build, then run unit and package tests
 bun run build
-bun test
-
-# Build
-npm run build
+bun run test
 ```
 
 ## Project Structure
@@ -27,13 +24,25 @@ npm run build
 ```
 src/
 ├── common/          # Shared code (types, errors, utils)
-├── core/            # Core modules
-├── plugins/         # Optional plugins
+├── core/            # Bus, event emitter, streams, presence
+├── router/          # Peer routing
+├── transports/      # PostMessage, MessageChannel, workers, WebSocket, native
+├── security/        # Origin validation and handshake utilities
+├── ordering/        # Vector clocks and causal ordering utilities
+├── plugins/         # Optional plugins (crossbus/plugins/*)
+├── enterprise/      # crossbus/enterprise
+├── testing/         # crossbus/testing
+├── nano.js          # crossbus/nano
 └── index.js         # Entry point
 
 tests/
 ├── unit/            # Unit tests (Bun)
-└── integration/     # Browser tests
+├── package/         # Packaged export and declaration checks
+├── e2e/             # Chrome end-to-end tests
+├── integration/     # Chrome integration tests
+├── docs/            # Executable documentation checks
+├── experiments/     # Repository-only prototypes
+└── native/          # Swift/Java adapter build checks
 ```
 
 ## Coding Standards
@@ -60,31 +69,35 @@ refactor: simplify router logic
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feat/my-feature`)
 3. Write tests for new functionality
-4. Ensure all tests pass (`npm test`)
+4. Ensure all tests pass (`bun run build && bun run test`, plus browser suites)
 5. Update documentation if needed
 6. Submit PR with clear description
 
 ## Testing
 
 ```bash
-# Unit tests
-npm test
+# Unit and package tests (after bun run build)
+bun run test
 
-# With coverage
-npm run test:coverage
+# Type declarations
+bun run test:types
 
-# Browser tests
-npm run test:browser
+# Line coverage gate (90% minimum)
+bun run test:coverage
+
+# Browser tests (Chrome; set CHROME_PATH if needed)
+bun run test:e2e
+bun run test:integration
 ```
 
 ## Building
 
 ```bash
-# Development build
-npm run build
+# Production build (cleans dist/, emits declarations and bundles)
+bun run build
 
-# Watch mode
-npm run build:watch
+# Watch mode (Rollup only)
+bun run build:watch
 ```
 
 ## License
