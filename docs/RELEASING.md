@@ -1,14 +1,26 @@
 # Releasing CrossBus
 
-## 0.1.7 publication — 15 November 2026
+## 0.1.8 publication — 19 November 2026
 
-Version **0.1.7 is [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.7)** and is the `latest` tag. Its registry tarball was downloaded and compared byte for byte with the archive from [CI 43714123944](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43714123944), which passed all seven jobs. A local `npm pack` of the same commit reproduces the archive. The registry version passed isolated consumers on Node 18.18.0, 20.20.0, 22.19.0 and 24.15.0, including encrypted RPC and decompression-bomb checks from the installed package.
+Version **0.1.8 is [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.8)** and is the `latest` tag. Its registry tarball was downloaded and compared byte for byte with the archive from [CI 44520872350](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/44520872350), which passed all seven jobs. A local `npm pack` of the same commit reproduces the archive.
+
+The registry version passed isolated consumers on Node 18.20.8, 20.20.0, 22.19.0 and 24.15.0. On each runtime it also ran encrypted RPC against `crossbus@0.1.7` from npm in both directions; with every frame duplicated on the channel, the 0.1.8 handler ran once and the 0.1.7 handler twice. The jsDelivr copy of `dist/crossbus.min.js` matches the archive.
+
+Annotated tag **`v0.1.8`** pins tested source commit `7bc55be0395e5bbba6bdd489d3bbc1015391033e`. The [GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.8) preserves `crossbus-0.1.8.tgz`, `SHA256SUMS` and `release-manifest.json`. Its archive SHA-256 is `daf897aa4f97c6ef43ffda424c77e3de652a9c2809a0b8d2e4dd0d1c43403a95`; registry integrity is `sha512-oDMArrFJF/TKhsCxCluBodsqhUQtnzYFzYTVGdCbeen+DxRUhsxEkZgbOeQzuWFUK1/Pw/yDiCrsKvH8BDZMuA==`.
+
+Encrypted 0.1.7 and 0.1.8 endpoints interoperate in both directions. The native adapters are unchanged since 0.1.7 (SDK version 0.1.7). CocoaPods and Maven Central are not published by this npm release. No physical device was qualified for 0.1.8; the iPad receipts cover 0.1.5 and 0.1.7.
+
+After `npm publish` accepted the upload, registry reads answered 404 for about two minutes ([Wait for registry availability](#wait-for-registry-availability)), and the tarball URL kept a cached 404 at the CDN edge for a few minutes more.
+
+## Earlier publication records
+
+### 0.1.7 — 15 November 2026
+
+Version **0.1.7 is [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.7)**. Its registry tarball was downloaded and compared byte for byte with the archive from [CI 43714123944](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43714123944), which passed all seven jobs. A local `npm pack` of the same commit reproduces the archive. The registry version passed isolated consumers on Node 18.18.0, 20.20.0, 22.19.0 and 24.15.0, including encrypted RPC and decompression-bomb checks from the installed package.
 
 Annotated tag **`v0.1.7`** pins tested source commit `313e61d297dd3a0876a9d66e79e29ef0d70f3042`. The [GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.7) preserves `crossbus-0.1.7.tgz`, `SHA256SUMS` and `release-manifest.json`. Its archive SHA-256 is `f4a7e0b8489cf2957cc3110b408f5b4eaa85cd136fc1b9ae2c96c47668cafe06`; registry integrity is `sha512-0ZIh3b37z2ppz8f5oZcO0jqjHGSPQDAyWDOxPLSSS7L+9eooA2wzgD7daNAeCul7Ivy81GOoSwEbv1rlsUPJ+g==`.
 
-Encrypted 0.1.6 and 0.1.7 endpoints are not interoperable; see the changelog. The Swift adapter changed; CocoaPods and Maven Central are not published by this npm release, and the physical iPad/Pixel receipts cover 0.1.5 only.
-
-## Earlier publication records
+Encrypted 0.1.6 and 0.1.7 endpoints are not interoperable; see the changelog. The Swift adapter changed; CocoaPods and Maven Central are not published by this npm release. At publication the physical iPad/Pixel receipts covered 0.1.5 only; 0.1.7 was qualified on a physical iPad on 19 November 2026 ([QUALIFICATION.md](QUALIFICATION.md)).
 
 ### 0.1.6 — 15 November 2026
 
@@ -77,7 +89,7 @@ npm publish "./artifacts/crossbus-${RELEASE_VERSION}.tgz" --access public --regi
 npm view "crossbus@${RELEASE_VERSION}" version dist.integrity --registry=https://registry.npmjs.org/
 ```
 
-Publishing the tarball uploads the reviewed bytes; it does not run the source checkout's `prepublishOnly` gate again. Publishing from the repository instead runs `release:check` through that lifecycle hook and builds a new archive. Registry publication is irreversible for consumers and must be an intentional release action.
+With two-factor authentication, `npm publish` either opens a browser confirmation or needs `--otp=` followed by the current six-digit code; a rejected OTP (`E400`/`EOTP`) publishes nothing. Publishing the tarball uploads the reviewed bytes; it does not run the source checkout's `prepublishOnly` gate again. Publishing from the repository instead runs `release:check` through that lifecycle hook and builds a new archive. Registry publication is irreversible for consumers and must be an intentional release action.
 
 ### Wait for registry availability
 
