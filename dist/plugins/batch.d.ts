@@ -1,27 +1,17 @@
-/**
- * Wraps a CrossBus to batch outgoing signals.
- *
- * @param {import('../core/cross-bus.js').CrossBus} bus - CrossBus instance
- * @param {BatchOptions} [options={}]
- * @returns {import('../core/cross-bus.js').CrossBus} Same bus with batching installed
- *
- * @example
- * const bus = new CrossBus({ peerId: 'high-freq-sender' });
- * withBatching(bus, { windowMs: 16 });
- *
- * // Rapid signals are now batched
- * for (let i = 0; i < 1000; i++) {
- *   bus.signal('data', { n: i });
- * }
- */
-export function withBatching(bus: import("../core/cross-bus.js").CrossBus, options?: BatchOptions): import("../core/cross-bus.js").CrossBus;
-/**
- * Creates a standalone batcher for custom use cases.
- *
- * @param {BatchOptions} options
- * @returns {MessageBatcher}
- */
-export function createBatcher(options?: BatchOptions): MessageBatcher;
+export type BatchOptions = {
+    /**
+     * - Time window for batching (default: 1 frame @ 60fps)
+     */
+    windowMs?: number;
+    /**
+     * - Maximum messages per batch
+     */
+    maxBatchSize?: number;
+    /**
+     * - Use requestAnimationFrame for timing
+     */
+    useRaf?: boolean;
+};
 /**
  * @fileoverview Message Batching plugin for CrossBus.
  * Collects messages and sends them in batches to reduce postMessage overhead.
@@ -56,7 +46,8 @@ export function createBatcher(options?: BatchOptions): MessageBatcher;
  *   bus.signal('telemetry', { value: i });
  * }
  */
-export class MessageBatcher {
+export declare class MessageBatcher {
+    #private;
     /**
      * Creates a new MessageBatcher.
      *
@@ -97,23 +88,32 @@ export class MessageBatcher {
      * Destroys the batcher.
      */
     destroy(): void;
-    #private;
 }
 /**
  * Batch envelope type marker.
  */
-export const BATCH_TYPE: "__crossbus_batch__";
-export type BatchOptions = {
-    /**
-     * - Time window for batching (default: 1 frame @ 60fps)
-     */
-    windowMs?: number | undefined;
-    /**
-     * - Maximum messages per batch
-     */
-    maxBatchSize?: number | undefined;
-    /**
-     * - Use requestAnimationFrame for timing
-     */
-    useRaf?: boolean | undefined;
-};
+export declare const BATCH_TYPE = "__crossbus_batch__";
+/**
+ * Wraps a CrossBus to batch outgoing signals.
+ *
+ * @param {import('../core/cross-bus.js').CrossBus} bus - CrossBus instance
+ * @param {BatchOptions} [options={}]
+ * @returns {import('../core/cross-bus.js').CrossBus} Same bus with batching installed
+ *
+ * @example
+ * const bus = new CrossBus({ peerId: 'high-freq-sender' });
+ * withBatching(bus, { windowMs: 16 });
+ *
+ * // Rapid signals are now batched
+ * for (let i = 0; i < 1000; i++) {
+ *   bus.signal('data', { n: i });
+ * }
+ */
+export declare function withBatching(bus: import('../core/cross-bus.js').CrossBus, options?: BatchOptions): import('../core/cross-bus.js').CrossBus;
+/**
+ * Creates a standalone batcher for custom use cases.
+ *
+ * @param {BatchOptions} options
+ * @returns {MessageBatcher}
+ */
+export declare function createBatcher(options?: BatchOptions): MessageBatcher;

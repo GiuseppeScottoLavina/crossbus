@@ -1,17 +1,42 @@
 /**
- * Creates a presence manager integrated with CrossBus.
- *
- * @param {import('./cross-bus.js').CrossBus} bus - CrossBus instance.
- * @param {PresenceOptions} [options] - Options.
- * @returns {PresenceManager}
- *
- * @example
- * const bus = new CrossBus({ peerId: 'my-peer' });
- * const presence = createPresence(bus);
- *
- * presence.on('join', ({ peerId }) => console.log(`${peerId} joined`));
+ * @fileoverview Presence system for CrossBus.
+ * Tracks online peers with heartbeat-based detection.
+ * @module core/presence
  */
-export function createPresence(bus: import("./cross-bus.js").CrossBus, options?: PresenceOptions): PresenceManager;
+import { EventEmitter } from './event-emitter.js';
+export type PresenceOptions = {
+    /**
+     * - How often to send heartbeat (ms).
+     */
+    heartbeatInterval?: number;
+    /**
+     * - Time before peer considered offline (ms).
+     */
+    timeout?: number;
+    /**
+     * - Start heartbeat automatically.
+     */
+    autoStart?: boolean;
+};
+export type PeerPresence = {
+    /**
+     * - Peer identifier.
+     */
+    peerId: string;
+    /**
+     * - Current status.
+     */
+    status: 'online' | 'away' | 'offline';
+    /**
+     * - Timestamp of last activity.
+     */
+    lastSeen: number;
+    /**
+     * - Optional metadata (user info, etc).
+     */
+    meta?: any;
+};
+export type PresenceEvent = 'join' | 'leave' | 'update' | 'heartbeat';
 /**
  * @typedef {Object} PresenceOptions
  * @property {number} [heartbeatInterval=15000] - How often to send heartbeat (ms).
@@ -52,7 +77,8 @@ export function createPresence(bus: import("./cross-bus.js").CrossBus, options?:
  * // Cleanup
  * presence.destroy();
  */
-export class PresenceManager extends EventEmitter {
+export declare class PresenceManager extends EventEmitter {
+    #private;
     /**
      * Creates a PresenceManager.
      *
@@ -71,7 +97,7 @@ export class PresenceManager extends EventEmitter {
      * Gets own status.
      * @returns {'online' | 'away' | 'offline'}
      */
-    get status(): "online" | "away" | "offline";
+    get status(): 'online' | 'away' | 'offline';
     /**
      * Gets count of online peers.
      * @returns {number}
@@ -91,7 +117,7 @@ export class PresenceManager extends EventEmitter {
      * @param {'online' | 'away' | 'offline'} status - New status.
      * @param {Object} [meta] - Optional metadata update.
      */
-    setStatus(status: "online" | "away" | "offline", meta?: any): void;
+    setStatus(status: 'online' | 'away' | 'offline', meta?: any): void;
     /**
      * Sets own metadata.
      *
@@ -141,39 +167,18 @@ export class PresenceManager extends EventEmitter {
      * @returns {boolean}
      */
     get isDestroyed(): boolean;
-    #private;
 }
-export type PresenceOptions = {
-    /**
-     * - How often to send heartbeat (ms).
-     */
-    heartbeatInterval?: number | undefined;
-    /**
-     * - Time before peer considered offline (ms).
-     */
-    timeout?: number | undefined;
-    /**
-     * - Start heartbeat automatically.
-     */
-    autoStart?: boolean | undefined;
-};
-export type PeerPresence = {
-    /**
-     * - Peer identifier.
-     */
-    peerId: string;
-    /**
-     * - Current status.
-     */
-    status: "online" | "away" | "offline";
-    /**
-     * - Timestamp of last activity.
-     */
-    lastSeen: number;
-    /**
-     * - Optional metadata (user info, etc).
-     */
-    meta?: any;
-};
-export type PresenceEvent = "join" | "leave" | "update" | "heartbeat";
-import { EventEmitter } from './event-emitter.js';
+/**
+ * Creates a presence manager integrated with CrossBus.
+ *
+ * @param {import('./cross-bus.js').CrossBus} bus - CrossBus instance.
+ * @param {PresenceOptions} [options] - Options.
+ * @returns {PresenceManager}
+ *
+ * @example
+ * const bus = new CrossBus({ peerId: 'my-peer' });
+ * const presence = createPresence(bus);
+ *
+ * presence.on('join', ({ peerId }) => console.log(`${peerId} joined`));
+ */
+export declare function createPresence(bus: import('./cross-bus.js').CrossBus, options?: PresenceOptions): PresenceManager;

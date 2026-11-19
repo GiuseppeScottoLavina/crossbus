@@ -1,45 +1,56 @@
 /**
- * Creates a circuit breaker wrapper for CrossBus peer requests.
- *
- * @param {import("../core/cross-bus.js").CrossBus} bus - CrossBus instance.
- * @param {string} peerId - Peer ID to protect.
- * @param {CircuitBreakerOptions} [options={}]
- * @returns {{ request: Function, breaker: CircuitBreaker }}
- *
- * @example
- * const { request, breaker } = createPeerCircuitBreaker(
- *   bus,
- *   'unstable-widget',
- *   { failureThreshold: 3 }
- * );
- *
- * try {
- *   const data = await request('getData', { id: 5 });
- * } catch (error) {
- *   if (breaker.isOpen) {
- *     console.log('Widget is unavailable');
- *   }
- * }
+ * @fileoverview Circuit Breaker plugin for CrossBus.
+ * Prevents cascading failures by tracking errors and opening circuit.
+ * @module plugins/circuit-breaker
  */
-export function createPeerCircuitBreaker(bus: import("../core/cross-bus.js").CrossBus, peerId: string, options?: CircuitBreakerOptions): {
-    request: Function;
-    breaker: CircuitBreaker;
-};
 /**
  * Circuit breaker states.
  */
-export const CircuitState: Readonly<{
+export declare const CircuitState: Readonly<{
     CLOSED: "closed";
     OPEN: "open";
     HALF_OPEN: "half_open";
 }>;
-export namespace DEFAULT_CIRCUIT_OPTIONS {
-    let failureThreshold: number;
-    let successThreshold: number;
-    let resetTimeout: number;
-    let onStateChange: null;
-    function isFailure(error: any): boolean;
-}
+export type CircuitBreakerOptions = {
+    /**
+     * - Failures before opening circuit.
+     */
+    failureThreshold?: number;
+    /**
+     * - Successes needed to close from half-open.
+     */
+    successThreshold?: number;
+    /**
+     * - Time in ms before trying half-open.
+     */
+    resetTimeout?: number;
+    /**
+     * - Callback when state changes.
+     */
+    onStateChange?: Function | null;
+    /**
+     * - Custom failure detector.
+     */
+    isFailure?: Function;
+};
+/**
+ * @typedef {Object} CircuitBreakerOptions
+ * @property {number} [failureThreshold=5] - Failures before opening circuit.
+ * @property {number} [successThreshold=2] - Successes needed to close from half-open.
+ * @property {number} [resetTimeout=30000] - Time in ms before trying half-open.
+ * @property {Function|null} [onStateChange] - Callback when state changes.
+ * @property {Function} [isFailure] - Custom failure detector.
+ */
+/**
+ * Default circuit breaker options.
+ */
+export declare const DEFAULT_CIRCUIT_OPTIONS: {
+    failureThreshold: number;
+    successThreshold: number;
+    resetTimeout: number;
+    onStateChange: null;
+    isFailure: (error: any) => boolean;
+};
 /**
  * Circuit Breaker implementation.
  *
@@ -64,7 +75,8 @@ export namespace DEFAULT_CIRCUIT_OPTIONS {
  *   }
  * }
  */
-export class CircuitBreaker {
+export declare class CircuitBreaker {
+    #private;
     /**
      * Creates a new circuit breaker.
      *
@@ -118,27 +130,31 @@ export class CircuitBreaker {
      * Manually trips the circuit to open state.
      */
     trip(): void;
-    #private;
 }
-export type CircuitBreakerOptions = {
-    /**
-     * - Failures before opening circuit.
-     */
-    failureThreshold?: number | undefined;
-    /**
-     * - Successes needed to close from half-open.
-     */
-    successThreshold?: number | undefined;
-    /**
-     * - Time in ms before trying half-open.
-     */
-    resetTimeout?: number | undefined;
-    /**
-     * - Callback when state changes.
-     */
-    onStateChange?: Function | null | undefined;
-    /**
-     * - Custom failure detector.
-     */
-    isFailure?: Function | undefined;
+/**
+ * Creates a circuit breaker wrapper for CrossBus peer requests.
+ *
+ * @param {import("../core/cross-bus.js").CrossBus} bus - CrossBus instance.
+ * @param {string} peerId - Peer ID to protect.
+ * @param {CircuitBreakerOptions} [options={}]
+ * @returns {{ request: Function, breaker: CircuitBreaker }}
+ *
+ * @example
+ * const { request, breaker } = createPeerCircuitBreaker(
+ *   bus,
+ *   'unstable-widget',
+ *   { failureThreshold: 3 }
+ * );
+ *
+ * try {
+ *   const data = await request('getData', { id: 5 });
+ * } catch (error) {
+ *   if (breaker.isOpen) {
+ *     console.log('Widget is unavailable');
+ *   }
+ * }
+ */
+export declare function createPeerCircuitBreaker(bus: import("../core/cross-bus.js").CrossBus, peerId: string, options?: CircuitBreakerOptions): {
+    request: Function;
+    breaker: CircuitBreaker;
 };

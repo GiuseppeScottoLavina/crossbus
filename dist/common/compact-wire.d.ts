@@ -5,6 +5,6 @@
  * @param {boolean} [version2=false]
  * @returns {any}
  */
-export function encodeCompact(message: any, version2?: boolean): any;
+export declare function encodeCompact(message: any, version2?: boolean): any;
 /** @param {any} packet @returns {any} Null means a malformed compact packet. */
-export function decodeCompact(packet: any): any;
+export declare function decodeCompact(packet: any): any;

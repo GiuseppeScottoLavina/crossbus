@@ -1,4 +1,43 @@
 /**
+ * @fileoverview WebSocket transport for CrossBus.
+ * Enables communication with a server via WebSocket.
+ * @module transports/websocket
+ */
+export type WebSocketTransportOptions = {
+    /**
+     * - WebSocket server URL (ws:// or wss://)
+     */
+    url: string;
+    /**
+     * - Local peer ID
+     */
+    peerId?: string;
+    /**
+     * - Auto-reconnect on disconnect
+     */
+    autoReconnect?: boolean;
+    /**
+     * - Base delay for reconnection
+     */
+    reconnectDelayMs?: number;
+    /**
+     * - Max delay with exponential backoff
+     */
+    maxReconnectDelayMs?: number;
+    /**
+     * - Heartbeat interval (0 to disable)
+     */
+    heartbeatIntervalMs?: number;
+    /**
+     * - WebSocket subprotocols
+     */
+    protocols?: string | string[];
+    /**
+     * - Maximum queued messages while disconnected; zero disables the cap.
+     */
+    maxQueueSize?: number;
+};
+/**
  * @typedef {Object} WebSocketTransportOptions
  * @property {string} url - WebSocket server URL (ws:// or wss://)
  * @property {string} [peerId] - Local peer ID
@@ -24,7 +63,8 @@
  * await transport.connect();
  * transport.send({ type: 'hello', payload: { name: 'client' } });
  */
-export class WebSocketTransport {
+export declare class WebSocketTransport {
+    #private;
     /**
      * Creates a new WebSocket transport.
      * @param {WebSocketTransportOptions} options
@@ -33,7 +73,7 @@ export class WebSocketTransport {
     /** @returns {string} */
     get peerId(): string;
     /** @returns {'connecting'|'connected'|'disconnected'|'error'} */
-    get state(): "connecting" | "connected" | "disconnected" | "error";
+    get state(): 'connecting' | 'connected' | 'disconnected' | 'error';
     /** @returns {boolean} */
     get isConnected(): boolean;
     /**
@@ -67,39 +107,4 @@ export class WebSocketTransport {
      * Destroys the transport.
      */
     destroy(): void;
-    #private;
 }
-export type WebSocketTransportOptions = {
-    /**
-     * - WebSocket server URL (ws:// or wss://)
-     */
-    url: string;
-    /**
-     * - Local peer ID
-     */
-    peerId?: string | undefined;
-    /**
-     * - Auto-reconnect on disconnect
-     */
-    autoReconnect?: boolean | undefined;
-    /**
-     * - Base delay for reconnection
-     */
-    reconnectDelayMs?: number | undefined;
-    /**
-     * - Max delay with exponential backoff
-     */
-    maxReconnectDelayMs?: number | undefined;
-    /**
-     * - Heartbeat interval (0 to disable)
-     */
-    heartbeatIntervalMs?: number | undefined;
-    /**
-     * - WebSocket subprotocols
-     */
-    protocols?: string | string[] | undefined;
-    /**
-     * - Maximum queued messages while disconnected; zero disables the cap.
-     */
-    maxQueueSize?: number | undefined;
-};

@@ -1,4 +1,95 @@
 /**
+ * @fileoverview Pending requests tracker for request/response pattern.
+ * Tracks outgoing requests and matches them with responses.
+ * @module router/pending-requests
+ */
+export type PendingRequest = {
+    /**
+     * - Request ID.
+     */
+    id: string;
+    /**
+     * - Target peer ID.
+     */
+    targetPeer: string;
+    /**
+     * - Name of the handler.
+     */
+    handlerName: string;
+    /**
+     * - When request was created.
+     */
+    createdAt: number;
+    /**
+     * - Timeout in ms.
+     */
+    timeout: number;
+    /**
+     * - Timer at registration; pooled handles are scheduler-owned. Use tracker cancellation methods.
+     */
+    timer: ReturnType<typeof setTimeout>;
+    /**
+     * - Promise resolve function.
+     */
+    resolve: Function;
+    /**
+     * - Promise reject function.
+     */
+    reject: Function;
+    /**
+     * - Value to return on timeout.
+     */
+    defaultValue?: any;
+    /**
+     * - Whether the default deadline scheduler owns this request.
+     */
+    pooled: boolean;
+    /**
+     * - Monotonic expiration time for a pooled request.
+     */
+    deadline: number;
+    /**
+     * - Previous pooled request.
+     */
+    previous: PendingRequest | null;
+    /**
+     * - Next pooled request.
+     */
+    next: PendingRequest | null;
+    /**
+     * - Original timeout options.
+     */
+    options: RequestOptions;
+};
+export type RequestOptions = {
+    /**
+     * - Request timeout in ms.
+     */
+    timeout?: number;
+    /**
+     * - Value to return on timeout instead of throwing.
+     */
+    defaultValue?: any;
+};
+export type ResponseData = {
+    /**
+     * - Original request ID.
+     */
+    requestId: string;
+    /**
+     * - Whether handler succeeded.
+     */
+    success: boolean;
+    /**
+     * - Response data if successful.
+     */
+    data?: any;
+    /**
+     * - Error if failed.
+     */
+    error?: any;
+};
+/**
  * @typedef {Object} PendingRequest
  * @property {string} id - Request ID.
  * @property {string} targetPeer - Target peer ID.
@@ -53,7 +144,8 @@
  * // Or wait for response:
  * const result = await promise;
  */
-export class PendingRequests {
+export declare class PendingRequests {
+    #private;
     /**
      * Creates a new pending requests tracker.
      *
@@ -63,9 +155,9 @@ export class PendingRequests {
      * @param {boolean} [options.coalesceTimeouts=false] - Share a timer for equal default deadlines; custom deadlines remain independent.
      */
     constructor(options?: {
-        defaultTimeout?: number | undefined;
-        maxPending?: number | undefined;
-        coalesceTimeouts?: boolean | undefined;
+        defaultTimeout?: number;
+        maxPending?: number;
+        coalesceTimeouts?: boolean;
     });
     /**
      * Creates a new pending request.
@@ -152,91 +244,4 @@ export class PendingRequests {
      * @returns {PendingRequest[]}
      */
     getForPeer(peerId: string): PendingRequest[];
-    #private;
 }
-export type PendingRequest = {
-    /**
-     * - Request ID.
-     */
-    id: string;
-    /**
-     * - Target peer ID.
-     */
-    targetPeer: string;
-    /**
-     * - Name of the handler.
-     */
-    handlerName: string;
-    /**
-     * - When request was created.
-     */
-    createdAt: number;
-    /**
-     * - Timeout in ms.
-     */
-    timeout: number;
-    /**
-     * - Timer at registration; pooled handles are scheduler-owned. Use tracker cancellation methods.
-     */
-    timer: ReturnType<typeof setTimeout>;
-    /**
-     * - Promise resolve function.
-     */
-    resolve: Function;
-    /**
-     * - Promise reject function.
-     */
-    reject: Function;
-    /**
-     * - Value to return on timeout.
-     */
-    defaultValue?: any;
-    /**
-     * - Whether the default deadline scheduler owns this request.
-     */
-    pooled: boolean;
-    /**
-     * - Monotonic expiration time for a pooled request.
-     */
-    deadline: number;
-    /**
-     * - Previous pooled request.
-     */
-    previous: PendingRequest | null;
-    /**
-     * - Next pooled request.
-     */
-    next: PendingRequest | null;
-    /**
-     * - Original timeout options.
-     */
-    options: RequestOptions;
-};
-export type RequestOptions = {
-    /**
-     * - Request timeout in ms.
-     */
-    timeout?: number | undefined;
-    /**
-     * - Value to return on timeout instead of throwing.
-     */
-    defaultValue?: any;
-};
-export type ResponseData = {
-    /**
-     * - Original request ID.
-     */
-    requestId: string;
-    /**
-     * - Whether handler succeeded.
-     */
-    success: boolean;
-    /**
-     * - Response data if successful.
-     */
-    data?: any;
-    /**
-     * - Error if failed.
-     */
-    error?: any;
-};

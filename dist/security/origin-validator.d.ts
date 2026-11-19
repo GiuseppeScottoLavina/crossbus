@@ -1,23 +1,18 @@
 /**
- * Compiles an origin wildcard pattern.
- *
- * Supported forms, where `*` must be the whole component it replaces:
- * - `https://*.example.com`: one or more subdomain labels (not the apex);
- * - `chrome-extension://*`: any host for the scheme;
- * - `http://localhost:*`: any port.
- *
- * Any other `*` position (for example `https://example.com*`) is rejected,
- * because it could match a different registrable domain.
- *
- * @param {string} pattern
- * @returns {RegExp}
- */
-export function compileOriginPattern(pattern: string): RegExp;
-/**
  * @fileoverview Origin validation for cross-origin security.
  * Validates message origins against an allowlist.
  * @module security/origin-validator
  */
+export type OriginValidatorOptions = {
+    /**
+     * - Allowed origins. Empty = same-origin only.
+     */
+    allowed?: string[];
+    /**
+     * - Allow all origins (dangerous!).
+     */
+    allowAll?: boolean;
+};
 /**
  * @typedef {Object} OriginValidatorOptions
  * @property {string[]} [allowed=[]] - Allowed origins. Empty = same-origin only.
@@ -43,7 +38,8 @@ export function compileOriginPattern(pattern: string): RegExp;
  * validator.isAllowed('https://foo.widgets.com');     // true
  * validator.isAllowed('https://evil.com');            // false
  */
-export class OriginValidator {
+export declare class OriginValidator {
+    #private;
     /**
      * Creates a new origin validator.
      *
@@ -90,33 +86,40 @@ export class OriginValidator {
      * @returns {string|undefined}
      */
     get selfOrigin(): string | undefined;
-    #private;
 }
-export namespace OriginValidatorPresets {
+/**
+ * Compiles an origin wildcard pattern.
+ *
+ * Supported forms, where `*` must be the whole component it replaces:
+ * - `https://*.example.com`: one or more subdomain labels (not the apex);
+ * - `chrome-extension://*`: any host for the scheme;
+ * - `http://localhost:*`: any port.
+ *
+ * Any other `*` position (for example `https://example.com*`) is rejected,
+ * because it could match a different registrable domain.
+ *
+ * @param {string} pattern
+ * @returns {RegExp}
+ */
+export declare function compileOriginPattern(pattern: string): RegExp;
+/**
+ * Creates an origin validator with common configurations.
+ */
+export declare const OriginValidatorPresets: {
     /**
      * Same-origin only (most secure).
      * @returns {OriginValidator}
      */
-    function sameOrigin(): OriginValidator;
+    sameOrigin(): OriginValidator;
     /**
      * Allow all origins (use with caution!).
      * @returns {OriginValidator}
      */
-    function allowAll(): OriginValidator;
+    allowAll(): OriginValidator;
     /**
      * Allow specific domains.
      * @param {string[]} origins
      * @returns {OriginValidator}
      */
-    function fromList(origins: string[]): OriginValidator;
-}
-export type OriginValidatorOptions = {
-    /**
-     * - Allowed origins. Empty = same-origin only.
-     */
-    allowed?: string[] | undefined;
-    /**
-     * - Allow all origins (dangerous!).
-     */
-    allowAll?: boolean | undefined;
+    fromList(origins: string[]): OriginValidator;
 };

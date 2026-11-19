@@ -1,4 +1,41 @@
 /**
+ * @fileoverview Metrics and telemetry for CrossBus.
+ * Provides counters, histograms, and event hooks for monitoring.
+ * @module enterprise/metrics
+ */
+export type MetricEvent = {
+    /**
+     * - Metric name
+     */
+    name: string;
+    /**
+     * - 'counter' | 'histogram' | 'gauge'
+     */
+    type: string;
+    /**
+     * - Metric value
+     */
+    value: number;
+    /**
+     * - Metric labels
+     */
+    labels?: any;
+    /**
+     * - Unix timestamp in ms
+     */
+    timestamp: number;
+};
+export type HistogramBucket = {
+    /**
+     * - Less than or equal boundary
+     */
+    le: number;
+    /**
+     * - Count in bucket
+     */
+    count: number;
+};
+/**
  * Metrics collector for CrossBus.
  *
  * @example
@@ -13,14 +50,15 @@
  * bus.addOutboundHook(metrics.outboundHook);
  * bus.addInboundHook(metrics.inboundHook);
  */
-export class Metrics {
+export declare class Metrics {
+    #private;
     /**
      * Creates a new metrics collector.
      * @param {Object} [options={}] - Options
      * @param {string} [options.prefix='crossbus'] - Metric name prefix
      */
     constructor(options?: {
-        prefix?: string | undefined;
+        prefix?: string;
     });
     /**
      * Increments a counter.
@@ -76,7 +114,7 @@ export class Metrics {
      * @param {(event: MetricEvent) => void} callback - Callback
      * @returns {() => void} Unsubscribe function
      */
-    on(event: "metric", callback: (event: MetricEvent) => void): () => void;
+    on(event: 'metric', callback: (event: MetricEvent) => void): () => void;
     /**
      * Outbound hook for CrossBus.
      * Tracks messages sent and request starts.
@@ -101,41 +139,8 @@ export class Metrics {
      * Resets all metrics.
      */
     reset(): void;
-    #private;
 }
 /**
  * Default global metrics instance.
  */
-export const globalMetrics: Metrics;
-export type MetricEvent = {
-    /**
-     * - Metric name
-     */
-    name: string;
-    /**
-     * - 'counter' | 'histogram' | 'gauge'
-     */
-    type: string;
-    /**
-     * - Metric value
-     */
-    value: number;
-    /**
-     * - Metric labels
-     */
-    labels?: any;
-    /**
-     * - Unix timestamp in ms
-     */
-    timestamp: number;
-};
-export type HistogramBucket = {
-    /**
-     * - Less than or equal boundary
-     */
-    le: number;
-    /**
-     * - Count in bucket
-     */
-    count: number;
-};
+export declare const globalMetrics: Metrics;

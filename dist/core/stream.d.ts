@@ -1,3 +1,32 @@
+export type StreamOptions = {
+    /**
+     * - Raw binary bytes or UTF-16 code units per chunk.
+     */
+    chunkSize?: number;
+    meta?: any;
+    /**
+     * - Require a compatible manager to acknowledge consumption.
+     */
+    flowControl?: boolean;
+    /**
+     * - Maximum unconsumed chunks with flow control.
+     */
+    windowSize?: number;
+    /**
+     * - Maximum wait without acknowledgement progress; zero disables.
+     */
+    ackTimeout?: number;
+    /**
+     * - Total lifetime from opening, in milliseconds; zero disables.
+     */
+    timeout?: number;
+    signal?: AbortSignal;
+    /**
+     * - Native requires structured clone.
+     */
+    binaryEncoding?: 'base64' | 'native';
+    onClose?: (error: Error | null) => void;
+};
 /**
  * @typedef {Object} StreamOptions
  * @property {number} [chunkSize=64000] - Raw binary bytes or UTF-16 code units per chunk.
@@ -10,11 +39,12 @@
  * @property {'base64'|'native'} [binaryEncoding='base64'] - Native requires structured clone.
  * @property {(error:Error|null)=>void} [onClose]
  */
-export class WritableSignalStream {
+export declare class WritableSignalStream {
+    #private;
     /** @param {Function} sendFn @param {string} name @param {StreamOptions} [options] */
     constructor(sendFn: Function, name: string, options?: StreamOptions);
     get streamId(): string;
-    get name(): string;
+    get name(): any;
     get ended(): boolean;
     /** @param {Object} [meta] @returns {Promise<void>} */
     open(meta?: any): Promise<void>;
@@ -26,8 +56,25 @@ export class WritableSignalStream {
     abort(reason?: string): Promise<void>;
     /** Bind only to the authenticated receiver, or use StreamManager. @param {Object} message */
     handleMessage(message: any): void;
-    #private;
 }
+export type ReadableStreamOptions = {
+    maxBufferedChunks?: number;
+    /**
+     * - Queued and reordered backing storage / UTF-16 estimate.
+     */
+    maxBufferedBytes?: number;
+    maxOutOfOrderChunks?: number;
+    /**
+     * - No accepted data or consumption progress; zero disables.
+     */
+    idleTimeout?: number;
+    flowControl?: boolean;
+    /**
+     * - Authenticated-channel control callback.
+     */
+    acknowledge?: (message: any) => void;
+    onClose?: (error: Error | null) => void;
+};
 /**
  * @typedef {Object} ReadableStreamOptions
  * @property {number} [maxBufferedChunks=1024]
@@ -38,11 +85,12 @@ export class WritableSignalStream {
  * @property {(message:Object)=>void} [acknowledge] - Authenticated-channel control callback.
  * @property {(error:Error|null)=>void} [onClose]
  */
-export class ReadableSignalStream {
+export declare class ReadableSignalStream {
+    #private;
     /** @param {string} streamId @param {string} name @param {Object} [meta] @param {ReadableStreamOptions} [options] */
     constructor(streamId: string, name: string, meta?: any, options?: ReadableStreamOptions);
-    get streamId(): string;
-    get name(): string;
+    get streamId(): any;
+    get name(): any;
     get meta(): any;
     get ended(): boolean;
     get bufferedBytes(): number;
@@ -55,16 +103,22 @@ export class ReadableSignalStream {
     error(reason: string | Error): void;
     /** @param {string} [reason] */
     cancel(reason?: string): void;
-    /** Collection allocates the complete result; iterate for bounded processing. @returns {Promise<Uint8Array|string>} */
-    collect(): Promise<Uint8Array | string>;
     /** Credit means pulled, not application processing completed. @returns {AsyncIterableIterator<any>} */
     [Symbol.asyncIterator](): AsyncIterableIterator<any>;
-    #private;
+    /** Collection allocates the complete result; iterate for bounded processing. @returns {Promise<Uint8Array|string>} */
+    collect(): Promise<Uint8Array | string>;
 }
+export type StreamManagerOptions = Pick<ReadableStreamOptions, 'maxBufferedChunks' | 'maxBufferedBytes' | 'maxOutOfOrderChunks' | 'idleTimeout'> & {
+    maxIncomingStreams?: number;
+    maxIncomingStreamsPerPeer?: number;
+    maxOutgoingStreams?: number;
+    maxControlBytes?: number;
+};
 /** @typedef {Pick<ReadableStreamOptions,'maxBufferedChunks'|'maxBufferedBytes'|'maxOutOfOrderChunks'|'idleTimeout'> & {maxIncomingStreams?:number,maxIncomingStreamsPerPeer?:number,maxOutgoingStreams?:number,maxControlBytes?:number}} StreamManagerOptions
  * `maxIncomingStreamsPerPeer` (default: `maxIncomingStreams`) stops one peer from
  * holding every incoming slot; set it below the total on hubs serving several peers. */
-export class StreamManager {
+export declare class StreamManager {
+    #private;
     /** @param {Function} sendFn - (peerId,message)=>Promise on an authenticated channel. @param {StreamManagerOptions} [options] */
     constructor(sendFn: Function, options?: StreamManagerOptions);
     /** @param {string} name @param {string} peerId @param {StreamOptions} [options] */
@@ -76,62 +130,4 @@ export class StreamManager {
     destroy(): void;
     get activeStreamCount(): number;
     get outgoingStreamCount(): number;
-    #private;
 }
-export type StreamOptions = {
-    /**
-     * - Raw binary bytes or UTF-16 code units per chunk.
-     */
-    chunkSize?: number | undefined;
-    meta?: any;
-    /**
-     * - Require a compatible manager to acknowledge consumption.
-     */
-    flowControl?: boolean | undefined;
-    /**
-     * - Maximum unconsumed chunks with flow control.
-     */
-    windowSize?: number | undefined;
-    /**
-     * - Maximum wait without acknowledgement progress; zero disables.
-     */
-    ackTimeout?: number | undefined;
-    /**
-     * - Total lifetime from opening, in milliseconds; zero disables.
-     */
-    timeout?: number | undefined;
-    signal?: AbortSignal | undefined;
-    /**
-     * - Native requires structured clone.
-     */
-    binaryEncoding?: "base64" | "native" | undefined;
-    onClose?: ((error: Error | null) => void) | undefined;
-};
-export type ReadableStreamOptions = {
-    maxBufferedChunks?: number | undefined;
-    /**
-     * - Queued and reordered backing storage / UTF-16 estimate.
-     */
-    maxBufferedBytes?: number | undefined;
-    maxOutOfOrderChunks?: number | undefined;
-    /**
-     * - No accepted data or consumption progress; zero disables.
-     */
-    idleTimeout?: number | undefined;
-    flowControl?: boolean | undefined;
-    /**
-     * - Authenticated-channel control callback.
-     */
-    acknowledge?: ((message: any) => void) | undefined;
-    onClose?: ((error: Error | null) => void) | undefined;
-};
-/**
- * `maxIncomingStreamsPerPeer` (default: `maxIncomingStreams`) stops one peer from
- * holding every incoming slot; set it below the total on hubs serving several peers.
- */
-export type StreamManagerOptions = Pick<ReadableStreamOptions, "maxBufferedChunks" | "maxBufferedBytes" | "maxOutOfOrderChunks" | "idleTimeout"> & {
-    maxIncomingStreams?: number;
-    maxIncomingStreamsPerPeer?: number;
-    maxOutgoingStreams?: number;
-    maxControlBytes?: number;
-};

@@ -5,4 +5,4 @@
  * @param {(bytes: Uint8Array<ArrayBuffer>) => void} fill
  * @returns {() => string} A canonical lowercase UUID v4 generator.
  */
-export function createUuidPool(fill: (bytes: Uint8Array<ArrayBuffer>) => void): () => string;
+export declare function createUuidPool(fill: (bytes: Uint8Array<ArrayBuffer>) => void): () => string;

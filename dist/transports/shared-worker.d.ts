@@ -1,4 +1,26 @@
 /**
+ * @fileoverview SharedWorker transport for tab communication via shared state.
+ * Uses SharedWorker API for efficient cross-tab communication with shared context.
+ * @module transports/shared-worker
+ */
+export type SharedWorkerTransportOptions = {
+    /**
+     * - URL to the SharedWorker script.
+     */
+    workerUrl?: string;
+    /**
+     * - Optional name for the SharedWorker.
+     */
+    name?: string;
+};
+export type MessageContext = {
+    /**
+     * - Always 'sharedworker' for this transport.
+     */
+    origin: string;
+};
+export type MessageHandler = (message: any, context: MessageContext) => any;
+/**
  * @typedef {Object} SharedWorkerTransportOptions
  * @property {string} [workerUrl] - URL to the SharedWorker script.
  * @property {string} [name] - Optional name for the SharedWorker.
@@ -36,7 +58,8 @@
  * // Cleanup
  * transport.destroy();
  */
-export class SharedWorkerTransport {
+export declare class SharedWorkerTransport {
+    #private;
     /**
      * Checks if SharedWorker API is available.
      *
@@ -83,22 +106,4 @@ export class SharedWorkerTransport {
      * @returns {boolean}
      */
     get isDestroyed(): boolean;
-    #private;
 }
-export type SharedWorkerTransportOptions = {
-    /**
-     * - URL to the SharedWorker script.
-     */
-    workerUrl?: string | undefined;
-    /**
-     * - Optional name for the SharedWorker.
-     */
-    name?: string | undefined;
-};
-export type MessageContext = {
-    /**
-     * - Always 'sharedworker' for this transport.
-     */
-    origin: string;
-};
-export type MessageHandler = (message: any, context: MessageContext) => any;

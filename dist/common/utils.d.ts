@@ -1,18 +1,22 @@
 /**
+ * @fileoverview Utility functions shared across modules.
+ * @module common/utils
+ */
+/**
  * Generates a UUID v4.
  * Uses native cached UUIDs on Node/Bun and pooled Web Crypto bytes in browsers.
  * Retains manual generation only when neither Web Crypto primitive is present.
  *
  * @returns {string} UUID v4 string.
  */
-export function uuid(): string;
+export declare function uuid(): string;
 /**
  * Checks if data can be structured cloned.
  *
  * @param {*} data - Data to check.
  * @returns {boolean} True if cloneable.
  */
-export function isCloneable(data: any): boolean;
+export declare function isCloneable(data: any): boolean;
 /**
  * Creates a deferred promise (Promise.withResolvers polyfill).
  * Uses native Promise.withResolvers() when available (ES2024+).
@@ -20,7 +24,7 @@ export function isCloneable(data: any): boolean;
  * @template T
  * @returns {{promise: Promise<T>, resolve: (value: T) => void, reject: (reason: any) => void}}
  */
-export function deferred<T>(): {
+export declare function deferred<T>(): {
     promise: Promise<T>;
     resolve: (value: T) => void;
     reject: (reason: any) => void;
@@ -32,7 +36,7 @@ export function deferred<T>(): {
  * @param {AbortSignal} [signal] - Optional abort signal.
  * @returns {Promise<void>}
  */
-export function sleep(ms: number, signal?: AbortSignal): Promise<void>;
+export declare function sleep(ms: number, signal?: AbortSignal): Promise<void>;
 /**
  * Creates a promise that rejects after a timeout.
  *
@@ -42,20 +46,20 @@ export function sleep(ms: number, signal?: AbortSignal): Promise<void>;
  * @param {string} [message='Operation timed out'] - Timeout error message.
  * @returns {Promise<T>}
  */
-export function withTimeout<T>(promise: Promise<T>, ms: number, message?: string): Promise<T>;
+export declare function withTimeout<T>(promise: Promise<T>, ms: number, message?: string): Promise<T>;
 /**
  * Detects the type of a peer target.
  *
  * @param {*} target - Target to check.
  * @returns {'iframe'|'worker'|'sw'|'window'|'port'|'unknown'}
  */
-export function detectPeerType(target: any): "iframe" | "worker" | "sw" | "window" | "port" | "unknown";
+export declare function detectPeerType(target: any): 'iframe' | 'worker' | 'sw' | 'window' | 'port' | 'unknown';
 /**
  * Creates a frozen timestamp object.
  *
  * @returns {{timestamp: number, iso: string}}
  */
-export function timestamp(): {
+export declare function timestamp(): {
     timestamp: number;
     iso: string;
 };
@@ -66,4 +70,4 @@ export function timestamp(): {
  * @param {*} payload
  * @param {number} limit - Zero disables the budget.
  */
-export function assertPayloadSize(payload: any, limit: number): void;
+export declare function assertPayloadSize(payload: any, limit: number): void;

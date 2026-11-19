@@ -1,24 +1,49 @@
 /**
- * Helper to create an encrypted CrossBus instance.
- *
- * @param {import("../core/cross-bus.js").CrossBus} bus - CrossBus instance
- * @param {CryptoKey} key - Encryption key
- * @param {EncryptionHookOptions} [options={}]
- * @returns {import("../core/cross-bus.js").CrossBus} Same bus with encryption hooks installed
- *
- * @example
- * const bus = new CrossBus({ peerId: 'secure-agent' });
- * const key = await Encryption.deriveKey('password', 'salt');
- * withEncryption(bus, key);
- * // All messages now encrypted automatically
- */
-export function withEncryption(bus: import("../core/cross-bus.js").CrossBus, key: CryptoKey, options?: EncryptionHookOptions): import("../core/cross-bus.js").CrossBus;
-/**
  * @fileoverview Encryption plugin for CrossBus.
  * Provides AES-GCM encryption for message payloads using Web Crypto API.
  *
  * @module plugins/encryption
  */
+export type EncryptedPayload = {
+    /**
+     * - Marker indicating encrypted content
+     */
+    _encrypted: boolean;
+    /**
+     * - Base64-encoded encrypted data
+     */
+    ciphertext: string;
+    /**
+     * - Base64-encoded initialization vector
+     */
+    iv: string;
+};
+export type EncryptionOptions = {
+    /**
+     * - Whether encryption is enabled
+     */
+    enabled?: boolean;
+};
+export type EncryptionHookOptions = {
+    /**
+     * - Reject inbound plaintext payloads.
+     * Disable only while migrating a mixed deployment.
+     */
+    requireEncryption?: boolean;
+    /**
+     * - Replay window in ms.
+     */
+    ttl?: number;
+    /**
+     * - Accepted future timestamp skew in ms.
+     */
+    maxClockSkew?: number;
+    /**
+     * - Accepted IVs remembered within the
+     * replay window. When full, the oldest entry is forgotten first.
+     */
+    maxReplayEntries?: number;
+};
 /**
  * @typedef {Object} EncryptedPayload
  * @property {boolean} _encrypted - Marker indicating encrypted content
@@ -53,7 +78,8 @@ export function withEncryption(bus: import("../core/cross-bus.js").CrossBus, key
  * // Install on both endpoints; RPC errors are encrypted too.
  * withEncryption(bus, key);
  */
-export class Encryption {
+export declare class Encryption {
+    #private;
     static ALGORITHM: string;
     static KEY_LENGTH: number;
     static IV_LENGTH: number;
@@ -97,7 +123,7 @@ export class Encryption {
      * @returns {Promise<EncryptedPayload>} Encrypted payload
      */
     static encrypt(payload: any, key: CryptoKey, options?: {
-        additionalData?: string | undefined;
+        additionalData?: string;
     }): Promise<EncryptedPayload>;
     /**
      * Checks whether a value has the encrypted-envelope shape.
@@ -120,9 +146,9 @@ export class Encryption {
      *   timestamp, is older than `ttl` or is dated beyond `maxClockSkew`
      */
     static decrypt(encrypted: EncryptedPayload, key: CryptoKey, options?: {
-        ttl?: number | undefined;
-        maxClockSkew?: number | undefined;
-        additionalData?: string | undefined;
+        ttl?: number;
+        maxClockSkew?: number;
+        additionalData?: string;
     }): Promise<any>;
     /**
      * Creates hook functions for automatic encryption/decryption.
@@ -145,49 +171,22 @@ export class Encryption {
      * bus.addInboundHook(decryptHook, 10, { errors: true });
      */
     static createEncryptedHooks(key: CryptoKey, options?: EncryptionHookOptions): {
-        encryptHook: import("../core/cross-bus.js").MessageHook;
-        decryptHook: import("../core/cross-bus.js").MessageHook;
+        encryptHook: import('../core/cross-bus.js').MessageHook;
+        decryptHook: import('../core/cross-bus.js').MessageHook;
     };
-    static #arrayBufferToBase64(buffer: any): string;
-    static #base64ToArrayBuffer(base64: any): ArrayBuffer;
 }
-export type EncryptedPayload = {
-    /**
-     * - Marker indicating encrypted content
-     */
-    _encrypted: boolean;
-    /**
-     * - Base64-encoded encrypted data
-     */
-    ciphertext: string;
-    /**
-     * - Base64-encoded initialization vector
-     */
-    iv: string;
-};
-export type EncryptionOptions = {
-    /**
-     * - Whether encryption is enabled
-     */
-    enabled?: boolean | undefined;
-};
-export type EncryptionHookOptions = {
-    /**
-     * - Reject inbound plaintext payloads.
-     * Disable only while migrating a mixed deployment.
-     */
-    requireEncryption?: boolean | undefined;
-    /**
-     * - Replay window in ms.
-     */
-    ttl?: number | undefined;
-    /**
-     * - Accepted future timestamp skew in ms.
-     */
-    maxClockSkew?: number | undefined;
-    /**
-     * - Accepted IVs remembered within the
-     * replay window. When full, the oldest entry is forgotten first.
-     */
-    maxReplayEntries?: number | undefined;
-};
+/**
+ * Helper to create an encrypted CrossBus instance.
+ *
+ * @param {import("../core/cross-bus.js").CrossBus} bus - CrossBus instance
+ * @param {CryptoKey} key - Encryption key
+ * @param {EncryptionHookOptions} [options={}]
+ * @returns {import("../core/cross-bus.js").CrossBus} Same bus with encryption hooks installed
+ *
+ * @example
+ * const bus = new CrossBus({ peerId: 'secure-agent' });
+ * const key = await Encryption.deriveKey('password', 'salt');
+ * withEncryption(bus, key);
+ * // All messages now encrypted automatically
+ */
+export declare function withEncryption(bus: import("../core/cross-bus.js").CrossBus, key: CryptoKey, options?: EncryptionHookOptions): import("../core/cross-bus.js").CrossBus;

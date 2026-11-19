@@ -1,4 +1,61 @@
 /**
+ * @fileoverview Retry plugin with exponential backoff for CrossBus.
+ * Provides automatic retry logic for failed requests.
+ * @module plugins/retry
+ */
+export type RetryOptions = {
+    /**
+     * - Maximum number of retry attempts.
+     */
+    maxAttempts?: number;
+    /**
+     * - Base delay in ms.
+     */
+    baseDelay?: number;
+    /**
+     * - Maximum delay in ms.
+     */
+    maxDelay?: number;
+    /**
+     * - Exponential factor.
+     */
+    factor?: number;
+    /**
+     * - Add randomness to delay.
+     */
+    jitter?: boolean;
+    /**
+     * - Custom retry condition.
+     */
+    shouldRetry?: Function;
+    /**
+     * - Callback on each retry.
+     */
+    onRetry?: Function | null;
+};
+/**
+ * @typedef {Object} RetryOptions
+ * @property {number} [maxAttempts=3] - Maximum number of retry attempts.
+ * @property {number} [baseDelay=100] - Base delay in ms.
+ * @property {number} [maxDelay=5000] - Maximum delay in ms.
+ * @property {number} [factor=2] - Exponential factor.
+ * @property {boolean} [jitter=true] - Add randomness to delay.
+ * @property {Function} [shouldRetry] - Custom retry condition.
+ * @property {Function|null} [onRetry] - Callback on each retry.
+ */
+/**
+ * Default retry options.
+ */
+export declare const DEFAULT_RETRY_OPTIONS: {
+    maxAttempts: number;
+    baseDelay: number;
+    maxDelay: number;
+    factor: number;
+    jitter: boolean;
+    shouldRetry: (error: any) => boolean;
+    onRetry: null;
+};
+/**
  * Calculates delay for a specific attempt using exponential backoff.
  *
  * @param {number} attempt - Current attempt number (0-indexed).
@@ -10,7 +67,7 @@
  * getDelay(1, { baseDelay: 100, factor: 2 }); // 200
  * getDelay(2, { baseDelay: 100, factor: 2 }); // 400
  */
-export function getDelay(attempt: number, options: RetryOptions): number;
+export declare function getDelay(attempt: number, options: RetryOptions): number;
 /**
  * Wraps a function with retry logic.
  *
@@ -25,7 +82,7 @@ export function getDelay(attempt: number, options: RetryOptions): number;
  *   { maxAttempts: 3, baseDelay: 200 }
  * );
  */
-export function withRetry<T>(fn: () => Promise<T>, options?: RetryOptions): Promise<T>;
+export declare function withRetry<T>(fn: () => Promise<T>, options?: RetryOptions): Promise<T>;
 /**
  * Creates a retry wrapper for CrossBus requests.
  *
@@ -40,83 +97,36 @@ export function withRetry<T>(fn: () => Promise<T>, options?: RetryOptions): Prom
  *
  * const responses = await retry.broadcastRequest('getStatus');
  */
-export function createRetryWrapper(bus: import("../core/cross-bus.js").CrossBus, defaultOptions?: RetryOptions): any;
-export namespace DEFAULT_RETRY_OPTIONS {
-    let maxAttempts: number;
-    let baseDelay: number;
-    let maxDelay: number;
-    let factor: number;
-    let jitter: boolean;
-    function shouldRetry(error: any): boolean;
-    let onRetry: null;
-}
-export namespace RetryStrategies {
-    namespace FAST {
-        let maxAttempts_1: number;
-        export { maxAttempts_1 as maxAttempts };
-        let baseDelay_1: number;
-        export { baseDelay_1 as baseDelay };
-        let maxDelay_1: number;
-        export { maxDelay_1 as maxDelay };
-        let factor_1: number;
-        export { factor_1 as factor };
-    }
-    namespace STANDARD {
-        let maxAttempts_2: number;
-        export { maxAttempts_2 as maxAttempts };
-        let baseDelay_2: number;
-        export { baseDelay_2 as baseDelay };
-        let maxDelay_2: number;
-        export { maxDelay_2 as maxDelay };
-        let factor_2: number;
-        export { factor_2 as factor };
-    }
-    namespace AGGRESSIVE {
-        let maxAttempts_3: number;
-        export { maxAttempts_3 as maxAttempts };
-        let baseDelay_3: number;
-        export { baseDelay_3 as baseDelay };
-        let maxDelay_3: number;
-        export { maxDelay_3 as maxDelay };
-        let factor_3: number;
-        export { factor_3 as factor };
-    }
-    namespace ONCE {
-        let maxAttempts_4: number;
-        export { maxAttempts_4 as maxAttempts };
-        let baseDelay_4: number;
-        export { baseDelay_4 as baseDelay };
-        let factor_4: number;
-        export { factor_4 as factor };
-    }
-}
-export type RetryOptions = {
-    /**
-     * - Maximum number of retry attempts.
-     */
-    maxAttempts?: number | undefined;
-    /**
-     * - Base delay in ms.
-     */
-    baseDelay?: number | undefined;
-    /**
-     * - Maximum delay in ms.
-     */
-    maxDelay?: number | undefined;
-    /**
-     * - Exponential factor.
-     */
-    factor?: number | undefined;
-    /**
-     * - Add randomness to delay.
-     */
-    jitter?: boolean | undefined;
-    /**
-     * - Custom retry condition.
-     */
-    shouldRetry?: Function | undefined;
-    /**
-     * - Callback on each retry.
-     */
-    onRetry?: Function | null | undefined;
+export declare function createRetryWrapper(bus: import("../core/cross-bus.js").CrossBus, defaultOptions?: RetryOptions): any;
+/**
+ * Retry strategies presets.
+ */
+export declare const RetryStrategies: {
+    /** Fast retry for quick failures */
+    FAST: {
+        maxAttempts: number;
+        baseDelay: number;
+        maxDelay: number;
+        factor: number;
+    };
+    /** Standard retry with moderate backoff */
+    STANDARD: {
+        maxAttempts: number;
+        baseDelay: number;
+        maxDelay: number;
+        factor: number;
+    };
+    /** Aggressive retry for critical operations */
+    AGGRESSIVE: {
+        maxAttempts: number;
+        baseDelay: number;
+        maxDelay: number;
+        factor: number;
+    };
+    /** Single immediate retry */
+    ONCE: {
+        maxAttempts: number;
+        baseDelay: number;
+        factor: number;
+    };
 };

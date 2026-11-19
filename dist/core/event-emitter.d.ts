@@ -1,3 +1,124 @@
+export type ListenerOptions = {
+    /**
+     * - Auto-remove after first invocation.
+     */
+    once?: boolean;
+    /**
+     * - AbortController signal for cleanup.
+     */
+    signal?: AbortSignal;
+    /**
+     * - Execution mode.
+     */
+    mode?: 'sync' | 'async';
+    /**
+     * - Execution order (higher = first).
+     */
+    priority?: number;
+};
+export type Subscription = {
+    /**
+     * - Unique subscription ID.
+     */
+    id: string;
+    /**
+     * - The signal name subscribed to.
+     */
+    signalName: string;
+    /**
+     * - Call to remove this listener.
+     */
+    unsubscribe: Function;
+    /**
+     * - Whether subscription is active.
+     */
+    active: boolean;
+};
+export type SignalEvent = {
+    /**
+     * - Signal name that was emitted.
+     */
+    name: string;
+    /**
+     * - The payload data.
+     */
+    data: any;
+    /**
+     * - Unique message ID.
+     */
+    messageId: string;
+    /**
+     * - When the signal was emitted.
+     */
+    timestamp: number;
+    /**
+     * - Origin of the signal.
+     */
+    source: SignalSource;
+};
+export type SignalSource = {
+    /**
+     * - ID of the emitting peer ('self' if local).
+     */
+    peerId: string;
+    /**
+     * - Origin URL.
+     */
+    origin: string;
+    /**
+     * - Source type. Signals received from a peer use `remote`.
+     */
+    type: 'local' | 'remote' | 'iframe' | 'worker' | 'service-worker' | 'window';
+};
+export type SignalHandler = (event: SignalEvent) => void | Promise<void>;
+export type ListenerEntry = {
+    /**
+     * - Subscription ID.
+     */
+    id: string;
+    /**
+     * - The callback function.
+     */
+    handler: SignalHandler;
+    /**
+     * - Execution priority.
+     */
+    priority: number;
+    /**
+     * - Execution mode.
+     */
+    mode: 'sync' | 'async';
+    /**
+     * - Auto-remove after first invocation.
+     */
+    once: boolean;
+    /**
+     * - Abort signal.
+     */
+    signal: AbortSignal | null;
+    /**
+     * - Raw payload callback for emitSync.
+     */
+    syncHandler: Function;
+    /**
+     * - Subscription cleanup.
+     */
+    dispose: Function | null;
+};
+export type RemoveResult = {
+    /**
+     * - True if at least one listener was removed.
+     */
+    success: boolean;
+    /**
+     * - Number of listeners removed.
+     */
+    removedCount: number;
+    /**
+     * - Listeners still registered for this signal.
+     */
+    remainingCount: number;
+};
 /**
  * @typedef {Object} ListenerOptions
  * @property {boolean} [once=false] - Auto-remove after first invocation.
@@ -68,7 +189,9 @@
  * // Emit signal
  * emitter.emit('message', { text: 'Hello' });
  */
-export class EventEmitter {
+export declare class EventEmitter {
+    #private;
+    constructor();
     /**
      * Sets the max listeners threshold for memory leak warnings.
      * @param {number} n - Max listeners (0 = unlimited)
@@ -224,130 +347,22 @@ export class EventEmitter {
      * Removes all listeners.
      */
     clear(): void;
-    [FAST_ONLY]: any;
-    #private;
 }
-export function createFastEmitter(): any;
-export type ListenerOptions = {
-    /**
-     * - Auto-remove after first invocation.
-     */
-    once?: boolean | undefined;
-    /**
-     * - AbortController signal for cleanup.
-     */
-    signal?: AbortSignal | undefined;
-    /**
-     * - Execution mode.
-     */
-    mode?: "sync" | "async" | undefined;
-    /**
-     * - Execution order (higher = first).
-     */
-    priority?: number | undefined;
-};
-export type Subscription = {
-    /**
-     * - Unique subscription ID.
-     */
-    id: string;
-    /**
-     * - The signal name subscribed to.
-     */
-    signalName: string;
-    /**
-     * - Call to remove this listener.
-     */
-    unsubscribe: Function;
-    /**
-     * - Whether subscription is active.
-     */
-    active: boolean;
-};
-export type SignalEvent = {
-    /**
-     * - Signal name that was emitted.
-     */
-    name: string;
-    /**
-     * - The payload data.
-     */
-    data: any;
-    /**
-     * - Unique message ID.
-     */
-    messageId: string;
-    /**
-     * - When the signal was emitted.
-     */
-    timestamp: number;
-    /**
-     * - Origin of the signal.
-     */
-    source: SignalSource;
-};
-export type SignalSource = {
-    /**
-     * - ID of the emitting peer ('self' if local).
-     */
-    peerId: string;
-    /**
-     * - Origin URL.
-     */
-    origin: string;
-    /**
-     * - Source type. Signals received from a peer use `remote`.
-     */
-    type: "local" | "remote" | "iframe" | "worker" | "service-worker" | "window";
-};
-export type SignalHandler = (event: SignalEvent) => void | Promise<void>;
-export type ListenerEntry = {
-    /**
-     * - Subscription ID.
-     */
-    id: string;
-    /**
-     * - The callback function.
-     */
-    handler: SignalHandler;
-    /**
-     * - Execution priority.
-     */
-    priority: number;
-    /**
-     * - Execution mode.
-     */
-    mode: "sync" | "async";
-    /**
-     * - Auto-remove after first invocation.
-     */
-    once: boolean;
-    /**
-     * - Abort signal.
-     */
-    signal: AbortSignal | null;
-    /**
-     * - Raw payload callback for emitSync.
-     */
-    syncHandler: Function;
-    /**
-     * - Subscription cleanup.
-     */
-    dispose: Function | null;
-};
-export type RemoveResult = {
-    /**
-     * - True if at least one listener was removed.
-     */
-    success: boolean;
-    /**
-     * - Number of listeners removed.
-     */
-    removedCount: number;
-    /**
-     * - Listeners still registered for this signal.
-     */
-    remainingCount: number;
-};
-declare const FAST_ONLY: unique symbol;
-export {};
+/**
+ * Creates a minimal synchronous plain object emitter.
+ *
+ * Unlike EventEmitter class, this is a minimal plain object with:
+ * - No class overhead
+ * - No Symbol lookups
+ * - No validation
+ * - Direct property access
+ *
+ * @returns {Object} Fast emitter with on(), emit() methods
+ *
+ * @example
+ * const emitter = createFastEmitter();
+ * const off = emitter.on('event', (data) => console.log(data));
+ * emitter.emit('event', { value: 42 });
+ * off(); // Remove listener
+ */
+export declare const createFastEmitter: () => any;
