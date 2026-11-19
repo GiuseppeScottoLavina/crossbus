@@ -110,6 +110,15 @@ async function computeInWorker() {
     } catch (error) { log('main', error.message, 'error'); }
 }
 
+// Matches the site's tokens; srcdoc frames cannot load the page stylesheet.
+const FRAME_STYLE = `:root{color-scheme:light dark;--ink:#101820;--ink2:#4a5866;--rule:#ced6dd;--panel:#f8f9fa}
+@media (prefers-color-scheme:dark){:root{--ink:#e6ecf1;--ink2:#9aa7b3;--rule:#24313c;--panel:#131c24}}
+body{margin:0;padding:16px;background:var(--panel);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+h3{margin:0 0 10px;font:600 12px/1 ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+input{box-sizing:border-box;width:100%;margin:0 0 8px;padding:8px 10px;border:1px solid var(--rule);border-radius:8px;background:transparent;color:inherit;font:14px ui-monospace,Menlo,monospace}
+button{padding:8px 14px;border:1px solid var(--ink);border-radius:8px;background:var(--ink);color:var(--panel);font:600 14px system-ui,sans-serif;cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+#log{margin:10px 0 0;font:13px ui-monospace,Menlo,monospace;color:var(--ink2)}`;
 let iframeHub;
 function loadIframes() {
     if (iframeHub) return;
@@ -135,13 +144,17 @@ function loadIframes() {
             catch(error){document.querySelector('#log').textContent=error.message;}
         };
         document.querySelector('button').disabled=false;
+        document.querySelector('#log').textContent='Connected to the hub';
         addEventListener('pagehide',()=>bus.destroy(),{once:true});`;
-        frame.srcdoc = `<!doctype html><meta charset="utf-8"><h3>${id}</h3><input value="Hello from ${id}"><button disabled>Send to the other iframe</button><p id="log"></p><script type="module">${script}</script>`;
+        frame.srcdoc = `<!doctype html><meta charset="utf-8"><style>${FRAME_STYLE}</style><h3>${id}</h3><input value="Hello from ${id}" aria-label="Message"><button disabled>Send to the other iframe</button><p id="log">Waiting for the hub…</p><script type="module">${script}</script>`;
     }
     log('iframe-hub', 'Application forwarding handler installed; both iframe transports attached', 'response');
 }
 for (const tab of document.querySelectorAll('.tab')) tab.addEventListener('click', () => {
-    for (const item of document.querySelectorAll('.tab')) item.classList.toggle('active', item === tab);
+    for (const item of document.querySelectorAll('.tab')) {
+        item.classList.toggle('active', item === tab);
+        item.setAttribute('aria-selected', String(item === tab));
+    }
     for (const demo of document.querySelectorAll('.demo-content')) demo.style.display = demo.id === `demo-${tab.dataset.demo}` ? 'block' : 'none';
     if (tab.dataset.demo === 'iframe') loadIframes();
 });

@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>CrossBus — Documentation</title>
     <meta name="description" content="CrossBus documentation and API reference.">
     <link rel="icon" type="image/png" href="favicon.png">
@@ -17,549 +16,115 @@
     <meta property="og:image:alt" content="CrossBus: signals, RPC and streams across browser contexts">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
-
-    <!-- Marked.js from CDN (Andrea Giammarchi style - minimal) -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Schibsted+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="demos/demo.css">
+    <link rel="stylesheet" href="site.css">
+    <!-- Pinned Markdown renderer, copied from node_modules by the build. -->
     <script src="./vendor/marked.umd.js"></script>
-
-    <style>
-        :root {
-            --bg-primary: #0a0a0f;
-            --bg-secondary: #12121a;
-            --bg-tertiary: #1a1a25;
-            --accent-primary: #6366f1;
-            --accent-secondary: #8b5cf6;
-            --accent-glow: rgba(99, 102, 241, 0.3);
-            --text-primary: #ffffff;
-            --text-secondary: #a1a1aa;
-            --text-muted: #71717a;
-            --success: #22c55e;
-            --warning: #f59e0b;
-            --border: rgba(255, 255, 255, 0.08);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.6;
-        }
-
-        /* Navigation */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            padding: 20px 0;
-            background: rgba(10, 10, 15, 0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
-            z-index: 100;
-        }
-
-        nav .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 24px;
-            list-style: none;
-        }
-
-        .nav-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s;
-            padding: 8px 16px;
-            border-radius: 6px;
-        }
-
-        .nav-links a:hover,
-        .nav-links a.active {
-            color: var(--text-primary);
-            background: var(--bg-tertiary);
-        }
-
-        /* Sidebar */
-        .layout {
-            display: flex;
-            padding-top: 80px;
-        }
-
-        .sidebar {
-            position: fixed;
-            top: 80px;
-            left: 0;
-            width: 260px;
-            height: calc(100vh - 80px);
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border);
-            padding: 24px;
-            overflow-y: auto;
-        }
-
-        .sidebar h3 {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--text-muted);
-            margin-bottom: 12px;
-            margin-top: 24px;
-        }
-
-        .sidebar h3:first-child {
-            margin-top: 0;
-        }
-
-        .sidebar a {
-            display: block;
-            padding: 8px 12px;
-            color: var(--text-secondary);
-            text-decoration: none;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-        }
-
-        .sidebar a:hover,
-        .sidebar a.active {
-            color: var(--text-primary);
-            background: var(--bg-tertiary);
-        }
-
-        /* Main content */
-        .main {
-            flex: 1;
-            margin-left: 260px;
-            padding: 40px 60px;
-            max-width: 900px;
-        }
-
-        /* Markdown styles */
-        .markdown-body {
-            color: var(--text-primary);
-        }
-
-        .markdown-body h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .markdown-body h2 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin-top: 48px;
-            margin-bottom: 16px;
-            color: var(--accent-primary);
-        }
-
-        .markdown-body h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-top: 32px;
-            margin-bottom: 12px;
-        }
-
-        .markdown-body p {
-            margin-bottom: 16px;
-            color: var(--text-secondary);
-        }
-
-        .markdown-body ul,
-        .markdown-body ol {
-            margin-bottom: 16px;
-            padding-left: 24px;
-        }
-
-        .markdown-body li {
-            margin-bottom: 8px;
-            color: var(--text-secondary);
-        }
-
-        .markdown-body code {
-            font-family: 'JetBrains Mono', monospace;
-            background: var(--bg-tertiary);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.875rem;
-            color: #c792ea;
-        }
-
-        .markdown-body pre {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            overflow-x: auto;
-            margin-bottom: 24px;
-        }
-
-        .markdown-body pre code {
-            background: none;
-            padding: 0;
-            font-size: 0.875rem;
-            line-height: 1.7;
-            color: var(--text-primary);
-        }
-
-        .markdown-body table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 24px;
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .markdown-body th,
-        .markdown-body td {
-            padding: 12px 16px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .markdown-body th {
-            background: var(--bg-tertiary);
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .markdown-body td {
-            color: var(--text-secondary);
-        }
-
-        .markdown-body a {
-            color: var(--accent-primary);
-            text-decoration: none;
-        }
-
-        .markdown-body a:hover {
-            text-decoration: underline;
-        }
-
-        .markdown-body blockquote {
-            border-left: 4px solid var(--accent-primary);
-            padding-left: 16px;
-            margin: 24px 0;
-            color: var(--text-muted);
-            font-style: italic;
-        }
-
-        .markdown-body hr {
-            border: none;
-            border-top: 1px solid var(--border);
-            margin: 48px 0;
-        }
-
-        /* Loading state */
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 200px;
-            color: var(--text-muted);
-        }
-
-        .loading::after {
-            content: '';
-            width: 24px;
-            height: 24px;
-            border: 2px solid var(--border);
-            border-top-color: var(--accent-primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-left: 12px;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Responsive */
-        @media (max-width: 900px) {
-            .sidebar {
-                display: none;
-            }
-
-            .main {
-                margin-left: 0;
-                padding: 24px;
-            }
-        }
-
-        /* TOC section in sidebar */
-        .toc-section {
-            margin-top: 24px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
-        }
-
-        .toc-section h3 {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--text-muted);
-            margin-bottom: 12px;
-            margin-top: 0;
-        }
-
-        .toc-section a {
-            display: block;
-            padding: 6px 12px;
-            color: var(--text-secondary);
-            text-decoration: none;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .toc-section a.toc-h3 {
-            padding-left: 24px;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        .toc-section a:hover {
-            color: var(--text-primary);
-            background: var(--bg-tertiary);
-        }
-
-        /* Heading anchors */
-        .heading-anchor {
-            color: var(--accent-primary);
-            text-decoration: none;
-            margin-left: 8px;
-            opacity: 0;
-            transition: opacity 0.2s;
-            font-size: 0.8em;
-        }
-
-        .markdown-body h2:hover .heading-anchor,
-        .markdown-body h3:hover .heading-anchor {
-            opacity: 0.6;
-        }
-
-        .heading-anchor:hover {
-            opacity: 1 !important;
-        }
-
-        /* Scroll offset for fixed header */
-        .markdown-body h2[id],
-        .markdown-body h3[id] {
-            scroll-margin-top: 100px;
-        }
-    </style>
 </head>
-
 <body>
-    <nav>
-        <div class="container">
-            <a href="index.html" class="logo"><img src="logo-400.png" alt="CB"
-                    style="width: 24px; height: 24px; border-radius: 50%; vertical-align: middle; margin-right: 6px;">CrossBus</a>
-            <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="doc.html?file=GETTING_STARTED.md" data-nav="docs">Docs</a></li>
-                <li><a href="doc.html?file=API.md" data-nav="api">API</a></li>
-                <li><a href="demos/">Demos</a></li>
-                <li><a href="https://github.com/giuseppescottolavina/crossbus">GitHub</a></li>
-            </ul>
+    <header class="topbar">
+        <div class="wrap">
+            <a class="brand" href="./"><img src="logo-400.png" alt="" width="24" height="24">CrossBus</a>
+            <nav class="site-nav" aria-label="Site">
+                <a href="doc.html?file=GETTING_STARTED.md" data-nav="docs" aria-current="page">Docs</a>
+                <a href="doc.html?file=API.md" data-nav="api">API</a>
+                <a href="demos/" data-nav="demos">Demos</a>
+                <a href="playground.html" data-nav="playground">Playground</a>
+            </nav>
+            <div class="nav-ext">
+                <a class="pill" href="https://github.com/GiuseppeScottoLavina/crossbus">GitHub</a>
+                <a class="pill" href="https://www.npmjs.com/package/crossbus">npm</a>
+            </div>
         </div>
-    </nav>
+    </header>
 
-    <div class="layout">
-        <aside class="sidebar">
-            <h3>Getting Started</h3>
-            <a href="doc.html?file=GETTING_STARTED.md">Quick Start</a>
+    <div class="wrap docs">
+        <button class="btn ghost docs-menu" type="button" aria-expanded="false" aria-controls="docs-nav">Browse the documentation</button>
+        <nav class="docs-nav" id="docs-nav" aria-label="Documentation">
+            <h2>Start here</h2>
+            <a href="doc.html?file=GETTING_STARTED.md">Getting started</a>
             <a href="doc.html?file=EXAMPLES.md">Examples</a>
-            <a href="doc.html?file=ADVANCED.md">Advanced Patterns</a>
+            <a href="doc.html?file=ADVANCED.md">Integration patterns</a>
 
-            <h3>Reference</h3>
-            <a href="doc.html?file=API.md">API Reference</a>
+            <h2>Reference</h2>
+            <a href="doc.html?file=API.md">API reference</a>
             <a href="doc.html?file=ARCHITECTURE.md">Architecture</a>
-            <a href="doc.html?file=PERFORMANCE.md">Performance</a>
-            <a href="doc.html?file=COMPETITOR_ANALYSIS.md">Competitor study</a>
-            <a href="doc.html?file=RPC_BATCHING.md">RPC grouping research</a>
-            <a href="doc.html?file=WORKER_RPC.md">Worker RPC optimization</a>
-            <a href="doc.html?file=NEXT_RELEASE.md">0.1.5 candidate measurements</a>
-            <a href="doc.html?file=OPTIMIZATION_016.md">0.1.6 optimization snapshot</a>
-            <a href="doc.html?file=RPC_WIRE_V2.md">RPC compact v2 study</a>
-            <a href="doc.html?file=STREAMING.md">Bounded streaming</a>
-            <a href="doc.html?file=QUALIFICATION.md">Browser and device qualification</a>
+            <a href="doc.html?file=STREAMING.md">Bounded streams</a>
+            <a href="doc.html?file=PAPER.md">Design note</a>
+
+            <h2>Evidence</h2>
+            <a href="doc.html?file=BENCHMARKS.md">Benchmarks</a>
+            <a href="doc.html?file=PERFORMANCE.md">Performance engineering</a>
             <a href="doc.html?file=AUDIT.md">Verification and limits</a>
+            <a href="doc.html?file=QUALIFICATION.md">Browser and device qualification</a>
+            <a href="doc.html?file=COMPETITOR_ANALYSIS.md">Competitor study</a>
 
-            <h3>For AI Agents</h3>
-            <a href="doc.html?file=AGENTS.md">Agent Infrastructure</a>
-            <a href="doc.html?file=AI-GUIDE.md">AI Guide</a>
+            <h2>Research notes</h2>
+            <a href="doc.html?file=WORKER_RPC.md">Worker RPC optimization</a>
+            <a href="doc.html?file=RPC_WIRE_V2.md">Compact v2 wire format</a>
+            <a href="doc.html?file=RPC_BATCHING.md">RPC grouping research</a>
+            <a href="doc.html?file=OPTIMIZATION_016.md">0.1.6 optimization snapshot</a>
+            <a href="doc.html?file=NEXT_RELEASE.md">0.1.5 release comparison</a>
 
-            <h3>Interactive</h3>
-            <a href="playground.html" style="color: var(--accent-primary);">🎮 Playground</a>
+            <h2>AI assistants</h2>
+            <a href="doc.html?file=AI-GUIDE.md">AI assistant guide</a>
+            <a href="doc.html?file=AGENTS.md">Contributor and integration guide</a>
 
-            <h3>Contributing</h3>
+            <h2>Project</h2>
             <a href="doc.html?file=CONTRIBUTING.md">Contributing</a>
             <a href="doc.html?file=DEVELOPMENT.md">Development</a>
-        </aside>
+            <a href="doc.html?file=RELEASING.md">Releasing</a>
+            <a href="doc.html?file=THIRD_PARTY.md">Documentation dependencies</a>
+        </nav>
 
-        <main class="main">
-            <div id="content" class="markdown-body">
-                <div class="loading">Loading documentation</div>
-            </div>
+        <main>
+            <article id="content" class="prose">
+                <p class="loading">Loading documentation…</p>
+            </article>
+            <footer class="doc-foot">
+                <a id="doc-source" href="https://github.com/GiuseppeScottoLavina/crossbus/tree/master/docs">View this page on GitHub</a>
+                <a href="https://github.com/GiuseppeScottoLavina/crossbus/issues">Report a problem</a>
+            </footer>
         </main>
+
+        <aside class="docs-toc" aria-label="On this page" hidden>
+            <h2>On this page</h2>
+            <nav id="toc"></nav>
+        </aside>
     </div>
 
-    <script type="module">
-        import { documentationFile, rewriteDocumentationLinks } from './doc-links.js';
-        // Get file from URL params
-        const params = new URLSearchParams(window.location.search);
-        const requested = params.get('file') || 'GETTING_STARTED.md';
-        const file = documentationFile(requested);
+    <footer class="foot">
+        <div class="wrap foot-grid">
+            <div class="foot-brand">
+                <a class="brand" href="./"><img src="logo-400.png" alt="" width="24" height="24">CrossBus</a>
+                <p>Signals, RPC and bounded streams between windows, iframes, workers, tabs and native WebViews.</p>
+            </div>
+            <nav aria-label="Learn">
+                <h2>Learn</h2>
+                <a href="doc.html?file=GETTING_STARTED.md">Getting started</a>
+                <a href="doc.html?file=API.md">API reference</a>
+                <a href="doc.html?file=EXAMPLES.md">Examples</a>
+                <a href="doc.html?file=STREAMING.md">Streaming</a>
+            </nav>
+            <nav aria-label="Try">
+                <h2>Try</h2>
+                <a href="demos/">Live demos</a>
+                <a href="playground.html">Playground</a>
+                <a href="https://github.com/GiuseppeScottoLavina/crossbus/tree/master/examples">Example apps</a>
+            </nav>
+            <nav aria-label="Project">
+                <h2>Project</h2>
+                <a href="https://github.com/GiuseppeScottoLavina/crossbus">GitHub</a>
+                <a href="https://www.npmjs.com/package/crossbus">npm</a>
+                <a href="https://github.com/GiuseppeScottoLavina/crossbus/blob/master/SECURITY.md">Security</a>
+                <a href="https://github.com/GiuseppeScottoLavina/crossbus/blob/master/CHANGELOG.md">Changelog</a>
+            </nav>
+        </div>
+        <div class="wrap foot-legal">CrossBus is released under the <a href="https://github.com/GiuseppeScottoLavina/crossbus/blob/master/LICENSE">Apache-2.0 license</a>.</div>
+    </footer>
 
-        // Update page title
-        document.title = `CrossBus — ${file.replace('.md', '')}`;
-
-        // Highlight active sidebar link
-        document.querySelectorAll('.sidebar a').forEach(link => {
-            if (link.href.includes(`file=${file}`)) {
-                link.classList.add('active');
-            }
-        });
-
-        // Highlight active nav link based on file
-        document.querySelectorAll('.nav-links a[data-nav]').forEach(link => {
-            const isApi = file === 'API.md';
-            const isDocs = !isApi; // All other .md files are "Docs"
-            if ((link.dataset.nav === 'api' && isApi) || (link.dataset.nav === 'docs' && isDocs)) {
-                link.classList.add('active');
-            }
-        });
-
-        // Fetch and render markdown
-        fetch(file)
-            .then(res => {
-                if (!res.ok) throw new Error('File not found');
-                return res.text();
-            })
-            .then(md => {
-                const content = document.getElementById('content');
-                content.innerHTML = marked.parse(md);
-                rewriteDocumentationLinks(content);
-
-                // Per-document title, description and canonical URL for search engines.
-                const heading = content.querySelector('h1')?.textContent.trim();
-                if (heading) document.title = `${heading} — CrossBus docs`;
-                const summary = [...content.querySelectorAll('p')].map(p => p.textContent.trim().replace(/\s+/g, ' ')).find(text => text.length > 60);
-                if (summary) {
-                    const text = summary.length > 160 ? summary.slice(0, summary.lastIndexOf(' ', 157)) + '…' : summary;
-                    document.querySelector('meta[name="description"]').content = text;
-                    document.querySelector('meta[property="og:description"]').content = text;
-                }
-                const canonical = document.createElement('link');
-                canonical.rel = 'canonical';
-                canonical.href = `https://giuseppescottolavina.github.io/crossbus/doc.html?file=${file}`;
-                document.head.appendChild(canonical);
-                document.querySelector('meta[property="og:title"]').content = document.title;
-
-                // Add IDs to headings and build TOC
-                const headings = content.querySelectorAll('h2, h3');
-                if (headings.length > 0) {
-                    // Create TOC container
-                    const tocSection = document.createElement('div');
-                    tocSection.className = 'toc-section';
-                    tocSection.innerHTML = '<h3>On This Page</h3>';
-
-                    headings.forEach((heading, i) => {
-                        // Create slug from heading text
-                        const slug = heading.textContent
-                            .toLowerCase()
-                            .replace(/[^a-z0-9]+/g, '-')
-                            .replace(/^-|-$/g, '');
-                        heading.id = slug || 'section-' + i;
-
-                        // Add anchor link
-                        const anchor = document.createElement('a');
-                        anchor.href = '#' + heading.id;
-                        anchor.className = 'heading-anchor';
-                        anchor.textContent = '#';
-                        heading.appendChild(anchor);
-
-                        // Add to TOC
-                        const tocLink = document.createElement('a');
-                        tocLink.href = '#' + heading.id;
-                        tocLink.textContent = heading.textContent.replace('#', '').trim();
-                        tocLink.className = heading.tagName === 'H3' ? 'toc-h3' : 'toc-h2';
-                        tocLink.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            history.pushState(null, '', '#' + heading.id);
-                        });
-                        tocSection.appendChild(tocLink);
-                    });
-
-                    // Insert TOC after Interactive section in sidebar
-                    const sidebar = document.querySelector('.sidebar');
-                    const interactiveHeader = Array.from(sidebar.querySelectorAll('h3'))
-                        .find(h => h.textContent === 'Interactive');
-                    if (interactiveHeader && interactiveHeader.nextElementSibling) {
-                        sidebar.insertBefore(tocSection, interactiveHeader);
-                    } else {
-                        sidebar.appendChild(tocSection);
-                    }
-                }
-
-                // Handle initial hash scroll
-                if (window.location.hash) {
-                    const target = document.getElementById(decodeURIComponent(window.location.hash.slice(1)));
-                    if (target) {
-                        setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-                    }
-                }
-            })
-            .catch(err => {
-                const content = document.getElementById('content');
-                content.replaceChildren();
-                const title = document.createElement('h1'); title.textContent = 'Could not load documentation';
-                const detail = document.createElement('p'); detail.textContent = `${file}: ${err.message}`;
-                const link = document.createElement('a'); link.href = 'doc.html?file=GETTING_STARTED.md'; link.textContent = 'Go to Getting Started';
-                content.append(title, detail, link);
-            });
-    </script>
+    <script type="module" src="doc.js"></script>
 </body>
-
 </html>

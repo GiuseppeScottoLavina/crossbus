@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>CrossBus — Interactive Playground</title>
     <meta name="description" content="Try CrossBus signals, RPC, iframes and a Web Worker in interactive consoles in your browser.">
     <link rel="icon" type="image/png" href="favicon.png">
@@ -19,512 +18,172 @@
     <meta property="og:image:alt" content="CrossBus: signals, RPC and streams across browser contexts">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
-    <style>
-        :root {
-            --bg-primary: #0a0a0f;
-            --bg-secondary: #12121a;
-            --bg-tertiary: #1a1a25;
-            --accent-primary: #6366f1;
-            --accent-secondary: #8b5cf6;
-            --text-primary: #ffffff;
-            --text-secondary: #a1a1aa;
-            --text-muted: #71717a;
-            --success: #22c55e;
-            --warning: #f59e0b;
-            --error: #ef4444;
-            --border: rgba(255, 255, 255, 0.08);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.6;
-            min-height: 100vh;
-        }
-
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            padding: 16px 24px;
-            background: rgba(10, 10, 15, 0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
-            z-index: 100;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 16px;
-            list-style: none;
-        }
-
-        .nav-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            transition: all 0.2s;
-        }
-
-        .nav-links a:hover {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 100px 24px 40px;
-        }
-
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 8px;
-        }
-
-        .subtitle {
-            color: var(--text-secondary);
-            margin-bottom: 32px;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-        }
-
-        .tab {
-            padding: 10px 20px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-        }
-
-        .tab:hover {
-            border-color: var(--accent-primary);
-        }
-
-        .tab.active {
-            background: var(--accent-primary);
-            border-color: var(--accent-primary);
-            color: white;
-        }
-
-        .playground {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-        }
-
-        @media (max-width: 900px) {
-            .playground {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .panel {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            background: var(--bg-tertiary);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .panel-title {
-            font-weight: 600;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--text-muted);
-        }
-
-        .status-dot.connected {
-            background: var(--success);
-        }
-
-        .panel-body {
-            padding: 16px;
-        }
-
-        .console {
-            background: var(--bg-primary);
-            border-radius: 8px;
-            padding: 12px;
-            height: 200px;
-            overflow-y: auto;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-        }
-
-        .console-line {
-            padding: 4px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .console-line:last-child {
-            border-bottom: none;
-        }
-
-        .console-line .time {
-            color: var(--text-muted);
-            margin-right: 8px;
-        }
-
-        .console-line.signal {
-            color: var(--accent-primary);
-        }
-
-        .console-line.request {
-            color: var(--warning);
-        }
-
-        .console-line.response {
-            color: var(--success);
-        }
-
-        .console-line.error {
-            color: var(--error);
-        }
-
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 16px;
-        }
-
-        .control-row {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        input,
-        select {
-            flex: 1;
-            padding: 10px 12px;
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 0.9rem;
-        }
-
-        input:focus,
-        select:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-        }
-
-        button {
-            padding: 10px 20px;
-            background: var(--accent-primary);
-            border: none;
-            border-radius: 6px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-
-        button:hover {
-            background: var(--accent-secondary);
-        }
-
-        button.secondary {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-        }
-
-        button.secondary:hover {
-            border-color: var(--accent-primary);
-        }
-
-        .iframe-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-top: 24px;
-        }
-
-        .iframe-wrapper {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .iframe-header {
-            padding: 8px 12px;
-            background: var(--bg-tertiary);
-            font-size: 0.8rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        iframe {
-            width: 100%;
-            height: 200px;
-            border: none;
-            background: white;
-        }
-
-        .info-box {
-            background: rgba(99, 102, 241, 0.1);
-            border: 1px solid var(--accent-primary);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 24px;
-        }
-
-        .info-box h3 {
-            color: var(--accent-primary);
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-        }
-
-        .info-box p {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-        }
-
-        .info-box code {
-            background: var(--bg-tertiary);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Schibsted+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="demos/demo.css">
+    <link rel="stylesheet" href="site.css">
 </head>
-
 <body>
-    <nav>
-        <a href="index.html" class="logo"><img src="logo-400.png" alt="CB"
-                style="width: 24px; height: 24px; border-radius: 50%; vertical-align: middle; margin-right: 6px;">CrossBus</a>
-        <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="doc.html?file=GETTING_STARTED.md">Docs</a></li>
-            <li><a href="demos/">Live demos</a></li>
-            <li><a href="playground.html"
-                    style="background: var(--bg-tertiary); color: var(--text-primary);">Playground</a></li>
-        </ul>
-    </nav>
+    <header class="topbar">
+        <div class="wrap">
+            <a class="brand" href="./"><img src="logo-400.png" alt="" width="24" height="24">CrossBus</a>
+            <nav class="site-nav" aria-label="Site">
+                <a href="doc.html?file=GETTING_STARTED.md" data-nav="docs">Docs</a>
+                <a href="doc.html?file=API.md" data-nav="api">API</a>
+                <a href="demos/" data-nav="demos">Demos</a>
+                <a href="playground.html" data-nav="playground" aria-current="page">Playground</a>
+            </nav>
+            <div class="nav-ext">
+                <a class="pill" href="https://github.com/GiuseppeScottoLavina/crossbus">GitHub</a>
+                <a class="pill" href="https://www.npmjs.com/package/crossbus">npm</a>
+            </div>
+        </div>
+    </header>
 
-    <div class="container">
-        <h1>🎮 Interactive Playground</h1>
-        <p class="subtitle">Real CrossBus connections: MessageChannels, a module Worker and iframe transports. Serve this page over HTTP(S).</p>
-
-        <div class="tabs">
-            <button class="tab active" data-demo="signals">📡 Signals (Broadcast)</button>
-            <button class="tab" data-demo="request">🔄 Request/Response</button>
-            <button class="tab" data-demo="iframe">🖼️ Iframe ↔ Iframe</button>
-            <button class="tab" data-demo="worker">⚙️ Worker Offload</button>
+    <main class="wrap">
+        <div class="page-head">
+            <ul class="eyebrow" aria-label="Uses">
+                <li>MessageChannelTransport</li><li>PostMessageTransport</li><li>module Worker</li>
+            </ul>
+            <h1>Playground</h1>
+            <p class="lede">Send signals and requests between real CrossBus peers in this page: MessageChannel pairs, two iframes and a module Worker. Every line in the consoles is something a bus actually did.</p>
         </div>
 
-        <!-- Demo: Signals -->
-        <div id="demo-signals" class="demo-content">
-            <div class="info-box">
-                <h3>📡 Broadcast Signals</h3>
-                <p>Signals are fire-and-forget messages broadcast to all peers. Use <code>signal(name, data)</code> to
-                    send and <code>on(name, fn)</code> to listen.</p>
-            </div>
-            <div class="playground">
-                <div class="panel">
-                    <div class="panel-header"><span class="panel-title"><span class="status-dot connected"></span> Hub
-                            (Main)</span></div>
-                    <div class="panel-body">
-                        <div class="console" id="hub-console"></div>
-                        <div class="controls">
-                            <div class="control-row">
-                                <input type="text" id="signal-name" placeholder="Signal name" value="user:action">
-                                <input type="text" id="signal-data" placeholder="Data (JSON)" value='{"clicked": true}'>
-                            </div>
-                            <div class="control-row">
-                                <button onclick="sendSignal()">📡 Broadcast Signal</button>
-                                <button class="secondary" onclick="clearConsole('hub')">Clear</button>
-                            </div>
+        <div class="pg-tabs" role="tablist" aria-label="Playground examples">
+            <button class="tab active" type="button" role="tab" aria-selected="true" aria-controls="demo-signals" data-demo="signals">Signals</button>
+            <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="demo-request" data-demo="request">Request / response</button>
+            <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="demo-iframe" data-demo="iframe">Iframe to iframe</button>
+            <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="demo-worker" data-demo="worker">Worker offload</button>
+        </div>
+
+        <section id="demo-signals" class="demo-content" role="tabpanel" aria-label="Signals">
+            <p class="pg-intro">Signals are one-way messages to every connected peer. The hub sends with <code>signal(name, payload)</code>; the agent listens with <code>on(pattern, fn)</code>, where <code>*</code> matches any name.</p>
+            <div class="pg-grid">
+                <div class="surface pg-panel">
+                    <header><h2 class="panel-title"><span class="status-dot connected"></span>Hub · sender</h2><button class="btn ghost small" type="button" onclick="clearConsole('hub')">Clear</button></header>
+                    <div class="console" id="hub-console" role="log" aria-label="Hub console"></div>
+                    <div class="pg-controls">
+                        <div class="pg-row">
+                            <input class="input" type="text" id="signal-name" aria-label="Signal name" placeholder="Signal name" value="user:action">
+                            <input class="input" type="text" id="signal-data" aria-label="Payload as JSON" placeholder="Payload (JSON)" value='{"clicked": true}'>
                         </div>
+                        <div class="pg-row"><button class="btn" type="button" onclick="sendSignal()">Send signal</button></div>
                     </div>
                 </div>
-                <div class="panel">
-                    <div class="panel-header"><span class="panel-title"><span class="status-dot connected"></span> Agent
-                            (Listener)</span></div>
-                    <div class="panel-body">
-                        <div class="console" id="agent-console"></div>
-                        <div class="controls">
-                            <div class="control-row">
-                                <input type="text" id="listen-pattern" placeholder="Listen pattern" value="*">
-                                <button onclick="updateListener()">🎧 Update Listener</button>
-                            </div>
+                <div class="surface pg-panel">
+                    <header><h2 class="panel-title"><span class="status-dot connected"></span>Agent · listener</h2><button class="btn ghost small" type="button" onclick="clearConsole('agent')">Clear</button></header>
+                    <div class="console" id="agent-console" role="log" aria-label="Agent console"></div>
+                    <div class="pg-controls">
+                        <div class="pg-row">
+                            <input class="input" type="text" id="listen-pattern" aria-label="Listen pattern" placeholder="Pattern, for example chat:*" value="*">
+                            <button class="btn" type="button" onclick="updateListener()">Update listener</button>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Demo: Request/Response -->
-        <div id="demo-request" class="demo-content" style="display: none;">
-            <div class="info-box">
-                <h3>🔄 Request/Response (RPC)</h3>
-                <p>Use <code>request(peer, handler, data)</code> for RPC calls. The peer must have registered a
-                    <code>handle(name, fn)</code>.
-                </p>
+        <section id="demo-request" class="demo-content" role="tabpanel" aria-label="Request / response" style="display: none;">
+            <p class="pg-intro">A request calls a handler on one peer and resolves with its result: <code>request(peerId, handlerName, payload)</code> on the client, <code>handle(name, fn)</code> on the server.</p>
+            <div class="pg-grid">
+                <div class="surface pg-panel">
+                    <header><h2 class="panel-title"><span class="status-dot connected"></span>Client</h2><button class="btn ghost small" type="button" onclick="clearConsole('client')">Clear</button></header>
+                    <div class="console" id="client-console" role="log" aria-label="Client console"></div>
+                    <div class="pg-controls">
+                        <div class="pg-row">
+                            <select class="input" id="rpc-handler" aria-label="Handler">
+                                <option value="getUser">getUser</option>
+                                <option value="calculate">calculate</option>
+                                <option value="echo">echo</option>
+                            </select>
+                            <input class="input" type="text" id="rpc-data" aria-label="Payload as JSON" placeholder="Payload (JSON)" value='{"id": 42}'>
+                        </div>
+                        <div class="pg-row"><button class="btn" type="button" onclick="sendRequest()">Send request</button></div>
+                    </div>
+                </div>
+                <div class="surface pg-panel">
+                    <header><h2 class="panel-title"><span class="status-dot connected"></span>Server · handlers</h2><button class="btn ghost small" type="button" onclick="clearConsole('server')">Clear</button></header>
+                    <div class="console" id="server-console" role="log" aria-label="Server console"></div>
+                    <p class="pg-note">Registered handlers: <code>getUser</code> (a local fixture), <code>calculate</code> with <code>{"a": 2, "b": 3}</code>, and <code>echo</code>.</p>
+                </div>
             </div>
-            <div class="playground">
-                <div class="panel">
-                    <div class="panel-header"><span class="panel-title"><span class="status-dot connected"></span>
-                            Client</span></div>
-                    <div class="panel-body">
-                        <div class="console" id="client-console"></div>
-                        <div class="controls">
-                            <div class="control-row">
-                                <select id="rpc-handler">
-                                    <option value="getUser">getUser</option>
-                                    <option value="calculate">calculate</option>
-                                    <option value="echo">echo</option>
-                                </select>
-                                <input type="text" id="rpc-data" placeholder="Payload" value='{"id": 42}'>
-                            </div>
-                            <div class="control-row">
-                                <button onclick="sendRequest()">📤 Send Request</button>
-                                <button class="secondary" onclick="clearConsole('client')">Clear</button>
-                            </div>
+        </section>
+
+        <section id="demo-iframe" class="demo-content" role="tabpanel" aria-label="Iframe to iframe" style="display: none;">
+            <p class="pg-intro">Two same-origin iframes each run a bus with a <code>PostMessageTransport</code> to this page. The hub authorizes and forwards each message with an application handler; <code>isHub</code> alone does not route.</p>
+            <div class="pg-grid">
+                <div class="surface pg-panel pg-span">
+                    <header><h2 class="panel-title"><span class="status-dot connected"></span>Hub · this page</h2><button class="btn ghost small" type="button" onclick="clearConsole('iframe-hub')">Clear</button></header>
+                    <div class="console short" id="iframe-hub-console" role="log" aria-label="Hub console"></div>
+                </div>
+            </div>
+            <div class="pg-frames">
+                <div class="surface pg-panel">
+                    <header><h2 class="panel-title"><span class="status-dot connected"></span>Iframe A · widget-a</h2></header>
+                    <iframe id="iframe-a" title="Iframe A, peer widget-a"></iframe>
+                </div>
+                <div class="surface pg-panel">
+                    <header><h2 class="panel-title"><span class="status-dot connected"></span>Iframe B · widget-b</h2></header>
+                    <iframe id="iframe-b" title="Iframe B, peer widget-b"></iframe>
+                </div>
+            </div>
+        </section>
+
+        <section id="demo-worker" class="demo-content" role="tabpanel" aria-label="Worker offload" style="display: none;">
+            <p class="pg-intro">Heavy work runs in a module Worker while this page stays responsive. The page sends <code>request('worker', 'compute', { n })</code> over a MessageChannel and gets the sum of 1 to N back.</p>
+            <div class="pg-grid">
+                <div class="surface pg-panel">
+                    <header><h2 class="panel-title"><span class="status-dot" id="worker-status"></span>Main thread</h2><button class="btn ghost small" type="button" onclick="clearConsole('main')">Clear</button></header>
+                    <div class="console" id="main-console" role="log" aria-label="Main thread console"></div>
+                    <div class="pg-controls">
+                        <div class="pg-row">
+                            <input class="input" type="number" id="compute-value" aria-label="N, from 0 to 10,000,000" min="0" max="10000000" placeholder="N" value="1000000">
+                        </div>
+                        <div class="pg-row">
+                            <button class="btn" type="button" onclick="computeInWorker()">Compute 1 + … + N</button>
+                            <button class="btn ghost" type="button" onclick="initWorker()">Restart the Worker</button>
                         </div>
                     </div>
                 </div>
-                <div class="panel">
-                    <div class="panel-header"><span class="panel-title"><span class="status-dot connected"></span>
-                            Server (Handlers)</span></div>
-                    <div class="panel-body">
-                        <div class="console" id="server-console"></div>
-                        <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 12px;">Registered handlers:
-                            <code>getUser</code>, <code>calculate</code>, <code>echo</code>
-                        </p>
-                    </div>
+                <div class="surface pg-panel">
+                    <header><h2 class="panel-title"><span class="status-dot" id="worker-dot"></span>Web Worker</h2><button class="btn ghost small" type="button" onclick="clearConsole('worker')">Clear</button></header>
+                    <div class="console" id="worker-console" role="log" aria-label="Worker console"></div>
+                    <p class="pg-note">Handler <code>compute</code> accepts an integer N from 0 to 10,000,000.</p>
                 </div>
             </div>
-        </div>
+        </section>
+    </main>
 
-        <!-- Demo: Iframe to Iframe -->
-        <div id="demo-iframe" class="demo-content" style="display: none;">
-            <div class="info-box">
-                <h3>🖼️ Iframe ↔ Iframe Communication</h3>
-                <p>Two iframes communicate through a hub using <code>PostMessageTransport</code>. The hub routes
-                    messages between them.</p>
+    <footer class="foot">
+        <div class="wrap foot-grid">
+            <div class="foot-brand">
+                <a class="brand" href="./"><img src="logo-400.png" alt="" width="24" height="24">CrossBus</a>
+                <p>Signals, RPC and bounded streams between windows, iframes, workers, tabs and native WebViews.</p>
             </div>
-            <div class="playground">
-                <div class="panel" style="grid-column: span 2;">
-                    <div class="panel-header">
-                        <span class="panel-title"><span class="status-dot connected"></span> Hub Console</span>
-                        <button class="secondary" onclick="clearConsole('iframe-hub')"
-                            style="padding: 4px 12px; font-size: 0.8rem;">Clear</button>
-                    </div>
-                    <div class="panel-body">
-                        <div class="console" id="iframe-hub-console" style="height: 100px;"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="iframe-container">
-                <div class="iframe-wrapper">
-                    <div class="iframe-header"><span class="status-dot connected"></span> Iframe A (widget-a)</div>
-                    <iframe id="iframe-a"></iframe>
-                </div>
-                <div class="iframe-wrapper">
-                    <div class="iframe-header"><span class="status-dot connected"></span> Iframe B (widget-b)</div>
-                    <iframe id="iframe-b"></iframe>
-                </div>
-            </div>
+            <nav aria-label="Learn">
+                <h2>Learn</h2>
+                <a href="doc.html?file=GETTING_STARTED.md">Getting started</a>
+                <a href="doc.html?file=API.md">API reference</a>
+                <a href="doc.html?file=EXAMPLES.md">Examples</a>
+                <a href="doc.html?file=STREAMING.md">Streaming</a>
+            </nav>
+            <nav aria-label="Try">
+                <h2>Try</h2>
+                <a href="demos/">Live demos</a>
+                <a href="playground.html">Playground</a>
+                <a href="https://github.com/GiuseppeScottoLavina/crossbus/tree/master/examples">Example apps</a>
+            </nav>
+            <nav aria-label="Project">
+                <h2>Project</h2>
+                <a href="https://github.com/GiuseppeScottoLavina/crossbus">GitHub</a>
+                <a href="https://www.npmjs.com/package/crossbus">npm</a>
+                <a href="https://github.com/GiuseppeScottoLavina/crossbus/blob/master/SECURITY.md">Security</a>
+                <a href="https://github.com/GiuseppeScottoLavina/crossbus/blob/master/CHANGELOG.md">Changelog</a>
+            </nav>
         </div>
-
-        <!-- Demo: Worker -->
-        <div id="demo-worker" class="demo-content" style="display: none;">
-            <div class="info-box">
-                <h3>⚙️ Worker Offload</h3>
-                <p>Offload heavy computation to a Web Worker. The main thread sends requests and receives results
-                    without blocking.</p>
-            </div>
-            <div class="playground">
-                <div class="panel">
-                    <div class="panel-header"><span class="panel-title"><span class="status-dot"
-                                id="worker-status"></span> Main Thread</span></div>
-                    <div class="panel-body">
-                        <div class="console" id="main-console"></div>
-                        <div class="controls">
-                            <div class="control-row">
-                                <input type="number" id="compute-value" placeholder="Number to compute" value="1000000">
-                            </div>
-                            <div class="control-row">
-                                <button onclick="computeInWorker()">⚙️ Compute Sum (1..N)</button>
-                                <button onclick="initWorker()" class="secondary">🔄 Restart Worker</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><span class="panel-title"><span class="status-dot" id="worker-dot"></span>
-                            Web Worker</span></div>
-                    <div class="panel-body">
-                        <div class="console" id="worker-console"></div>
-                        <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 12px;">Handler:
-                            <code>compute</code> — calculates sum from 1 to N
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+        <div class="wrap foot-legal">CrossBus is released under the <a href="https://github.com/GiuseppeScottoLavina/crossbus/blob/master/LICENSE">Apache-2.0 license</a>.</div>
+    </footer>
 
     <script type="module" src="./playground.js"></script>
 </body>
-
 </html>
