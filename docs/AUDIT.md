@@ -11,8 +11,10 @@ A follow-up local review looked at three areas: encryption replay handling, tear
 | An `addTransport()` cleanup removed a later registration that reused its peer ID, leaving that channel deaf | Low | Cleanup removes only its own registration |
 | A peer leaving deliberately was not announced: requests waited for their timeout, streams stayed open | Low | Opt-in `goodbye` for one-to-one channels; `StreamManager.closePeer()` |
 | `destroy()` rejected some requests and late signals without an error code or with a success result | Low | `ERR_DESTROYED` in both cases (`tests/unit/teardown.test.js`) |
+| A remote stream error reached the reader as a plain `Error` with no code | Low | Reported as `ERR_STREAM_CANCELLED`, as writers already did |
+| `StreamManager.destroy()` refused its own notifications, so the peer waited for its acknowledgement deadline (legacy readers: forever) | Low–medium | Peers are told before sends are refused (`tests/unit/stream-fuzz.test.js`, 4,000 seeds) |
 
-Probing `destroy()` with work in flight found no leaked timer or port (checked from a separate Node process), no unhandled rejection and no handler running after destruction. Peers that vanish without notice (a terminated Worker, a removed iframe) are still detected only by deadlines.
+Probing `destroy()` with work in flight found no leaked timer or port (checked from a separate Node process), no unhandled rejection and no handler running after destruction. Peers that vanish without notice (a terminated Worker, a removed iframe) are still detected only by deadlines. The stream credit, acknowledgement and reassembly logic held up in the seeded fuzz test: the writer never exceeded its window, duplicates and reordering were absorbed, and both sides always settled.
 
 The AES-GCM IVs were already random 96-bit values from `crypto.getRandomValues`; no IV reuse was found. The remaining bound is the NIST limit of 2³² messages per key with random IVs, now enforced per session and documented in [SECURITY.md](../SECURITY.md#encryption-plugin).
 
