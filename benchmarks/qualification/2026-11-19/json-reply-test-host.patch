@@ -1,0 +1,38 @@
+--- a/tests/native/ios-host/Main.swift
++++ b/tests/native/ios-host/Main.swift
+@@ -35,6 +35,7 @@
+     let denied = Bundle.main.object(forInfoDictionaryKey: "CrossBusDeniedOrigin") as? String ?? ""
+     let fingerprint = Bundle.main.object(forInfoDictionaryKey: "CrossBusCertificateSHA256") as? String ?? ""
+     var phases: [[String: Any]] = []
++    var nonJSONRepliesRejected = 0
+     var echoCalls = 0, protectedCalls = 0, nativeReplies = 0
+     var nativeReplyValid = false, deniedSendBlocked = false, closedSendBlocked = false
+     var nativeRequestId: String?
+@@ -65,7 +66,17 @@
+         }
+         guard type == "req" else { return }
+         switch name {
+-        case "echo": echoCalls += 1; try bridge.reply(to: message, data: payload["data"] ?? NSNull())
++        case "echo":
++            // A Foundation date needs an application encoding before a JSON reply.
++            do {
++                try bridge.reply(to: message, data: Date(timeIntervalSince1970: 0))
++                fail("Expected a native JSON validation error")
++                return
++            } catch let error as NSError where error.domain == "CrossBus" && error.code == 2 {
++                nonJSONRepliesRejected += 1
++            }
++            echoCalls += 1
++            try bridge.reply(to: message, data: payload["data"] ?? NSNull())
+         case "stats": try bridge.reply(to: message, data: ["echoCalls":echoCalls,"protectedCalls":protectedCalls,"nativeReplies":nativeReplies,"nativeReplyValid":nativeReplyValid])
+         case "protected": protectedCalls += 1; try bridge.reply(to: message, data: 7)
+         case "never": break
+@@ -94,7 +105,7 @@
+             guard phases.count == 2, protectedCalls == 0, echoCalls >= 2, nativeReplies >= 2,
+                   nativeReplyValid, deniedSendBlocked, closedSendBlocked else { fail("Native ledger/guard assertion failed"); return }
+             phases.append(report); completed = true
+-            save(["passed":true,"phases":phases,"echoCalls":echoCalls,"protectedCalls":protectedCalls,
++            save(["passed":true,"nonJSONRepliesRejected":nonJSONRepliesRejected,"phases":phases,"echoCalls":echoCalls,"protectedCalls":protectedCalls,
+                   "nativeReplies":nativeReplies,"nativeReplyValid":nativeReplyValid,"deniedSendBlocked":deniedSendBlocked,"closedSendBlocked":closedSendBlocked,
+                   "osVersion":UIDevice.current.systemVersion,"model":UIDevice.current.model])
+         default: fail("Unknown fixture control phase: " + phase)

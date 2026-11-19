@@ -310,12 +310,12 @@ CrossBus ran with its default guards and 30-second deadlines. The other librarie
 |---|---|
 | Node.js | 18+. CI installs the packed package on Node 18, 20, 22 and 24. |
 | Bun | Used for development and the test suites. |
-| Browsers | Chrome is tested in CI. The 0.1.5 focused qualification passed on Chrome 155, Firefox 160, Safari 27.2 and physical iPad Safari 27.2 ([receipts](docs/QUALIFICATION.md)). |
+| Browsers | Chrome is tested in CI. The 0.1.5 focused qualification passed on Chrome 155, Firefox 160, Safari 27.2 and physical iPad Safari 27.2. 0.1.7 passed again on physical iPad Safari 27.2 ([receipts](docs/QUALIFICATION.md)). |
 | TypeScript | Bundled declarations are checked with strict consumers on TypeScript 7.0, 6.0 and 5.9. |
 | iOS / macOS | Swift adapter for WKWebView, iOS 15+ / macOS 12+ (SwiftPM or CocoaPods from source) |
 | Android | Java adapter for AndroidX WebView, API 23+ (local Gradle AAR) |
 
-The native SDKs are built from this repository; they are not published to CocoaPods or Maven Central. Physical iPad and Pixel 7 Pro receipts cover 0.1.5 only.
+The native SDKs are built from this repository; they are not published to CocoaPods or Maven Central. Physical iPad receipts cover 0.1.5 and 0.1.7; Pixel 7 Pro receipts cover 0.1.5.
 
 ## Choosing CrossBus
 
