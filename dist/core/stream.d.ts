@@ -127,6 +127,15 @@ export declare class StreamManager {
     onStream(name: string, handler: (stream: ReadableSignalStream) => Promise<void> | void): () => boolean;
     /** peerId is the authenticated channel identity, never a payload field. @param {Object} message @param {string} peerId */
     handleMessage(message: any, peerId: string): void;
+    /**
+     * Ends every stream to and from one peer, for example on the bus's
+     * `peer:disconnected` event. Readers and writers fail locally with
+     * `ERR_STREAM_CANCELLED`; nothing is sent to the departed peer.
+     * @param {string} peerId
+     * @param {string} [reason='Stream peer disconnected']
+     * @returns {number} Streams ended.
+     */
+    closePeer(peerId: string, reason?: string): number;
     destroy(): void;
     get activeStreamCount(): number;
     get outgoingStreamCount(): number;

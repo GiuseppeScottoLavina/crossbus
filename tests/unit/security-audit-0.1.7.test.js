@@ -117,7 +117,8 @@ describe('Encryption authenticates inbound traffic', () => {
     it('binds responses to the request they answer', async () => {
         const pair = await encryptedPair();
         pair.server.handle('balance', ({ account }) => ({ account }));
-        const first = pair.client.request('server', 'balance', { account: 'A' }, { timeout: 200 });
+        // Only the second request is meant to time out; a loaded machine must not expire the first.
+        const first = pair.client.request('server', 'balance', { account: 'A' }, { timeout: 10000 });
         const second = pair.client.request('server', 'balance', { account: 'B' }, { timeout: 200 }).catch(error => error);
         while (pair.toServer.length < 2) await tick();
         for (const message of pair.toServer.splice(0)) await pair.server.handleMessage(message, 'channel', 'client');

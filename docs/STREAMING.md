@@ -54,7 +54,18 @@ The base64 codec feature-detects the standard [`Uint8Array.toBase64` / `Uint8Arr
 
 The budgets do not cap browser-internal cloning/parsing allocations, application-retained chunks or the full result allocated by `collect()`. Aggregate memory can be larger than a single reader's budget when multiple streams are active. Configure both stream-count and per-reader limits for the application.
 
-`onStream(name, handler)` registers a receiving handler and returns identity-safe cleanup. `activeStreamCount` and `outgoingStreamCount` expose manager counts. `destroy()` clears handlers and cancels both directions. Overflow, invalid sequence, timeout and cancellation use Errors with codes `ERR_STREAM_OVERFLOW`, `ERR_STREAM_SEQUENCE`, `ERR_STREAM_TIMEOUT` and `ERR_STREAM_CANCELLED` respectively where generated locally. Remote errors currently transmit a reason string and are reported as cancellation, rather than preserving a remote error code.
+`onStream(name, handler)` registers a receiving handler and returns identity-safe cleanup. `activeStreamCount` and `outgoingStreamCount` expose manager counts. `destroy()` clears handlers and cancels both directions. `closePeer(peerId, reason?)` fails the readers and writers of one peer with `ERR_STREAM_CANCELLED` and returns how many it ended; it sends nothing, because the peer is assumed gone.
+
+A manager is not owned by a bus. When its frames travel over a bus, tie the two together:
+
+```js
+const streams = new StreamManager((peerId, frame) => bus.request(peerId, 'stream', frame));
+bus.handle('stream', (frame, context) => streams.handleMessage(frame, context.peerId));
+bus.on('peer:disconnected', (event) => streams.closePeer(event.data.peerId));
+bus.addCleanup(() => streams.destroy());
+```
+
+`peer:disconnected` fires on `removePeer()`, on an `addTransport()` cleanup and, with `goodbye: true`, when the other side leaves. A peer that disappears without notice (a terminated Worker, a removed iframe) is detected only by deadlines: `ackTimeout` for flow writers, `idleTimeout` for readers. Legacy (non-flow) readers have no idle timeout by default, so set `idleTimeout` when such a peer can vanish. Overflow, invalid sequence, timeout and cancellation use Errors with codes `ERR_STREAM_OVERFLOW`, `ERR_STREAM_SEQUENCE`, `ERR_STREAM_TIMEOUT` and `ERR_STREAM_CANCELLED` respectively where generated locally. Remote errors currently transmit a reason string and are reported as cancellation, rather than preserving a remote error code.
 
 ## Compatibility
 

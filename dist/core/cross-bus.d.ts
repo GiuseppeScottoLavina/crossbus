@@ -385,6 +385,12 @@ export declare class CrossBus extends EventEmitter {
      * @param {Object} [options={}] - Additional options.
      * @param {string} [options.peerId] - Override peer ID (defaults to transport's peerId or auto-generated).
      * @param {string} [options.origin='*'] - Origin for message validation.
+     * @param {boolean} [options.goodbye=false] - On a channel with exactly one remote bus,
+     *   tell the other side when this binding ends (cleanup, `removePeer()` or `destroy()`),
+     *   and end this binding when the other side says so: its pending requests reject at
+     *   once with `ERR_PEER_DISCONNECTED` instead of at their timeout. Both endpoints must
+     *   set it. Do not use it on shared channels such as BroadcastChannel, where one
+     *   leaving endpoint would end the binding for all.
      * @returns {Function} Cleanup function to remove the transport.
      *
      * @example
@@ -400,6 +406,7 @@ export declare class CrossBus extends EventEmitter {
     addTransport(transport: any, options?: {
         peerId?: string;
         origin?: string;
+        goodbye?: boolean;
     }): Function;
     /**
      * Registers synchronous resource cleanup for bus destruction.

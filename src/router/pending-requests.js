@@ -342,14 +342,16 @@ export class PendingRequests {
     /**
      * Cancels all pending requests.
      *
+     * @param {(requestId: string, targetPeer: string) => Error} [createError] - Rejection
+     *   for each request; by default a plain `Error('All requests cancelled')`.
      * @returns {number} Number of requests cancelled.
      */
-    cancelAll() {
+    cancelAll(createError) {
         const count = this.#pending.size;
 
-        for (const pending of this.#pending.values()) {
+        for (const [requestId, pending] of this.#pending) {
             this.#release(pending);
-            pending.reject(new Error('All requests cancelled'));
+            pending.reject(createError ? createError(requestId, pending.targetPeer) : new Error('All requests cancelled'));
         }
 
         this.#pending.clear();

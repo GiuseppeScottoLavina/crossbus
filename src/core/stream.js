@@ -695,6 +695,31 @@ export class StreamManager {
         if (this.#destroyed) throw new Error('Stream manager destroyed');
         return this.#sendFn(peerId, message.id ? message : streamFrame(message.sid, message));
     }
+    /**
+     * Ends every stream to and from one peer, for example on the bus's
+     * `peer:disconnected` event. Readers and writers fail locally with
+     * `ERR_STREAM_CANCELLED`; nothing is sent to the departed peer.
+     * @param {string} peerId
+     * @param {string} [reason='Stream peer disconnected']
+     * @returns {number} Streams ended.
+     */
+    closePeer(peerId, reason = 'Stream peer disconnected') {
+        let count = 0;
+        for (const [sid, entry] of [...this.#activeStreams]) {
+            if (entry.peerId !== peerId) continue;
+            // Removed first, so the reader does not send an error frame to a departed peer.
+            this.#activeStreams.delete(sid);
+            entry.stream.error(streamFailure(reason));
+            count++;
+        }
+        for (const [sid, entry] of [...this.#outgoingStreams]) {
+            if (entry.peerId !== peerId) continue;
+            // A local error frame fails the writer without notifying the peer.
+            entry.stream.handleMessage({ t: 'stream', sid, st: 'error', reason });
+            count++;
+        }
+        return count;
+    }
     destroy() {
         if (this.#destroyed) return;
         this.#destroyed = true;

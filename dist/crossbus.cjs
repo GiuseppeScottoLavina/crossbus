@@ -1697,6 +1697,30 @@ function envelope(type, payload, meta, id) {
   return message;
 }
 
+// PROTOCOL_PREFIX and PROTOCOL_VERSION are imported from common/types.js
+
+/**
+ * Creates a protocol message envelope.
+ *
+ * @param {MessageType} type - Message type.
+ * @param {Object} payload - Message payload.
+ * @param {Object} [meta={}] - Additional metadata.
+ * @param {string|null} [id=null] - Optional custom message ID.
+ * @returns {ProtocolMessage} Frozen message object.
+ *
+ * @typedef {Object} ProtocolMessage
+ * @property {number} _cb - Protocol marker version (compact wire format).
+ * @property {number} version - Protocol version.
+ * @property {string} id - Opaque message identifier; not an authentication token.
+ * @property {MessageType} type - Message type.
+ * @property {number} timestamp - Unix timestamp (ms).
+ * @property {Object} payload - Message payload.
+ * @property {Object} meta - Additional metadata.
+ */
+function createMessage(type, payload, meta = {}, id = null) {
+  return envelope(type, { ...payload }, Object.freeze({ ...meta }), id);
+}
+
 /**
  * Creates a signal message.
  *
@@ -2451,14 +2475,16 @@ class PendingRequests {
     /**
      * Cancels all pending requests.
      *
+     * @param {(requestId: string, targetPeer: string) => Error} [createError] - Rejection
+     *   for each request; by default a plain `Error('All requests cancelled')`.
      * @returns {number} Number of requests cancelled.
      */
-    cancelAll() {
+    cancelAll(createError) {
         const count = this.#pending.size;
 
-        for (const pending of this.#pending.values()) {
+        for (const [requestId, pending] of this.#pending) {
             this.#release(pending);
-            pending.reject(new Error('All requests cancelled'));
+            pending.reject(createError ? createError(requestId, pending.targetPeer) : new Error('All requests cancelled'));
         }
 
         this.#pending.clear();
@@ -3258,6 +3284,15 @@ const MESSAGE_HANDLED = Promise.resolve();
 const RESERVED_LOCAL_EVENTS = new Set(['destroyed', 'peer:connected', 'peer:disconnected', 'peer:status']);
 
 /**
+ * A goodbye envelope from {@link CrossBus#addTransport} with `goodbye`.
+ * @param {any} message
+ * @returns {boolean}
+ */
+function isGoodbye(message) {
+    return message !== null && typeof message === 'object' && message._cb === 1 && message.type === MessageType.BYE;
+}
+
+/**
  * @callback RequestHandler
  * @param {*} payload - Request payload.
  * @param {Object} context - Request context (peerId, meta, etc).
@@ -3358,6 +3393,8 @@ class CrossBus extends EventEmitter {
 
     /** @type {Set<Function>} */
     #cleanups = new Set();
+    /** addTransport() bindings with `goodbye`: peer ID → registration and sender. */
+    #goodbyes = new Map();
 
     /**
      * Creates a new CrossBus instance.
@@ -3497,6 +3534,8 @@ class CrossBus extends EventEmitter {
             if (error?.code === ErrorCode.MESSAGE_DROPPED) return { success: false, delivered: 0, failed: [] };
             throw error;
         }
+        // destroy() may have run while asynchronous hooks were pending.
+        this.#assertNotDestroyed();
 
         const message = createSignalMessage(
             signalName,
@@ -3810,6 +3849,11 @@ class CrossBus extends EventEmitter {
      * @returns {boolean}
      */
     removePeer(peerId) {
+        const goodbye = this.#goodbyes.get(peerId);
+        if (goodbye) {
+            this.#goodbyes.delete(peerId);
+            if (this.#router.getPeer(peerId) === goodbye.registration) goodbye.send();
+        }
         this.#pendingRequests.cancelForPeer(peerId);
         return this.#router.removePeer(peerId);
     }
@@ -3822,6 +3866,12 @@ class CrossBus extends EventEmitter {
      * @param {Object} [options={}] - Additional options.
      * @param {string} [options.peerId] - Override peer ID (defaults to transport's peerId or auto-generated).
      * @param {string} [options.origin='*'] - Origin for message validation.
+     * @param {boolean} [options.goodbye=false] - On a channel with exactly one remote bus,
+     *   tell the other side when this binding ends (cleanup, `removePeer()` or `destroy()`),
+     *   and end this binding when the other side says so: its pending requests reject at
+     *   once with `ERR_PEER_DISCONNECTED` instead of at their timeout. Both endpoints must
+     *   set it. Do not use it on shared channels such as BroadcastChannel, where one
+     *   leaving endpoint would end the binding for all.
      * @returns {Function} Cleanup function to remove the transport.
      *
      * @example
@@ -3846,6 +3896,19 @@ class CrossBus extends EventEmitter {
 
         this.addPeer(peerId, (message) => transport.send(message), options);
         const registration = this.#router.getPeer(peerId);
+        const goodbye = options.goodbye === true;
+        if (goodbye) {
+            this.#goodbyes.set(peerId, {
+                registration,
+                // Best effort: the other side may already be gone.
+                send: () => {
+                    try {
+                        const sent = transport.send(createMessage(MessageType.BYE, {}, { source: this.#peerId }));
+                        if (sent && typeof sent.catch === 'function') sent.catch(() => {});
+                    } catch { /* channel already closed */ }
+                }
+            });
+        }
         if (typeof transport.onMessage === 'function') {
             transport.onMessage((message, source) => {
                 // removePeer() or a replacement registration retires this channel.
@@ -3853,6 +3916,13 @@ class CrossBus extends EventEmitter {
                 // Window transports provide the actual event origin. Explicit
                 // origin is the trust label for originless channels/native hosts.
                 const actualOrigin = source?.origin || origin;
+                if (goodbye && isGoodbye(message)) {
+                    if (this.#destroyed || !this.#originValidator.isAllowed(actualOrigin)) return;
+                    // The other side has left: end this binding without answering.
+                    this.#goodbyes.delete(peerId);
+                    cleanup();
+                    return;
+                }
                 const pending = this.handleMessage(message, actualOrigin, peerId);
                 if (pending !== MESSAGE_HANDLED) pending.catch(error => console.error('[CrossBus] Incoming message rejected:', error));
             });
@@ -3860,7 +3930,9 @@ class CrossBus extends EventEmitter {
         const cleanup = () => {
             if (!this.#cleanups.delete(cleanup)) return;
             transport.offMessage?.();
-            this.removePeer(peerId);
+            // A replacement registration for this peer ID is not ours to remove.
+            if (this.#router.getPeer(peerId) === registration) this.removePeer(peerId);
+            else if (this.#goodbyes.get(peerId)?.registration === registration) this.#goodbyes.delete(peerId);
             transport.destroy?.();
         };
         this.#cleanups.add(cleanup);
@@ -3907,6 +3979,8 @@ class CrossBus extends EventEmitter {
         // Support both standard 'payload'/'data' and legacy 'p'
         const rawPayload = message.payload ?? message.data ?? message.p;
         const msgType = message.type ?? message.t;
+        // Goodbyes are acted on only by addTransport() bindings with `goodbye`.
+        if (msgType === MessageType.BYE) return MESSAGE_HANDLED;
 
         // Normalize fields based on schema
         let handlerOrName = message.handler ?? message.name;
@@ -4098,8 +4172,9 @@ class CrossBus extends EventEmitter {
         this.#handlerOptions.clear();
         this.#handlerUnregister.clear();
         this.#rateLimitCounters.clear();
-        // Cancel all pending requests
-        this.#pendingRequests.cancelAll();
+        // Requests to peers without a transport cleanup (addPeer()) are still pending.
+        this.#pendingRequests.cancelAll((requestId, peerId) => CrossBusError.from(ErrorCode.DESTROYED, { requestId, peerId }));
+        this.#goodbyes.clear();
 
         // Clear handlers
         this.#handlers.clear();
@@ -5485,6 +5560,31 @@ class StreamManager {
         if (this.#destroyed) throw new Error('Stream manager destroyed');
         return this.#sendFn(peerId, message.id ? message : streamFrame(message.sid, message));
     }
+    /**
+     * Ends every stream to and from one peer, for example on the bus's
+     * `peer:disconnected` event. Readers and writers fail locally with
+     * `ERR_STREAM_CANCELLED`; nothing is sent to the departed peer.
+     * @param {string} peerId
+     * @param {string} [reason='Stream peer disconnected']
+     * @returns {number} Streams ended.
+     */
+    closePeer(peerId, reason = 'Stream peer disconnected') {
+        let count = 0;
+        for (const [sid, entry] of [...this.#activeStreams]) {
+            if (entry.peerId !== peerId) continue;
+            // Removed first, so the reader does not send an error frame to a departed peer.
+            this.#activeStreams.delete(sid);
+            entry.stream.error(streamFailure(reason));
+            count++;
+        }
+        for (const [sid, entry] of [...this.#outgoingStreams]) {
+            if (entry.peerId !== peerId) continue;
+            // A local error frame fails the writer without notifying the peer.
+            entry.stream.handleMessage({ t: 'stream', sid, st: 'error', reason });
+            count++;
+        }
+        return count;
+    }
     destroy() {
         if (this.#destroyed) return;
         this.#destroyed = true;
@@ -6790,6 +6890,9 @@ function decodeVersion2(packet, tag) {
  *   bus.addTransport(transport, { peerId: 'parent', origin: 'channel' });
  * });
  */
+/** Ports owned by a transport created with fromPort(); their creator must not close them. */
+const adoptedPorts = new WeakSet();
+
 class MessageChannelTransport {
     /** @type {MessagePort} */
     #localPort;
@@ -6840,7 +6943,9 @@ class MessageChannelTransport {
             throw new TypeError('Port must be a MessagePort');
         }
 
-        return new MessageChannelTransport(options, port);
+        const transport = new MessageChannelTransport(options, port);
+        adoptedPorts.add(port);
+        return transport;
     }
 
     /**
@@ -6877,10 +6982,10 @@ class MessageChannelTransport {
     }
 
     /**
-     * Gets the remote port to send to the other context.
-     * This port can only be accessed once and becomes null after transfer.
+     * Gets the remote port to send to the other context, or to pass to
+     * {@link MessageChannelTransport.fromPort} in this one.
      *
-     * @returns {MessagePort|null} The remote port, or null if already transferred.
+     * @returns {MessagePort|null} The remote port, or null after `markRemoteTransferred()`.
      */
     get remotePort() {
         return this.#remotePort;
@@ -6890,7 +6995,9 @@ class MessageChannelTransport {
     get wireFormat() { return this.#wireFormat; }
 
     /**
-     * Marks the remote port as transferred (called automatically when used).
+     * Forgets the remote port after it was transferred. `destroy()` closes the
+     * remote port only while this transport still holds it and no
+     * `fromPort()` transport has adopted it.
      */
     markRemoteTransferred() {
         this.#remotePort = null;
@@ -6978,10 +7085,10 @@ class MessageChannelTransport {
             this.#localPort = /** @type {any} */(null);
         }
 
-        if (this.#remotePort) {
-            this.#remotePort.close();
-            this.#remotePort = null;
-        }
+        // An adopted port belongs to the other transport: closing it here would
+        // drop messages still queued for it, such as a goodbye sent just now.
+        if (this.#remotePort && !adoptedPorts.has(this.#remotePort)) this.#remotePort.close();
+        this.#remotePort = null;
     }
 
     /**

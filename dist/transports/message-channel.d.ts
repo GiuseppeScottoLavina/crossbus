@@ -34,59 +34,6 @@ export type MessageContext = {
     origin: string;
 };
 export type MessageHandler = (message: any, context: MessageContext) => any;
-/**
- * @typedef {Object} MessageChannelTransportOptions
- * @property {boolean} [autoTransfer=false] - Auto-detect and transfer transferable objects.
- * @property {string} [contentType='application/json'] - Serialization format.
- * @property {'standard'|'compact'|'compact-v2'} [wireFormat='standard'] - Compact requires 0.1.3+ receivers; compact-v2 requires 0.1.6+ receivers.
- */
-/**
- * @typedef {Object} ChannelPair
- * @property {MessagePort} local - Local port (we listen on this).
- * @property {MessagePort} remote - Remote port (send this to other context).
- */
-/**
- * @typedef {Object} MessageContext
- * @property {string} origin - Always 'channel' for this transport.
- */
-/**
- * @callback MessageHandler
- * @param {Object} message - The received protocol message.
- * @param {MessageContext} context - Context information.
- */
-/**
- * MessageChannel-based transport for direct peer-to-peer communication.
- *
- * This transport creates a direct communication channel that bypasses
- * the hub routing, providing lower latency for high-frequency peer pairs.
- *
- * Use cases:
- * - Direct iframe ↔ worker communication
- * - High-frequency data streams
- * - Bypassing hub for performance
- *
- * The port handoff is the trust boundary: whoever holds the port is accepted
- * under the `channel` origin label. Send it to an exact origin and accept it
- * only from the expected window and origin.
- *
- * @example
- * // Parent page: transfer the port to one exact iframe origin
- * const transport = new MessageChannelTransport();
- * iframe.contentWindow.postMessage(
- *   { type: 'crossbus:port' },
- *   'https://widget.example.com',
- *   [transport.remotePort]
- * );
- * bus.addTransport(transport, { peerId: 'widget', origin: 'channel' });
- *
- * // Iframe: accept the port only from the expected parent
- * window.addEventListener('message', (e) => {
- *   if (e.source !== window.parent || e.origin !== 'https://app.example.com') return;
- *   if (e.data?.type !== 'crossbus:port' || !e.ports[0]) return;
- *   const transport = MessageChannelTransport.fromPort(e.ports[0]);
- *   bus.addTransport(transport, { peerId: 'parent', origin: 'channel' });
- * });
- */
 export declare class MessageChannelTransport {
     #private;
     /**
@@ -114,16 +61,18 @@ export declare class MessageChannelTransport {
      */
     constructor(options?: MessageChannelTransportOptions, port?: MessagePort | null);
     /**
-     * Gets the remote port to send to the other context.
-     * This port can only be accessed once and becomes null after transfer.
+     * Gets the remote port to send to the other context, or to pass to
+     * {@link MessageChannelTransport.fromPort} in this one.
      *
-     * @returns {MessagePort|null} The remote port, or null if already transferred.
+     * @returns {MessagePort|null} The remote port, or null after `markRemoteTransferred()`.
      */
     get remotePort(): MessagePort | null;
     /** Gets the selected outgoing encoding. Receivers accept standard and both compact versions. */
     get wireFormat(): "compact" | "compact-v2" | "standard";
     /**
-     * Marks the remote port as transferred (called automatically when used).
+     * Forgets the remote port after it was transferred. `destroy()` closes the
+     * remote port only while this transport still holds it and no
+     * `fromPort()` transport has adopted it.
      */
     markRemoteTransferred(): void;
     /**
