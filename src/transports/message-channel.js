@@ -71,6 +71,9 @@ import { encodeCompact, decodeCompact } from '../common/compact-wire.js';
  *   bus.addTransport(transport, { peerId: 'parent', origin: 'channel' });
  * });
  */
+/** Ports owned by a transport created with fromPort(); their creator must not close them. */
+const adoptedPorts = new WeakSet();
+
 export class MessageChannelTransport {
     /** @type {MessagePort} */
     #localPort;
@@ -121,7 +124,9 @@ export class MessageChannelTransport {
             throw new TypeError('Port must be a MessagePort');
         }
 
-        return new MessageChannelTransport(options, port);
+        const transport = new MessageChannelTransport(options, port);
+        adoptedPorts.add(port);
+        return transport;
     }
 
     /**
@@ -158,10 +163,10 @@ export class MessageChannelTransport {
     }
 
     /**
-     * Gets the remote port to send to the other context.
-     * This port can only be accessed once and becomes null after transfer.
+     * Gets the remote port to send to the other context, or to pass to
+     * {@link MessageChannelTransport.fromPort} in this one.
      *
-     * @returns {MessagePort|null} The remote port, or null if already transferred.
+     * @returns {MessagePort|null} The remote port, or null after `markRemoteTransferred()`.
      */
     get remotePort() {
         return this.#remotePort;
@@ -171,7 +176,9 @@ export class MessageChannelTransport {
     get wireFormat() { return this.#wireFormat; }
 
     /**
-     * Marks the remote port as transferred (called automatically when used).
+     * Forgets the remote port after it was transferred. `destroy()` closes the
+     * remote port only while this transport still holds it and no
+     * `fromPort()` transport has adopted it.
      */
     markRemoteTransferred() {
         this.#remotePort = null;
@@ -259,10 +266,10 @@ export class MessageChannelTransport {
             this.#localPort = /** @type {any} */(null);
         }
 
-        if (this.#remotePort) {
-            this.#remotePort.close();
-            this.#remotePort = null;
-        }
+        // An adopted port belongs to the other transport: closing it here would
+        // drop messages still queued for it, such as a goodbye sent just now.
+        if (this.#remotePort && !adoptedPorts.has(this.#remotePort)) this.#remotePort.close();
+        this.#remotePort = null;
     }
 
     /**

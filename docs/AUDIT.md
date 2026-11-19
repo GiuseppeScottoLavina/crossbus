@@ -7,6 +7,12 @@ A follow-up local review looked at three areas: encryption replay handling, tear
 | Finding | Severity (local assessment) | Fix |
 |---|---|---|
 | Encryption accepted two concurrent copies of a message; a full IV cache forgot live entries | Medium | Per-session sequence windows checked after authentication; a full legacy cache refuses instead of forgetting (`tests/unit/encryption-replay-window.test.js`) |
+| `MessageChannelTransport.destroy()` closed a port adopted by `fromPort()`, dropping messages queued for the other side | Low–medium | Adopted ports are left to their owner |
+| An `addTransport()` cleanup removed a later registration that reused its peer ID, leaving that channel deaf | Low | Cleanup removes only its own registration |
+| A peer leaving deliberately was not announced: requests waited for their timeout, streams stayed open | Low | Opt-in `goodbye` for one-to-one channels; `StreamManager.closePeer()` |
+| `destroy()` rejected some requests and late signals without an error code or with a success result | Low | `ERR_DESTROYED` in both cases (`tests/unit/teardown.test.js`) |
+
+Probing `destroy()` with work in flight found no leaked timer or port (checked from a separate Node process), no unhandled rejection and no handler running after destruction. Peers that vanish without notice (a terminated Worker, a removed iframe) are still detected only by deadlines.
 
 The AES-GCM IVs were already random 96-bit values from `crypto.getRandomValues`; no IV reuse was found. The remaining bound is the NIST limit of 2³² messages per key with random IVs, now enforced per session and documented in [SECURITY.md](../SECURITY.md#encryption-plugin).
 

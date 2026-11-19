@@ -48,6 +48,8 @@ const renderOnWorker = (name, tile) => bus.request(name, 'tile', tile);
 // #endregion
 
 async function restartPool() {
+    // A render still in flight is stale: its requests to the old Workers are cancelled.
+    state.generation++;
     for (const member of state.pool.splice(0)) member.stop();
     if (state.runOn !== 'workers') { trace.setLanes([{ id: 'main', label: 'main' }]); return; }
     const names = Array.from({ length: state.workers }, (_, i) => `worker-${i + 1}`);
@@ -122,7 +124,13 @@ async function render() {
                 const tile = queue.shift();
                 inFlight++; peak = Math.max(peak, inFlight);
                 const sent = performance.now();
-                const result = await renderOnWorker(member.name, tile);
+                let result;
+                try {
+                    result = await renderOnWorker(member.name, tile);
+                } catch (error) {
+                    if (generation !== state.generation) return;
+                    throw error;
+                }
                 inFlight--;
                 roundTrips.push(performance.now() - sent);
                 if (generation !== state.generation) return;

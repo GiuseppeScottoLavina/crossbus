@@ -7,7 +7,7 @@
 import { EventEmitter } from './event-emitter.js';
 import { MessageType, BATCHED_SIGNAL } from '../common/types.js';
 /** @typedef {import('../common/types.js').PeerStatus} PeerStatus */
-import { createSignalMessage, createRequestMessage, createResponseMessage } from './message-types.js';
+import { createSignalMessage, createRequestMessage, createResponseMessage, createMessage } from './message-types.js';
 import { CrossBusError, ErrorCode } from '../common/errors.js';
 import { uuid, assertPayloadSize } from '../common/utils.js';
 import { MessageRouter } from '../router/message-router.js';
@@ -100,6 +100,15 @@ const MESSAGE_HANDLED = Promise.resolve();
 
 /** Local lifecycle events that remote signals cannot trigger. */
 const RESERVED_LOCAL_EVENTS = new Set(['destroyed', 'peer:connected', 'peer:disconnected', 'peer:status']);
+
+/**
+ * A goodbye envelope from {@link CrossBus#addTransport} with `goodbye`.
+ * @param {any} message
+ * @returns {boolean}
+ */
+function isGoodbye(message) {
+    return message !== null && typeof message === 'object' && message._cb === 1 && message.type === MessageType.BYE;
+}
 
 /**
  * @callback RequestHandler
@@ -202,6 +211,8 @@ export class CrossBus extends EventEmitter {
 
     /** @type {Set<Function>} */
     #cleanups = new Set();
+    /** addTransport() bindings with `goodbye`: peer ID → registration and sender. */
+    #goodbyes = new Map();
 
     /**
      * Creates a new CrossBus instance.
@@ -341,6 +352,8 @@ export class CrossBus extends EventEmitter {
             if (error?.code === ErrorCode.MESSAGE_DROPPED) return { success: false, delivered: 0, failed: [] };
             throw error;
         }
+        // destroy() may have run while asynchronous hooks were pending.
+        this.#assertNotDestroyed();
 
         const message = createSignalMessage(
             signalName,
@@ -654,6 +667,11 @@ export class CrossBus extends EventEmitter {
      * @returns {boolean}
      */
     removePeer(peerId) {
+        const goodbye = this.#goodbyes.get(peerId);
+        if (goodbye) {
+            this.#goodbyes.delete(peerId);
+            if (this.#router.getPeer(peerId) === goodbye.registration) goodbye.send();
+        }
         this.#pendingRequests.cancelForPeer(peerId);
         return this.#router.removePeer(peerId);
     }
@@ -666,6 +684,12 @@ export class CrossBus extends EventEmitter {
      * @param {Object} [options={}] - Additional options.
      * @param {string} [options.peerId] - Override peer ID (defaults to transport's peerId or auto-generated).
      * @param {string} [options.origin='*'] - Origin for message validation.
+     * @param {boolean} [options.goodbye=false] - On a channel with exactly one remote bus,
+     *   tell the other side when this binding ends (cleanup, `removePeer()` or `destroy()`),
+     *   and end this binding when the other side says so: its pending requests reject at
+     *   once with `ERR_PEER_DISCONNECTED` instead of at their timeout. Both endpoints must
+     *   set it. Do not use it on shared channels such as BroadcastChannel, where one
+     *   leaving endpoint would end the binding for all.
      * @returns {Function} Cleanup function to remove the transport.
      *
      * @example
@@ -690,6 +714,19 @@ export class CrossBus extends EventEmitter {
 
         this.addPeer(peerId, (message) => transport.send(message), options);
         const registration = this.#router.getPeer(peerId);
+        const goodbye = options.goodbye === true;
+        if (goodbye) {
+            this.#goodbyes.set(peerId, {
+                registration,
+                // Best effort: the other side may already be gone.
+                send: () => {
+                    try {
+                        const sent = transport.send(createMessage(MessageType.BYE, {}, { source: this.#peerId }));
+                        if (sent && typeof sent.catch === 'function') sent.catch(() => {});
+                    } catch { /* channel already closed */ }
+                }
+            });
+        }
         if (typeof transport.onMessage === 'function') {
             transport.onMessage((message, source) => {
                 // removePeer() or a replacement registration retires this channel.
@@ -697,6 +734,13 @@ export class CrossBus extends EventEmitter {
                 // Window transports provide the actual event origin. Explicit
                 // origin is the trust label for originless channels/native hosts.
                 const actualOrigin = source?.origin || origin;
+                if (goodbye && isGoodbye(message)) {
+                    if (this.#destroyed || !this.#originValidator.isAllowed(actualOrigin)) return;
+                    // The other side has left: end this binding without answering.
+                    this.#goodbyes.delete(peerId);
+                    cleanup();
+                    return;
+                }
                 const pending = this.handleMessage(message, actualOrigin, peerId);
                 if (pending !== MESSAGE_HANDLED) pending.catch(error => console.error('[CrossBus] Incoming message rejected:', error));
             });
@@ -704,7 +748,9 @@ export class CrossBus extends EventEmitter {
         const cleanup = () => {
             if (!this.#cleanups.delete(cleanup)) return;
             transport.offMessage?.();
-            this.removePeer(peerId);
+            // A replacement registration for this peer ID is not ours to remove.
+            if (this.#router.getPeer(peerId) === registration) this.removePeer(peerId);
+            else if (this.#goodbyes.get(peerId)?.registration === registration) this.#goodbyes.delete(peerId);
             transport.destroy?.();
         };
         this.#cleanups.add(cleanup);
@@ -751,6 +797,8 @@ export class CrossBus extends EventEmitter {
         // Support both standard 'payload'/'data' and legacy 'p'
         const rawPayload = message.payload ?? message.data ?? message.p;
         const msgType = message.type ?? message.t;
+        // Goodbyes are acted on only by addTransport() bindings with `goodbye`.
+        if (msgType === MessageType.BYE) return MESSAGE_HANDLED;
 
         // Normalize fields based on schema
         let handlerOrName = message.handler ?? message.name;
@@ -942,8 +990,9 @@ export class CrossBus extends EventEmitter {
         this.#handlerOptions.clear();
         this.#handlerUnregister.clear();
         this.#rateLimitCounters.clear();
-        // Cancel all pending requests
-        this.#pendingRequests.cancelAll();
+        // Requests to peers without a transport cleanup (addPeer()) are still pending.
+        this.#pendingRequests.cancelAll((requestId, peerId) => CrossBusError.from(ErrorCode.DESTROYED, { requestId, peerId }));
+        this.#goodbyes.clear();
 
         // Clear handlers
         this.#handlers.clear();
