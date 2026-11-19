@@ -1,49 +1,49 @@
 {
-  "timestamp": "2026-11-19T10:09:49.204Z",
+  "timestamp": "2026-11-19T11:33:34.880Z",
   "runtime": "v24.15.0",
   "gzipLevel": 9,
   "sizes": [
     {
       "file": "dist/crossbus.js",
-      "rawBytes": 286874,
-      "gzipBytes": 61147,
-      "brotliBytes": 50221,
-      "sha256": "0cccec39bb72fa3f151a6c71c7273e6626f8ebe6bb902c85ab66be0c15e9efa6"
+      "rawBytes": 293024,
+      "gzipBytes": 62752,
+      "brotliBytes": 51504,
+      "sha256": "afbbb2086e6890887a3672093888ec1ea3532a0a871a61f73fa4374b9982854a"
     },
     {
       "file": "dist/crossbus.min.js",
-      "rawBytes": 77555,
-      "gzipBytes": 23329,
-      "brotliBytes": 20697,
-      "sha256": "4bade80da7f0920c96a2b3fd986ad3fc03c3ed984657c8862fc9c0f13c899ee1"
+      "rawBytes": 78643,
+      "gzipBytes": 23677,
+      "brotliBytes": 21000,
+      "sha256": "7b23490862216a8520291f2c4320835733c07db2ba5f49bb01a5551db1342a12"
     },
     {
       "file": "dist/crossbus.core.js",
-      "rawBytes": 152564,
-      "gzipBytes": 34332,
-      "brotliBytes": 28836,
-      "sha256": "ebdda598bde023ade536a94680611ed62cabdca31f525622d3dec9453fc949d7"
+      "rawBytes": 156511,
+      "gzipBytes": 35376,
+      "brotliBytes": 29675,
+      "sha256": "a95222f83f217b27771e3c79de8a17459c04b4dd41d7e1415d25f20d6ab739cf"
     },
     {
       "file": "dist/crossbus.core.min.js",
-      "rawBytes": 38716,
-      "gzipBytes": 12735,
-      "brotliBytes": 11263,
-      "sha256": "a13f8ca9289a674bf426324f990fe0668d491c58955ca62ede543a824d8cf3e9"
+      "rawBytes": 39388,
+      "gzipBytes": 12960,
+      "brotliBytes": 11492,
+      "sha256": "d3deb1ae4af307398991fa47dbb88abc7e6565fb8c4ce78d3b8e54374d2d839d"
     },
     {
       "file": "dist/nano.js",
       "rawBytes": 963,
       "gzipBytes": 468,
       "brotliBytes": 439,
-      "sha256": "c82717e7a8a383dbc1a328c41d90ccb31ea564eb7e8d34dcb5b79c48757d95e6"
+      "sha256": "b046a44fb275eb67b2e50dc4b172b5ba71dbabbb53d7bb734d2e5cb121afdaf7"
     },
     {
       "file": "dist/nano.min.js",
       "rawBytes": 535,
       "gzipBytes": 331,
-      "brotliBytes": 294,
-      "sha256": "1f264e22c70fbeefb868eca8c0cd1c6f171c55dd6a6a2a582547fc007302203d"
+      "brotliBytes": 315,
+      "sha256": "8e268dd4ab23c911923fe97388d7dc92192e1614b71ba88d4afc94ec015bc494"
     },
     {
       "file": "dist/plugins/retry.js",
@@ -63,8 +63,8 @@
       "file": "dist/plugins/schema-validation.js",
       "rawBytes": 23306,
       "gzipBytes": 5941,
-      "brotliBytes": 5043,
-      "sha256": "1db0113ff53de42edfce1e2bd100f585f3358851fc4e4c12cebbb49396439ab7"
+      "brotliBytes": 5041,
+      "sha256": "fda726fe269886e23f3a61436ed5395e2fcdf98acd54f1857b17e230ce35d1be"
     }
   ]
 }

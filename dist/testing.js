@@ -1,4 +1,4 @@
-/*! CrossBus v0.1.7 | Apache-2.0 */
+/*! CrossBus v0.1.8 | Apache-2.0 */
 /**
  * @fileoverview Mock transport for testing CrossBus without browser APIs.
  * @module testing/mock-transport
