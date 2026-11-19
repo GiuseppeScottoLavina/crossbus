@@ -1,5 +1,15 @@
 # Local audit
 
+## Review after 0.1.7 — 19 November 2026
+
+A follow-up local review looked at three areas: encryption replay handling, teardown on `destroy()` and peer loss, and stream flow control. Each finding was reproduced against the source and has a regression test. Fixes are unreleased until the next version.
+
+| Finding | Severity (local assessment) | Fix |
+|---|---|---|
+| Encryption accepted two concurrent copies of a message; a full IV cache forgot live entries | Medium | Per-session sequence windows checked after authentication; a full legacy cache refuses instead of forgetting (`tests/unit/encryption-replay-window.test.js`) |
+
+The AES-GCM IVs were already random 96-bit values from `crypto.getRandomValues`; no IV reuse was found. The remaining bound is the NIST limit of 2³² messages per key with random IVs, now enforced per session and documented in [SECURITY.md](../SECURITY.md#encryption-plugin).
+
 ## 0.1.7 publication record
 
 On 15 November 2026, npm **0.1.7** and its `latest` tag were verified against the exact archive from [CI 43714123944](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/43714123944), source commit `313e61d297dd3a0876a9d66e79e29ef0d70f3042`. The downloaded registry tarball matches that archive byte for byte (SHA-256 `f4a7e0b8489cf2957cc3110b408f5b4eaa85cd136fc1b9ae2c96c47668cafe06`), and a local `npm pack` of the same commit reproduces it. Isolated registry consumers passed on Node 18.18.0, 20.20.0, 22.19.0 and 24.15.0. Beyond the packaged smoke test, they ran an encrypted compact-v2 RPC and error round trip, a plaintext rejection and a decompression-bomb rejection from the installed package; on Node 18 the encryption check needs `--experimental-global-webcrypto`, as in earlier versions. The jsDelivr copy of `dist/crossbus.min.js` matches the archive. The [GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.7) preserves the archive, checksum and release manifest.

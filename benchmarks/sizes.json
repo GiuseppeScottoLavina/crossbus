@@ -1,14 +1,14 @@
 {
-  "timestamp": "2026-11-15T11:53:37.696Z",
+  "timestamp": "2026-11-19T10:09:49.204Z",
   "runtime": "v24.15.0",
   "gzipLevel": 9,
   "sizes": [
     {
       "file": "dist/crossbus.js",
-      "rawBytes": 286429,
-      "gzipBytes": 61077,
-      "brotliBytes": 50152,
-      "sha256": "430467864c382e9b290cb440cca03af264e3414127c54504f41034ef3048a043"
+      "rawBytes": 286874,
+      "gzipBytes": 61147,
+      "brotliBytes": 50221,
+      "sha256": "0cccec39bb72fa3f151a6c71c7273e6626f8ebe6bb902c85ab66be0c15e9efa6"
     },
     {
       "file": "dist/crossbus.min.js",
@@ -19,10 +19,10 @@
     },
     {
       "file": "dist/crossbus.core.js",
-      "rawBytes": 152242,
-      "gzipBytes": 34278,
-      "brotliBytes": 28766,
-      "sha256": "067218eb1923f6370645770c6aea8a4b32192ca449e48e493ab4d32c30080270"
+      "rawBytes": 152564,
+      "gzipBytes": 34332,
+      "brotliBytes": 28836,
+      "sha256": "ebdda598bde023ade536a94680611ed62cabdca31f525622d3dec9453fc949d7"
     },
     {
       "file": "dist/crossbus.core.min.js",
@@ -47,24 +47,24 @@
     },
     {
       "file": "dist/plugins/retry.js",
-      "rawBytes": 20386,
-      "gzipBytes": 5854,
-      "brotliBytes": 4924,
-      "sha256": "19f633219a71c00766d219ce25a20d49a9543f5e2cbc4bc2f904ddf0836d1e6e"
+      "rawBytes": 20436,
+      "gzipBytes": 5856,
+      "brotliBytes": 4926,
+      "sha256": "22506d1168eaa74630f143fea83674fccf15cd6ead2b0a0f1af0ed0415d5ebe8"
     },
     {
       "file": "dist/plugins/circuit-breaker.js",
-      "rawBytes": 22637,
-      "gzipBytes": 5676,
-      "brotliBytes": 4815,
-      "sha256": "147361d1dd3a3beddc7ec3c7fe24bbd47978a1dfa33bb4ba27468ec938202932"
+      "rawBytes": 22687,
+      "gzipBytes": 5680,
+      "brotliBytes": 4816,
+      "sha256": "1b2a0938d2b97906896edcfd3fcc43f53ad2b03585c575052685410cdcda0fc6"
     },
     {
       "file": "dist/plugins/schema-validation.js",
-      "rawBytes": 23256,
-      "gzipBytes": 5939,
-      "brotliBytes": 5028,
-      "sha256": "147c6904471d23f97f9cf14779805de72a1e48ed7ab5e383c24a935fddb13fbc"
+      "rawBytes": 23306,
+      "gzipBytes": 5941,
+      "brotliBytes": 5043,
+      "sha256": "1db0113ff53de42edfce1e2bd100f585f3358851fc4e4c12cebbb49396439ab7"
     }
   ]
 }

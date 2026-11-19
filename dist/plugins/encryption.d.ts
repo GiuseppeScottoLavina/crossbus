@@ -39,8 +39,21 @@ export type EncryptionHookOptions = {
      */
     maxClockSkew?: number;
     /**
-     * - Accepted IVs remembered within the
-     * replay window. When full, the oldest entry is forgotten first.
+     * - Sequence numbers tracked per sending
+     * session. A message more than this many positions behind the newest one
+     * accepted from its sender is rejected as a possible replay.
+     */
+    replayWindow?: number;
+    /**
+     * - Sending sessions tracked within the
+     * replay window. Only holders of the key can open a session. When all are
+     * active, a message from a new session is rejected (`ERR_REPLAY_CAPACITY`).
+     */
+    maxReplaySessions?: number;
+    /**
+     * - IVs remembered within the replay
+     * window for senders older than 0.1.8, which send no sequence number. When
+     * full, their messages are rejected (`ERR_REPLAY_CAPACITY`) until entries expire.
      */
     maxReplayEntries?: number;
 };
@@ -60,8 +73,15 @@ export type EncryptionHookOptions = {
  *   Disable only while migrating a mixed deployment.
  * @property {number} [ttl=60000] - Replay window in ms.
  * @property {number} [maxClockSkew=5000] - Accepted future timestamp skew in ms.
- * @property {number} [maxReplayEntries=50000] - Accepted IVs remembered within the
- *   replay window. When full, the oldest entry is forgotten first.
+ * @property {number} [replayWindow=4096] - Sequence numbers tracked per sending
+ *   session. A message more than this many positions behind the newest one
+ *   accepted from its sender is rejected as a possible replay.
+ * @property {number} [maxReplaySessions=1024] - Sending sessions tracked within the
+ *   replay window. Only holders of the key can open a session. When all are
+ *   active, a message from a new session is rejected (`ERR_REPLAY_CAPACITY`).
+ * @property {number} [maxReplayEntries=50000] - IVs remembered within the replay
+ *   window for senders older than 0.1.8, which send no sequence number. When
+ *   full, their messages are rejected (`ERR_REPLAY_CAPACITY`) until entries expire.
  */
 /**
  * Encryption utilities for CrossBus messages.
@@ -94,7 +114,9 @@ export declare class Encryption {
      *
      * @param {string} password - User password
      * @param {string} salt - Salt for key derivation (should be unique per user/session)
-     * @param {number} [iterations=100000] - PBKDF2 iterations
+     * @param {number} [iterations=100000] - PBKDF2 iterations. OWASP recommends at
+     *   least 600,000 for PBKDF2-SHA256; pass that for new deployments. The default
+     *   stays 100,000 so endpoints still derive the same key as earlier versions.
      * @returns {Promise<CryptoKey>} Derived key
      */
     static deriveKey(password: string, salt: string, iterations?: number): Promise<CryptoKey>;
@@ -157,9 +179,14 @@ export declare class Encryption {
      * authenticates the message type, signal/handler name and, for replies,
      * the request ID, so ciphertext cannot be moved to another handler or
      * request. Inbound plaintext is rejected unless `requireEncryption` is
-     * false, and each initialization vector is accepted once within the
-     * replay window. All holders of a shared key are equally trusted: the key
-     * authenticates membership, not an individual peer.
+     * false. Each hook pair is a sending session with a random ID; its
+     * messages carry an encrypted sequence number, and each one is accepted
+     * once (see `replayWindow`). Messages from senders older than 0.1.8 are
+     * accepted once per initialization vector within the replay window.
+     * A session refuses to encrypt more than 2^32 messages
+     * (`ERR_ENCRYPTION_LIMIT`), the AES-GCM bound for random IVs under one key.
+     * All holders of a shared key are equally trusted: the key authenticates
+     * membership, not an individual peer.
      *
      * @param {CryptoKey} key - Encryption key
      * @param {EncryptionHookOptions} [options={}]
