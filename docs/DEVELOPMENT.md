@@ -33,6 +33,13 @@ npm run lint     # No lint errors
 
 ❌ **NEVER** commit code that breaks existing tests.
 
+`tests/unit/stream-fuzz.test.js` runs 40 seeded stream scenarios in the unit suite. In them, a simulated channel reorders, duplicates and drops frames, and either side may abort or destroy its manager. For a longer campaign, or to reproduce a failure it printed, set the seed range:
+
+```bash
+STREAM_FUZZ_RUNS=4000 bun test tests/unit/stream-fuzz.test.js
+STREAM_FUZZ_SEED=239 STREAM_FUZZ_RUNS=1 bun test tests/unit/stream-fuzz.test.js
+```
+
 ---
 
 ## 🔴 Rule 3: Documentation Sync

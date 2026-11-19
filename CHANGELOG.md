@@ -23,6 +23,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `tests/unit/teardown.test.js` also checks, from a separate Node process, that no port or timer outlives `destroy()`.
   - A security-audit test that could expire under load now gives its first request a longer timeout.
   - The worker-pool demo no longer reports an uncaught `ERR_PEER_DISCONNECTED` when a setting restarts the Workers while a render is in flight; that render is now treated as stale. The demo test reproduces the race.
+- **Stream fixes from a seeded fuzz test.**
+  - `tests/unit/stream-fuzz.test.js` drives two `StreamManager`s through a simulated channel that reorders, duplicates and drops frames, with random chunk sizes, encodings, windows and consumer pace, and with aborts, cancellations and manager destruction. It checks:
+    - every run settles on both sides;
+    - exact data when nothing was lost;
+    - the writer never exceeds its credit window, and the reader never holds more chunks than the window;
+    - nothing stays open, and every error carries an `ERR_STREAM_*` code.
+  - It found two defects:
+    - a reader received a remote error as a plain `Error` with no code, while writers and the documentation report it as `ERR_STREAM_CANCELLED`;
+    - `StreamManager.destroy()` marked itself destroyed before notifying, so its peer was never told and waited for its acknowledgement deadline (30 s by default) or, for a legacy reader, forever. It now sends each peer an error frame first.
+  - 4,000 seeds pass, and the harness catches an off-by-one credit window.
 
 ## [0.1.7] - 2026-11-15
 
