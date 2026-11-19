@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - A cleanup returned by `addTransport()` no longer removes a later registration that reuses its peer ID. Before, that registration silently stopped receiving.
   - New `addTransport(transport, { goodbye: true })`, for channels with exactly one remote bus. When the binding ends (cleanup, `removePeer()` or `destroy()`), it sends a `bye` envelope, and the receiving side ends its own binding at once. Its pending requests then reject with `ERR_PEER_DISCONNECTED` immediately, instead of at `requestTimeout`. It is off by default: a 0.1.7 receiver logs one warning for a `bye`, and on shared channels such as BroadcastChannel one leaving tab would end the binding for all.
   - New `StreamManager.closePeer(peerId, reason?)` ends one peer's streams locally; call it on `peer:disconnected`.
-  - `destroy()` rejects requests to `addPeer()` peers with `ERR_DESTROYED` (before, a plain `Error` with no code). A `signal()` whose outbound hooks were still running also rejects with `ERR_DESTROYED`, as `request()` already did; before, it reported success with 0 deliveries.
+  - `destroy()` rejects requests to `addPeer()` peers with `ERR_DESTROYED` and the message "CrossBus instance has been destroyed" (before, a plain `Error('All requests cancelled')` with no code). A `signal()` whose outbound hooks were still running also rejects with `ERR_DESTROYED`, as `request()` already did; before, it reported success with 0 deliveries.
   - `tests/unit/teardown.test.js` also checks, from a separate Node process, that no port or timer outlives `destroy()`.
   - A security-audit test that could expire under load now gives its first request a longer timeout.
 

@@ -24,14 +24,14 @@ bus.addPeer('peer', () => {
     sends++;
 });
 const requests = Array.from({ length: 128 }, () =>
-    bus.request('peer', 'echo', 7).catch((e) => e.message)
+    bus.request('peer', 'echo', 7).catch((e) => e.code)
 );
 assert.equal(sends, 128);
 assert.equal(created, 1);
 assert.equal(active.size, 1);
 await assert.rejects(bus.request('peer', 'echo', 7), (e) => e.code === 'ERR_MAX_PENDING');
 bus.destroy();
-assert.deepEqual(await Promise.all(requests), Array(128).fill('All requests cancelled'));
+assert.deepEqual(await Promise.all(requests), Array(128).fill('ERR_DESTROYED'));
 await new Promise((resolve) => setImmediate(resolve));
 await new Promise((resolve) => setImmediate(resolve));
 assert.equal(active.size, 0);
