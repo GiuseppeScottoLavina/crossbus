@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `destroy()` rejects requests to `addPeer()` peers with `ERR_DESTROYED` and the message "CrossBus instance has been destroyed" (before, a plain `Error('All requests cancelled')` with no code). A `signal()` whose outbound hooks were still running also rejects with `ERR_DESTROYED`, as `request()` already did; before, it reported success with 0 deliveries.
   - `tests/unit/teardown.test.js` also checks, from a separate Node process, that no port or timer outlives `destroy()`.
   - A security-audit test that could expire under load now gives its first request a longer timeout.
+  - The worker-pool demo no longer reports an uncaught `ERR_PEER_DISCONNECTED` when a setting restarts the Workers while a render is in flight; that render is now treated as stale. The demo test reproduces the race.
 
 ## [0.1.7] - 2026-11-15
 

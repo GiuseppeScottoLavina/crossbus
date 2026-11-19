@@ -76,6 +76,10 @@ describe('live demos on the Pages source', () => {
             await page.click('input[name="wire"][value="compact-v2"]');
             generation = await rendered(generation);
             expect(await page.$eval('#src-worker pre', el => el.textContent)).toContain("bus.handle('tile'");
+            // Restart the pool while a render is in flight: its cancelled requests must not surface as errors.
+            await page.click('#again');
+            await page.click('input[name="wire"][value="standard"]');
+            generation = await rendered(generation);
             await page.click('input[name="runon"][value="main"]');
             generation = await rendered(generation);
             expect(await page.$eval('#r-by', el => el.textContent)).toBe('Main thread');
