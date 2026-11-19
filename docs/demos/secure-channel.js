@@ -112,8 +112,7 @@ const attacks = {
             const bytes = atob(data.ciphertext).split('');
             bytes[3] = String.fromCharCode(bytes[3].charCodeAt(0) ^ 1);
             data.ciphertext = btoa(bytes.join(''));
-            // A fresh IV dodges the replay cache; GCM authentication still fails.
-            data.iv = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(12))));
+            // GCM authentication fails before the replay check runs.
         } else {
             data.amount = 400;
             data.to = 'Mallory';

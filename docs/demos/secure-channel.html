@@ -130,7 +130,7 @@
 
         <section class="wiring">
             <h2>How it is wired</h2>
-            <p>Both endpoints share one key, provisioned by the application. Since 0.1.7 the plugin authenticates the message type, the handler name and the reply's request ID, rejects plaintext and remembers recent messages to refuse replays. Envelope metadata such as names and IDs stays visible on the wire.</p>
+            <p>Both endpoints share one key, provisioned by the application. Since 0.1.7 the plugin authenticates the message type, the handler name and the reply's request ID, and rejects plaintext. Since 0.1.8 each sender numbers its messages, so a copy is refused even when it arrives at the same moment as the original. Envelope metadata such as names and IDs stays visible on the wire.</p>
             <div class="sources">
                 <article class="surface source" id="src-wiring"><header><span>secure-channel.js · both endpoints</span><a href="secure-channel.js">full file</a></header><pre></pre></article>
             </div>

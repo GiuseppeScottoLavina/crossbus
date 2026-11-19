@@ -23,8 +23,15 @@
  *   Disable only while migrating a mixed deployment.
  * @property {number} [ttl=60000] - Replay window in ms.
  * @property {number} [maxClockSkew=5000] - Accepted future timestamp skew in ms.
- * @property {number} [maxReplayEntries=50000] - Accepted IVs remembered within the
- *   replay window. When full, the oldest entry is forgotten first.
+ * @property {number} [replayWindow=4096] - Sequence numbers tracked per sending
+ *   session. A message more than this many positions behind the newest one
+ *   accepted from its sender is rejected as a possible replay.
+ * @property {number} [maxReplaySessions=1024] - Sending sessions tracked within the
+ *   replay window. Only holders of the key can open a session. When all are
+ *   active, a message from a new session is rejected (`ERR_REPLAY_CAPACITY`).
+ * @property {number} [maxReplayEntries=50000] - IVs remembered within the replay
+ *   window for senders older than 0.1.8, which send no sequence number. When
+ *   full, their messages are rejected (`ERR_REPLAY_CAPACITY`) until entries expire.
  */
 
 /**
@@ -68,7 +75,9 @@ class Encryption {
      *
      * @param {string} password - User password
      * @param {string} salt - Salt for key derivation (should be unique per user/session)
-     * @param {number} [iterations=100000] - PBKDF2 iterations
+     * @param {number} [iterations=100000] - PBKDF2 iterations. OWASP recommends at
+     *   least 600,000 for PBKDF2-SHA256; pass that for new deployments. The default
+     *   stays 100,000 so endpoints still derive the same key as earlier versions.
      * @returns {Promise<CryptoKey>} Derived key
      */
     static async deriveKey(password, salt, iterations = 100000) {
@@ -143,12 +152,17 @@ class Encryption {
      * @returns {Promise<EncryptedPayload>} Encrypted payload
      */
     static async encrypt(payload, key, options = {}) {
-        // Wrap payload with timestamp for replay protection
-        const wrapped = {
-            data: payload,
-            _ts: Date.now()
-        };
+        return this.#seal({ data: payload, _ts: Date.now() }, key, options);
+    }
 
+    /**
+     * Encrypts an already wrapped payload.
+     * @param {{ data: any, _ts: number, _sid?: string, _seq?: number }} wrapped
+     * @param {CryptoKey} key
+     * @param {{ additionalData?: string }} options
+     * @returns {Promise<EncryptedPayload>}
+     */
+    static async #seal(wrapped, key, options) {
         const encoder = new TextEncoder();
         const data = encoder.encode(JSON.stringify(wrapped));
 
@@ -193,6 +207,17 @@ class Encryption {
      *   timestamp, is older than `ttl` or is dated beyond `maxClockSkew`
      */
     static async decrypt(encrypted, key, options = {}) {
+        return (await this.#open(encrypted, key, options)).data;
+    }
+
+    /**
+     * Authenticates, decrypts and checks the age of an envelope.
+     * @param {EncryptedPayload} encrypted
+     * @param {CryptoKey} key
+     * @param {{ ttl?: number, maxClockSkew?: number, additionalData?: string }} options
+     * @returns {Promise<{ data: any, _ts: number, _sid?: string, _seq?: number }>}
+     */
+    static async #open(encrypted, key, options) {
         if (!this.isEncrypted(encrypted)) throw encryptionError('ERR_ENCRYPTION_INVALID', 'Malformed encrypted payload');
         const iv = this.#base64ToArrayBuffer(encrypted.iv);
         if (iv.byteLength !== this.IV_LENGTH) throw encryptionError('ERR_ENCRYPTION_INVALID', 'Invalid initialization vector');
@@ -223,8 +248,14 @@ class Encryption {
         if (timestamp - now > maxClockSkew) {
             throw encryptionError('ERR_MESSAGE_EXPIRED', `Message timestamp is ${timestamp - now}ms in the future (max skew ${maxClockSkew}ms)`);
         }
+        // Senders since 0.1.8 add a session ID and sequence number; earlier ones neither.
+        const { _sid: sid, _seq: seq } = unwrapped;
+        if ((sid !== undefined || seq !== undefined) &&
+            (typeof sid !== 'string' || !sid || sid.length > 64 || !Number.isSafeInteger(seq) || seq < 0)) {
+            throw encryptionError('ERR_ENCRYPTION_INVALID', 'Encrypted payload has an invalid sequence');
+        }
 
-        return unwrapped.data;
+        return unwrapped;
     }
 
     /**
@@ -234,9 +265,14 @@ class Encryption {
      * authenticates the message type, signal/handler name and, for replies,
      * the request ID, so ciphertext cannot be moved to another handler or
      * request. Inbound plaintext is rejected unless `requireEncryption` is
-     * false, and each initialization vector is accepted once within the
-     * replay window. All holders of a shared key are equally trusted: the key
-     * authenticates membership, not an individual peer.
+     * false. Each hook pair is a sending session with a random ID; its
+     * messages carry an encrypted sequence number, and each one is accepted
+     * once (see `replayWindow`). Messages from senders older than 0.1.8 are
+     * accepted once per initialization vector within the replay window.
+     * A session refuses to encrypt more than 2^32 messages
+     * (`ERR_ENCRYPTION_LIMIT`), the AES-GCM bound for random IVs under one key.
+     * All holders of a shared key are equally trusted: the key authenticates
+     * membership, not an individual peer.
      *
      * @param {CryptoKey} key - Encryption key
      * @param {EncryptionHookOptions} [options={}]
@@ -251,13 +287,21 @@ class Encryption {
         const requireEncryption = options.requireEncryption ?? true;
         const ttl = options.ttl ?? 60000;
         const maxClockSkew = options.maxClockSkew ?? 5000;
-        const replay = new ReplayCache(options.maxReplayEntries ?? 50000, ttl + maxClockSkew);
+        // A message accepted at time T is dated at most T + maxClockSkew, so it
+        // expires by T + ttl + maxClockSkew; replay state is kept that long.
+        const lifetime = ttl + maxClockSkew;
+        const legacy = new ReplayCache(options.maxReplayEntries ?? 50000, lifetime);
+        const sessions = new SessionWindows(options.maxReplaySessions ?? 1024, options.replayWindow ?? 4096, lifetime);
+        const session = this.#arrayBufferToBase64(crypto.getRandomValues(new Uint8Array(16)));
+        let sequence = 0;
         return {
             encryptHook: async (payload, context) => {
-                const encrypted = await this.encrypt(payload, key, { additionalData: additionalData(context) });
-                // Reflecting this message back to its sender is rejected as a replay.
-                replay.remember(encrypted.iv);
-                return encrypted;
+                if (sequence >= MAX_SESSION_MESSAGES) {
+                    throw encryptionError('ERR_ENCRYPTION_LIMIT', 'This key has encrypted 2^32 messages in this session; install the hooks with a new key');
+                }
+                // Numbered before any await, so numbers follow call order.
+                return this.#seal({ data: payload, _ts: Date.now(), _sid: session, _seq: sequence++ }, key,
+                    { additionalData: additionalData(context) });
             },
 
             decryptHook: async (payload, context) => {
@@ -269,10 +313,14 @@ class Encryption {
                     if (!requireEncryption) return payload;
                     throw encryptionError('ERR_ENCRYPTION_REQUIRED', 'Unencrypted payload rejected');
                 }
-                if (replay.has(payload.iv)) throw encryptionError('ERR_REPLAY_DETECTED', 'Encrypted payload was already received');
-                const data = await this.decrypt(payload, key, { ttl, maxClockSkew, additionalData: additionalData(context) });
-                replay.remember(payload.iv);
-                return data;
+                const message = await this.#open(payload, key, { ttl, maxClockSkew, additionalData: additionalData(context) });
+                // Checked and recorded in one synchronous step after authentication:
+                // of two concurrent copies only the first to finish is accepted, and
+                // a forgery cannot claim a genuine message's IV or sequence number.
+                if (message._sid === undefined) legacy.accept(payload.iv);
+                else if (message._sid === session) throw encryptionError('ERR_REPLAY_DETECTED', 'Encrypted payload was sent by this endpoint');
+                else sessions.accept(message._sid, /** @type {number} */ (message._seq));
+                return message.data;
             }
         };
     }
@@ -341,7 +389,24 @@ function encryptionError(code, message) {
     return Object.assign(new Error(message), { code });
 }
 
-/** Bounded set of recently accepted initialization vectors. */
+/** Random 96-bit IVs stay within the AES-GCM collision bound up to 2^32 messages per key. */
+const MAX_SESSION_MESSAGES = 2 ** 32;
+
+/**
+ * @param {any} value
+ * @param {string} name
+ * @returns {number}
+ */
+function positiveLimit(value, name) {
+    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`${name} must be a positive safe integer`);
+    return value;
+}
+
+/**
+ * IVs accepted from senders older than 0.1.8. Bounded: when every entry is
+ * still inside the replay window it refuses new messages instead of
+ * forgetting one, which would let that message be replayed.
+ */
 class ReplayCache {
     /** @type {Map<string, number>} */
     #entries = new Map();
@@ -353,26 +418,79 @@ class ReplayCache {
      * @param {number} lifetime
      */
     constructor(max, lifetime) {
-        if (!Number.isSafeInteger(max) || max < 1) throw new RangeError('maxReplayEntries must be a positive safe integer');
-        this.#max = max;
+        this.#max = positiveLimit(max, 'maxReplayEntries');
         this.#lifetime = lifetime;
     }
 
     /** @param {string} iv */
-    has(iv) {
-        const expires = this.#entries.get(iv);
-        return expires !== undefined && expires > Date.now();
-    }
-
-    /** @param {string} iv */
-    remember(iv) {
+    accept(iv) {
         const now = Date.now();
         // Entries are inserted in time order, so expired ones are at the front.
         for (const [entry, expires] of this.#entries) {
-            if (expires > now && this.#entries.size < this.#max) break;
+            if (expires >= now) break;
             this.#entries.delete(entry);
         }
+        if (this.#entries.has(iv)) throw encryptionError('ERR_REPLAY_DETECTED', 'Encrypted payload was already received');
+        if (this.#entries.size >= this.#max) throw encryptionError('ERR_REPLAY_CAPACITY', 'Replay cache is full; raise maxReplayEntries or upgrade the sender');
         this.#entries.set(iv, now + this.#lifetime);
+    }
+}
+
+/**
+ * Sliding windows of accepted sequence numbers, one per sending session, as
+ * in IPsec and DTLS. A session is forgotten once its newest accepted message
+ * has expired, because every earlier message of that session has expired too.
+ */
+class SessionWindows {
+    /** @type {Map<string, { top: number, bits: Uint32Array, expires: number }>} */
+    #sessions = new Map();
+    #max;
+    #size;
+    #lifetime;
+
+    /**
+     * @param {number} max
+     * @param {number} size
+     * @param {number} lifetime
+     */
+    constructor(max, size, lifetime) {
+        this.#max = positiveLimit(max, 'maxReplaySessions');
+        this.#size = Math.ceil(positiveLimit(size, 'replayWindow') / 32) * 32;
+        this.#lifetime = lifetime;
+    }
+
+    /**
+     * @param {string} sid
+     * @param {number} seq
+     */
+    accept(sid, seq) {
+        const now = Date.now();
+        let session = this.#sessions.get(sid);
+        if (session && session.expires < now) {
+            this.#sessions.delete(sid);
+            session = undefined;
+        }
+        if (!session) {
+            if (this.#sessions.size >= this.#max) {
+                for (const [id, entry] of this.#sessions) if (entry.expires < now) this.#sessions.delete(id);
+                if (this.#sessions.size >= this.#max) throw encryptionError('ERR_REPLAY_CAPACITY', 'Too many active encrypted sessions; raise maxReplaySessions');
+            }
+            session = { top: -1, bits: new Uint32Array(this.#size / 32), expires: 0 };
+            this.#sessions.set(sid, session);
+        }
+        const { bits } = session;
+        if (seq > session.top) {
+            // Slide forward, clearing the positions the window moves over.
+            if (seq - session.top >= this.#size) bits.fill(0);
+            else for (let n = session.top + 1; n < seq; n++) bits[(n % this.#size) >>> 5] &= ~(1 << (n & 31));
+            session.top = seq;
+        } else if (session.top - seq >= this.#size) {
+            throw encryptionError('ERR_REPLAY_DETECTED', 'Encrypted payload is older than the replay window');
+        } else if (bits[(seq % this.#size) >>> 5] & (1 << (seq & 31))) {
+            throw encryptionError('ERR_REPLAY_DETECTED', 'Encrypted payload was already received');
+        }
+        bits[(seq % this.#size) >>> 5] |= 1 << (seq & 31);
+        session.expires = now + this.#lifetime;
     }
 }
 
