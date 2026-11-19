@@ -5463,7 +5463,7 @@ class StreamManager {
                     outgoing.stream.handleMessage({ t: 'stream', sid, st: 'error', reason });
                 if (active?.peerId === peerId) {
                     this.#activeStreams.delete(sid);
-                    active.stream.error(reason);
+                    active.stream.error(streamFailure(reason));
                 }
                 // Never reflect malformed errors/ACKs and create a control loop.
                 if (message.st !== 'error' && message.st !== 'ack')
@@ -5546,8 +5546,9 @@ class StreamManager {
         } else if (message.st === 'end') active.stream.end(message.meta, message.seq);
         else if (message.st === 'error') {
             this.#activeStreams.delete(sid);
+            // Reported as cancellation, as writers report a remote error.
             active.stream.error(
-                typeof message.reason === 'string' ? message.reason : 'Remote stream failed'
+                streamFailure(typeof message.reason === 'string' ? message.reason : 'Remote stream failed')
             );
         }
     }
@@ -5585,14 +5586,22 @@ class StreamManager {
     }
     destroy() {
         if (this.#destroyed) return;
-        this.#destroyed = true;
-        for (const { stream } of this.#activeStreams.values())
-            stream.error('Stream manager destroyed');
-        for (const { stream } of this.#outgoingStreams.values())
-            void stream.abort('Stream manager destroyed').catch(() => {});
+        const reason = 'Stream manager destroyed';
+        const incoming = [...this.#activeStreams];
+        const outgoing = [...this.#outgoingStreams.values()];
         this.#activeStreams.clear();
-        this.#outgoingStreams.clear();
         this.#streamHandlers.clear();
+        // Tell each peer before sends are refused, so its side ends now rather
+        // than at an acknowledgement or idle deadline. Best effort.
+        for (const [sid, { peerId, stream }] of incoming) {
+            stream.error(streamFailure(reason));
+            this.#reject(peerId, sid, reason);
+        }
+        for (const { stream } of outgoing) void stream.abort(reason).catch(() => {});
+        this.#destroyed = true;
+        // Writers created by a close callback above are aborted too.
+        for (const { stream } of this.#outgoingStreams.values()) void stream.abort(reason).catch(() => {});
+        this.#outgoingStreams.clear();
     }
     get activeStreamCount() {
         return this.#activeStreams.size;

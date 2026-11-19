@@ -56,3 +56,43 @@ it('stale stream handler cleanup leaves the current registration intact',()=>{
  manager.handleMessage({t:'stream',st:'open',sid:'id',name:'data'},'owner');
  expect(calls).toBe(1);manager.destroy();
 });
+
+/** Two managers joined by in-memory queues the test delivers. */
+function linkedManagers() {
+ const toReader=[],toWriter=[];
+ const writer=new StreamManager((peer,frame)=>{toReader.push(structuredClone(frame));return Promise.resolve();});
+ const reader=new StreamManager((peer,frame)=>{toWriter.push(structuredClone(frame));return Promise.resolve();});
+ // Deliver until the channel has stayed empty for a few macrotasks.
+ const pump=async()=>{for(let quiet=0,i=0;quiet<3&&i<200;i++){if(!toReader.length&&!toWriter.length)quiet++;else quiet=0;while(toReader.length)reader.handleMessage(toReader.shift(),'writer');while(toWriter.length)writer.handleMessage(toWriter.shift(),'reader');await new Promise(r=>setTimeout(r,0));}};
+ return {writer,reader,toReader,toWriter,pump};
+}
+const settled=promise=>promise.then(value=>({value}),error=>({code:error.code,message:error.message}));
+
+it('reports a remote stream error to the reader as ERR_STREAM_CANCELLED',async()=>{
+ const {writer,reader,pump}=linkedManagers(); let stream;
+ reader.onStream('up',s=>{stream=s;});
+ const out=writer.createStream('up','reader',{flowControl:true});
+ const writing=settled(out.write('partial'));
+ await pump();
+ const reading=settled(stream.collect());
+ await writing;
+ await out.abort('changed my mind'); await pump();
+ expect(await reading).toEqual({code:'ERR_STREAM_CANCELLED',message:'changed my mind'});
+ writer.destroy(); reader.destroy();
+});
+
+for (const side of ['reader','writer']) it(`tells the peer when the ${side} manager is destroyed`,async()=>{
+ const managers=linkedManagers(); let stream;
+ managers.reader.onStream('up',s=>{stream=s;});
+ // Long deadlines: the other side must end because it was told, not by timing out.
+ const out=managers.writer.createStream('up','reader',{flowControl:true,windowSize:1,ackTimeout:60000});
+ const writing=settled((async()=>{await out.write('a');await out.write('b');await out.end();})());
+ await managers.pump();
+ // The writer now waits for credit; the reader holds 'a'.
+ const reading=side==='writer'?settled(stream.collect()):null;
+ managers[side].destroy();
+ await managers.pump();
+ expect(side==='reader'?await writing:await reading).toEqual({code:'ERR_STREAM_CANCELLED',message:'Stream manager destroyed'});
+ expect(managers.writer.outgoingStreamCount+managers.reader.activeStreamCount).toBe(0);
+ managers.writer.destroy(); managers.reader.destroy();
+});
