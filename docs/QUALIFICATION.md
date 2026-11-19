@@ -1,4 +1,14 @@
-# Browser and native qualification — 14 November 2026
+# Browser and native qualification
+
+## 0.1.7 on physical iPad — 19 November 2026
+
+Safari 27.2 on an 11-inch iPad Pro (3rd generation), iPadOS 27.2.1, passed all eleven browser cases, including compact-v2 RPC and binary streaming through a real module Worker. SafariDriver selected physical hardware. The tested minified bundle and Swift bridge match tag `v0.1.7` byte for byte.
+
+The signed WKWebView test app passed eleven JavaScript assertions plus its native checks. Two JS-initiated echoes and two native-initiated RPCs completed. Malformed, oversized, subframe and denied-origin messages produced zero protected-handler calls. A valid stats RPC succeeded after rejection, and RPC resumed after navigation back to the allowed origin.
+
+A second run exercised outgoing Swift reply validation. On each of two echo calls the host tried a Foundation date as the reply, observed the expected CrossBus error (code 2), then sent a JSON-compatible reply to the same pending request. JavaScript verified both corrected replies. The receipts, the test-only host patch and the archived 0.1.7 inputs are in [benchmarks/qualification/2026-11-19](https://github.com/GiuseppeScottoLavina/crossbus/tree/master/benchmarks/qualification/2026-11-19). `node tests/qualification/check-receipts.js` verifies them against those inputs and checks that the patched host is the original plus exactly the patch. This run measured functional behavior on iPad. The Android device results below cover 0.1.5.
+
+## 0.1.5 on browsers and native hosts — 14 November 2026
 
 This record covers the **0.1.5 runtime qualified before publication**, identified by the library SHA-256 in every receipt. It does not extend the published 0.1.4 archive. Receipts under [benchmarks/qualification/2026-11-14](https://github.com/GiuseppeScottoLavina/crossbus/tree/master/benchmarks/qualification/2026-11-14) retain exact runtime and input hashes. Functional elapsed times are diagnostics, not throughput or physical interaction measurements.
 
@@ -48,6 +58,6 @@ SwiftPM compilation, strict local CocoaPods lint for iOS/macOS, Android AAR/sour
 node tests/qualification/check-receipts.js
 ```
 
-This verifies the retained receipts against current library/fixture hashes and checks their success/counter invariants. It does not rerun hardware. Broad native performance, Android Chrome, other OS/WebView versions, background lifecycle and all application-specific host policies remain outside these focused checks. See [the 0.1.5 performance comparison](NEXT_RELEASE.md) for separately measured RPC throughput.
+This verifies the retained 0.1.5 and 0.1.7 receipts against their archived library and fixture bytes and checks their success/counter invariants. It does not rerun hardware. Broad native performance, Android Chrome, other OS/WebView versions, background lifecycle and all application-specific host policies remain outside these focused checks. See [the 0.1.5 performance comparison](NEXT_RELEASE.md) for separately measured RPC throughput.
 
-The development 0.1.6 runtime has separate evidence: the current eleven-case browser suite is recorded in the [compact-v2 study](RPC_WIRE_V2.md#functional-qualification), and the earlier ten-case checks in the [optimization snapshot](OPTIMIZATION_016.md). The physical-device receipts above do not qualify that newer runtime. `node tests/qualification/check-receipts.js` validates these historical receipts against the archived 0.1.5 inputs; it does not rerun devices.
+The development 0.1.6 runtime has separate evidence: the current eleven-case browser suite is recorded in the [compact-v2 study](RPC_WIRE_V2.md#functional-qualification), and the earlier ten-case checks in the [optimization snapshot](OPTIMIZATION_016.md). The physical-device receipts above do not qualify that newer runtime. `node tests/qualification/check-receipts.js` validates these historical receipts against the archived 0.1.5 and 0.1.7 inputs; it does not rerun devices.
