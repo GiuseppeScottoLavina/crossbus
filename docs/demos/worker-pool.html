@@ -25,14 +25,27 @@
 <body>
     <header class="topbar">
         <div class="wrap">
-            <a class="brand" href="./"><img src="../logo-400.png" alt="">CrossBus <small>demos</small></a>
-            <nav class="demo-nav" aria-label="Demos">
+            <a class="brand" href="../"><img src="../logo-400.png" alt="" width="24" height="24">CrossBus</a>
+            <nav class="site-nav" aria-label="Site">
+                <a href="../doc.html?file=GETTING_STARTED.md" data-nav="docs">Docs</a>
+                <a href="../doc.html?file=API.md" data-nav="api">API</a>
+                <a href="../demos/" data-nav="demos" aria-current="true">Demos</a>
+                <a href="../playground.html" data-nav="playground">Playground</a>
+            </nav>
+            <div class="nav-ext">
+                <a class="pill" href="https://github.com/GiuseppeScottoLavina/crossbus">GitHub</a>
+                <a class="pill" href="https://www.npmjs.com/package/crossbus">npm</a>
+            </div>
+        </div>
+        <nav class="subnav" aria-label="Demos">
+            <div class="wrap">
+                <span>Demos</span>
+                <a href="./">Overview</a>
                 <a href="worker-pool.html" aria-current="page">Worker pool</a>
                 <a href="tabs.html">Tabs in sync</a>
                 <a href="secure-channel.html">Secure channel</a>
-            </nav>
-            <a class="version" href="https://www.npmjs.com/package/crossbus">npm</a>
-        </div>
+            </div>
+        </nav>
     </header>
 
     <main class="wrap">
@@ -132,13 +145,41 @@
                 <article class="surface source" id="src-worker"><header><span>fractal-worker.js · Worker</span><a href="fractal-worker.js">full file</a></header><pre></pre></article>
             </div>
         </section>
+        <a class="next-demo surface" href="tabs.html">
+            <span class="panel-title">Next demo</span>
+            <strong>Tabs in sync →</strong>
+            <span>Draw in one tab and watch it appear in every other tab.</span>
+        </a>
     </main>
 
     <footer class="foot">
-        <div class="wrap">
-            <span>CrossBus is Apache-2.0. Source on <a href="https://github.com/GiuseppeScottoLavina/crossbus">GitHub</a>.</span>
-            <span>Next: <a href="tabs.html">Tabs in sync →</a></span>
+        <div class="wrap foot-grid">
+            <div class="foot-brand">
+                <a class="brand" href="../"><img src="../logo-400.png" alt="" width="24" height="24">CrossBus</a>
+                <p>Signals, RPC and bounded streams between windows, iframes, workers, tabs and native WebViews.</p>
+            </div>
+            <nav aria-label="Learn">
+                <h2>Learn</h2>
+                <a href="../doc.html?file=GETTING_STARTED.md">Getting started</a>
+                <a href="../doc.html?file=API.md">API reference</a>
+                <a href="../doc.html?file=EXAMPLES.md">Examples</a>
+                <a href="../doc.html?file=STREAMING.md">Streaming</a>
+            </nav>
+            <nav aria-label="Try">
+                <h2>Try</h2>
+                <a href="../demos/">Live demos</a>
+                <a href="../playground.html">Playground</a>
+                <a href="https://github.com/GiuseppeScottoLavina/crossbus/tree/master/examples">Example apps</a>
+            </nav>
+            <nav aria-label="Project">
+                <h2>Project</h2>
+                <a href="https://github.com/GiuseppeScottoLavina/crossbus">GitHub</a>
+                <a href="https://www.npmjs.com/package/crossbus">npm</a>
+                <a href="https://github.com/GiuseppeScottoLavina/crossbus/blob/master/SECURITY.md">Security</a>
+                <a href="https://github.com/GiuseppeScottoLavina/crossbus/blob/master/CHANGELOG.md">Changelog</a>
+            </nav>
         </div>
+        <div class="wrap foot-legal">CrossBus is released under the <a href="https://github.com/GiuseppeScottoLavina/crossbus/blob/master/LICENSE">Apache-2.0 license</a>.</div>
     </footer>
 
     <script type="module" src="worker-pool.js"></script>

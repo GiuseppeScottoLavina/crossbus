@@ -111,9 +111,10 @@ a { color: inherit; }
     letter-spacing: 0;
 }
 
-.demo-nav { display: flex; gap: 4px; margin-left: auto; overflow-x: auto; scrollbar-width: none; }
+/* Site navigation, identical on every page. */
+.site-nav { display: flex; gap: 2px; margin-left: auto; }
 
-.demo-nav a {
+.site-nav a, .subnav a {
     padding: 7px 12px;
     border-radius: 7px;
     color: var(--ink-2);
@@ -122,11 +123,13 @@ a { color: inherit; }
     white-space: nowrap;
 }
 
-.demo-nav a:hover { color: var(--ink); background: var(--sunken); }
+.site-nav a:hover, .subnav a:hover { color: var(--ink); background: var(--sunken); }
 
-.demo-nav a[aria-current='page'] { color: var(--ink); background: var(--panel); box-shadow: inset 0 0 0 1px var(--rule); }
+.site-nav a[aria-current], .subnav a[aria-current='page'] { color: var(--ink); background: var(--panel); box-shadow: inset 0 0 0 1px var(--rule); }
 
-.version {
+.nav-ext { display: flex; gap: 6px; }
+
+.pill {
     font: 500 12px/1 var(--mono);
     color: var(--ink-2);
     text-decoration: none;
@@ -135,6 +138,23 @@ a { color: inherit; }
     border-radius: 6px;
     white-space: nowrap;
 }
+
+.pill:hover { color: var(--ink); background: var(--sunken); }
+
+/* Second row on the demo pages: the demos themselves. */
+.subnav { border-top: 1px solid var(--rule); }
+
+.subnav .wrap { min-height: 42px; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+
+.subnav .wrap > span {
+    margin-right: 8px;
+    font: 600 11px/1 var(--mono);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.subnav a { padding: 5px 10px; font-size: 13px; }
 
 /* ── Page header ─────────────────────────────────────────── */
 
@@ -410,16 +430,59 @@ h1 {
 /* ── Footer ──────────────────────────────────────────────── */
 
 .foot {
-    margin-top: 48px;
-    padding: 24px 0 40px;
+    margin-top: 72px;
     border-top: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--panel) 70%, transparent);
     color: var(--ink-3);
     font-size: 14px;
 }
 
-.foot .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.foot-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr));
+    gap: 32px;
+    padding: 40px 0 28px;
+}
 
-.foot a { color: var(--ink-2); }
+.foot-brand .brand { color: var(--ink); }
+
+.foot-brand p { max-width: 34ch; margin: 12px 0 0; }
+
+.foot-grid h2 {
+    margin: 2px 0 12px;
+    font: 600 11px/1 var(--mono);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.foot-grid nav a { display: block; width: fit-content; padding: 4px 0; color: var(--ink-2); text-decoration: none; }
+
+.foot-grid nav a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+
+.foot-legal { padding: 16px 0 32px; border-top: 1px solid var(--rule); font-size: 13px; }
+
+.foot-legal a { color: var(--ink-2); }
+
+/* Link to the next demo, at the end of each demo page. */
+.next-demo {
+    display: grid;
+    gap: 4px;
+    width: min(100%, 440px);
+    margin: 48px 0 0 auto;
+    padding: 18px 20px;
+    color: inherit;
+    text-decoration: none;
+    transition: border-color .15s ease;
+}
+
+.next-demo:hover { border-color: var(--ink-3); }
+
+.next-demo .panel-title { margin: 0 0 4px; }
+
+.next-demo strong { font: 700 19px/1.2 var(--display); letter-spacing: -.015em; }
+
+.next-demo span:last-child { color: var(--ink-2); font-size: 14px; }
 
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
@@ -447,9 +510,18 @@ h1 {
     .page-head { padding-top: 36px; }
 }
 
+@media (max-width: 760px) {
+    /* Two or three rows would take too much of a phone screen to stay pinned. */
+    .topbar { position: static; }
+    .topbar > .wrap { flex-wrap: wrap; gap: 0 12px; min-height: 52px; }
+    .nav-ext { margin-left: auto; }
+    /* Links move to their own scrollable row under the brand. */
+    .site-nav { order: 3; width: calc(100% + 16px); margin: 0 -8px; padding-bottom: 8px; overflow-x: auto; scrollbar-width: none; }
+    .foot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+    .foot-brand { grid-column: 1 / -1; }
+}
+
 @media (max-width: 640px) {
-    .topbar .wrap { gap: 12px; }
-    .brand small, .version { display: none; }
     .lede { font-size: 16px; }
 }
 

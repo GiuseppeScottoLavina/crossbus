@@ -198,7 +198,8 @@ export async function mountSource(element, url, region) {
 
 const TOKENS = /(\/\/[^\n]*)|('(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`)|\b(const|let|await|async|import|from|export|function|return|new|if|else|for|of|throw|try|catch|finally|while|class|this|null|true|false|undefined)\b|\b(\d[\d_.]*)\b/g;
 
-function highlight(source) {
+/** Escapes and colours JavaScript for a <pre>; used by the demos, docs and home page. */
+export function highlight(source) {
     const escape = text => text.replace(/[&<>]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[ch]);
     let out = '', last = 0;
     for (const match of source.matchAll(TOKENS)) {

@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>CrossBus — postMessage RPC for iframes, Web Workers, tabs and WebViews</title>
     <meta name="description" content="Open-source JavaScript library for signals, RPC and bounded streams between windows, iframes, Web Workers, tabs and native WebViews. Explicit origin allowlists, no runtime dependencies, TypeScript types.">
     <link rel="icon" type="image/png" href="favicon.png">
@@ -33,693 +32,358 @@
     }
     </script>
 
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
-
-    <style>
-        :root {
-            --bg-primary: #0a0a0f;
-            --bg-secondary: #12121a;
-            --bg-tertiary: #1a1a25;
-            --accent-primary: #6366f1;
-            --accent-secondary: #8b5cf6;
-            --accent-glow: rgba(99, 102, 241, 0.3);
-            --text-primary: #ffffff;
-            --text-secondary: #a1a1aa;
-            --text-muted: #71717a;
-            --success: #22c55e;
-            --warning: #f59e0b;
-            --border: rgba(255, 255, 255, 0.08);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        /* Animated gradient background */
-        .hero-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 100vh;
-            background:
-                radial-gradient(ellipse at 20% 20%, var(--accent-glow) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.2) 0%, transparent 50%),
-                var(--bg-primary);
-            z-index: -1;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
-
-        /* Navigation */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            padding: 20px 0;
-            background: rgba(10, 10, 15, 0.8);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
-            z-index: 100;
-        }
-
-        nav .container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 32px;
-            list-style: none;
-        }
-
-        .nav-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .nav-links a:hover {
-            color: var(--text-primary);
-        }
-
-        .cta-button {
-            padding: 10px 24px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            text-decoration: none;
-        }
-
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 40px var(--accent-glow);
-        }
-
-        /* Hero Section */
-        .hero {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            padding-top: 80px;
-        }
-
-        .hero-content {
-            max-width: 800px;
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 100px;
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin-bottom: 24px;
-        }
-
-        .badge-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--success);
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
-        }
-
-        h1 {
-            font-size: clamp(2.5rem, 6vw, 4rem);
-            font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: 24px;
-        }
-
-        h1 .gradient {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary), #ec4899);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .hero-subtitle {
-            font-size: 1.25rem;
-            color: var(--text-secondary);
-            margin-bottom: 40px;
-            max-width: 600px;
-        }
-
-        .hero-ctas {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .secondary-button {
-            padding: 10px 24px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-
-        .secondary-button:hover {
-            background: var(--bg-tertiary);
-            border-color: var(--accent-primary);
-        }
-
-        /* Stats Strip */
-        .stats {
-            display: flex;
-            gap: 48px;
-            margin-top: 60px;
-            padding-top: 40px;
-            border-top: 1px solid var(--border);
-        }
-
-        .stat {
-            text-align: left;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--accent-primary);
-        }
-
-        .stat-label {
-            font-size: 0.875rem;
-            color: var(--text-muted);
-        }
-
-        /* Features Grid */
-        .features {
-            padding: 120px 0;
-        }
-
-        .section-title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            text-align: center;
-            margin-bottom: 16px;
-        }
-
-        .section-subtitle {
-            text-align: center;
-            color: var(--text-secondary);
-            max-width: 600px;
-            margin: 0 auto 60px;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 24px;
-        }
-
-        .feature-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 32px;
-            transition: all 0.3s;
-        }
-
-        .feature-card:hover {
-            border-color: var(--accent-primary);
-            transform: translateY(-4px);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-        }
-
-        .feature-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-        }
-
-        .feature-card h3 {
-            font-size: 1.25rem;
-            margin-bottom: 12px;
-        }
-
-        .feature-card p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-        }
-
-        /* Code Example */
-        .code-section {
-            padding: 80px 0;
-            background: var(--bg-secondary);
-        }
-
-        .code-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-        }
-
-        @media (max-width: 900px) {
-            .code-container {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .code-block {
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .code-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 16px;
-            background: var(--bg-tertiary);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .code-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-
-        .code-dot.red {
-            background: #ff5f56;
-        }
-
-        .code-dot.yellow {
-            background: #ffbd2e;
-        }
-
-        .code-dot.green {
-            background: #27ca3f;
-        }
-
-        .code-title {
-            margin-left: 16px;
-            font-size: 0.875rem;
-            color: var(--text-muted);
-        }
-
-        pre {
-            padding: 24px;
-            overflow-x: auto;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.875rem;
-            line-height: 1.7;
-        }
-
-        .keyword {
-            color: #c792ea;
-        }
-
-        .string {
-            color: #c3e88d;
-        }
-
-        .function {
-            color: #82aaff;
-        }
-
-        .comment {
-            color: #546e7a;
-        }
-
-        .variable {
-            color: #f78c6c;
-        }
-
-        /* Comparison Table */
-        .comparison {
-            padding: 120px 0;
-        }
-
-        .comparison-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: var(--bg-secondary);
-            border-radius: 16px;
-            overflow: hidden;
-        }
-
-        .comparison-table th,
-        .comparison-table td {
-            padding: 20px 24px;
-            text-align: center;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .comparison-table th {
-            background: var(--bg-tertiary);
-            font-weight: 600;
-        }
-
-        .comparison-table th:first-child,
-        .comparison-table td:first-child {
-            text-align: left;
-        }
-
-        .check {
-            color: var(--success);
-            font-size: 1.25rem;
-        }
-
-        .cross {
-            color: var(--text-muted);
-            font-size: 1.25rem;
-        }
-
-        /* CTA Section */
-        .final-cta {
-            padding: 120px 0;
-            text-align: center;
-            background: linear-gradient(180deg, var(--bg-primary), var(--bg-secondary));
-        }
-
-        .final-cta h2 {
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 24px;
-        }
-
-        .install-command {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 16px 24px;
-            margin: 32px 0;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .install-command code {
-            font-size: 1.125rem;
-        }
-
-        .copy-btn {
-            background: var(--bg-tertiary);
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .copy-btn:hover {
-            background: var(--accent-primary);
-            color: white;
-        }
-
-        /* Footer */
-        footer {
-            padding: 40px 0;
-            border-top: 1px solid var(--border);
-            text-align: center;
-            color: var(--text-muted);
-        }
-
-        footer a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            margin: 0 16px;
-        }
-
-        footer a:hover {
-            color: var(--accent-primary);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-
-            .stats {
-                flex-wrap: wrap;
-                gap: 24px;
-            }
-
-            h1 {
-                font-size: 2rem;
-            }
-
-            .features-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Schibsted+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="demos/demo.css">
+    <link rel="stylesheet" href="site.css">
 </head>
-
 <body>
-    <div class="hero-bg"></div>
-
-    <nav>
-        <div class="container">
-            <div class="logo"><img src="logo-400.png" alt="CB"
-                    style="width: 28px; height: 28px; border-radius: 50%; vertical-align: middle; margin-right: 8px;">CrossBus
+    <header class="topbar">
+        <div class="wrap">
+            <a class="brand" href="./" aria-current="page"><img src="logo-400.png" alt="" width="24" height="24">CrossBus</a>
+            <nav class="site-nav" aria-label="Site">
+                <a href="doc.html?file=GETTING_STARTED.md" data-nav="docs">Docs</a>
+                <a href="doc.html?file=API.md" data-nav="api">API</a>
+                <a href="demos/" data-nav="demos">Demos</a>
+                <a href="playground.html" data-nav="playground">Playground</a>
+            </nav>
+            <div class="nav-ext">
+                <a class="pill" href="https://github.com/GiuseppeScottoLavina/crossbus">GitHub</a>
+                <a class="pill" href="https://www.npmjs.com/package/crossbus">npm</a>
             </div>
-            <ul class="nav-links">
-                <li><a href="#features">Features</a></li>
-                <li><a href="#code">Examples</a></li>
-                <li><a href="demos/">Live demos</a></li>
-                <li><a href="#comparison">Compare</a></li>
-                <li><a href="https://github.com/giuseppescottolavina/crossbus">GitHub</a></li>
-            </ul>
-            <a href="#install" class="cta-button">Get Started →</a>
         </div>
-    </nav>
+    </header>
 
-    <section class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <div class="badge">
-                    <span class="badge-dot"></span>
-                    v0.1.7 — Cross-context messaging
-                </div>
-
-                <h1>
-                    Stop wrestling with<br>
-                    <span class="gradient">postMessage.</span>
-                </h1>
-
-                <p class="hero-subtitle">
-                    Simple RPC for iframes, workers, tabs, and AI-powered apps.
-                    No runtime dependencies. Configurable origin validation.
-                </p>
-
-                <div class="hero-ctas">
-                    <a href="#install" class="cta-button">npm install crossbus →</a>
-                    <a href="demos/" class="secondary-button">See it live</a>
-                    <a href="https://github.com/giuseppescottolavina/crossbus" class="secondary-button">View on
-                        GitHub</a>
-                </div>
-
-                <div class="stats">
-                    <div class="stat">
-                        <div class="stat-value">Measured</div>
-                        <div class="stat-label">see benchmarks</div>
+    <main>
+        <div class="wrap">
+            <section class="home-hero" aria-labelledby="hero-title">
+                <div>
+                    <ul class="eyebrow" aria-label="At a glance">
+                        <li>Apache-2.0</li><li>0 runtime dependencies</li><li>TypeScript types</li>
+                    </ul>
+                    <h1 id="hero-title">Stop wrestling with postMessage</h1>
+                    <p class="lede">CrossBus gives windows, iframes, Web Workers, tabs and native WebViews one API for signals, RPC and bounded streams. You name the origins you trust, each peer is bound to its channel, and every request runs within a budget.</p>
+                    <div class="install">
+                        <code><span>$ </span>npm install crossbus</code>
+                        <button class="copy" type="button" data-copy="npm install crossbus" aria-label="Copy the install command">Copy</button>
                     </div>
-                    <div class="stat">
-                        <div class="stat-value">0</div>
-                        <div class="stat-label">dependencies</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">Tested</div>
-                        <div class="stat-label">see local audit</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">Modular</div>
-                        <div class="stat-label">see build sizes</div>
+                    <div class="btn-row">
+                        <a class="btn" href="doc.html?file=GETTING_STARTED.md">Get started</a>
+                        <a class="btn ghost" href="demos/">Try the live demos</a>
                     </div>
                 </div>
+
+                <figure class="surface hero-code" aria-label="The code running on this page">
+                    <div class="code-head">
+                        <div class="code-tabs" role="tablist" aria-label="Source files">
+                            <button type="button" role="tab" id="tab-page" aria-selected="true" aria-controls="src-page">home.js</button>
+                            <button type="button" role="tab" id="tab-worker" aria-selected="false" aria-controls="src-worker" tabindex="-1">home-worker.js</button>
+                        </div>
+                        <span class="running"><i></i>running on this page</span>
+                    </div>
+                    <div class="code-stack">
+                        <div id="src-page" role="tabpanel" aria-labelledby="tab-page"><pre>Loading home.js…</pre></div>
+                        <div id="src-worker" role="tabpanel" aria-labelledby="tab-worker" hidden><pre>Loading home-worker.js…</pre></div>
+                    </div>
+                </figure>
+            </section>
+
+            <section class="surface trace home-trace" id="trace" aria-label="Live bus trace">
+                <div class="trace-head">
+                    <h2 class="panel-title">Live · every envelope between this page and its Worker</h2>
+                    <ul class="legend">
+                        <li class="k-req"><i></i>request <b>0</b></li>
+                        <li class="k-res"><i></i>response <b>0</b></li>
+                        <li class="k-sig"><i></i>signal <b>0</b></li>
+                        <li class="k-bad"><i></i>error <b>0</b></li>
+                    </ul>
+                </div>
+                <canvas aria-hidden="true"></canvas>
+                <div class="trace-foot" id="hero-status" role="status">Starting a module Worker…</div>
+            </section>
+
+            <section class="section" aria-labelledby="kinds-title">
+                <header class="section-head">
+                    <h2 id="kinds-title">Three ways to talk across a boundary</h2>
+                    <p>Every message travels over a channel bound to one known peer. Pick the shape that fits the conversation.</p>
+                </header>
+                <div class="grid-3">
+                    <article class="surface kind kind-req">
+                        <div class="kind-body">
+                            <h3><i></i>request()</h3>
+                            <p>Call a function in another context and await its result. Each call has a deadline, and the answer must come from the peer you asked.</p>
+                        </div>
+<pre class="snippet">// worker.js
+bus.handle('fib', ({ n }) => fib(n));
+
+// page.js
+const value = await bus.request(
+  'worker', 'fib', { n: 30 });</pre>
+                    </article>
+                    <article class="surface kind kind-sig">
+                        <div class="kind-body">
+                            <h3><i></i>signal()</h3>
+                            <p>Notify every connected peer without waiting for an answer. Listeners get the payload and the peer it came from.</p>
+                        </div>
+<pre class="snippet">// every tab
+bus.on('cart:updated', event => {
+  render(event.data.payload, event.data.source);
+});
+
+await bus.signal('cart:updated', { items: 3 });</pre>
+                    </article>
+                    <article class="surface kind kind-stream">
+                        <div class="kind-body">
+                            <h3><i></i>StreamManager</h3>
+                            <p>Move large or binary data in chunks, with bounded queues, optional consumption acknowledgements, deadlines and cancellation.</p>
+                        </div>
+<pre class="snippet">receiver.onStream('upload', s => s.collect());
+
+const writer = sender.createStream(
+  'upload', 'worker', { flowControl: true });
+await writer.write(bytes);
+await writer.end();</pre>
+                    </article>
+                </div>
+            </section>
+
+            <section class="section" aria-labelledby="transports-title">
+                <header class="section-head">
+                    <h2 id="transports-title">Seven transports, one API</h2>
+                    <p>Choose the channel that connects your contexts. <code>request()</code>, <code>signal()</code> and <code>on()</code> work the same over each one.</p>
+                </header>
+                <div class="surface matrix-wrap">
+                    <table class="matrix">
+                        <thead><tr><th scope="col">Transport</th><th scope="col">Connects</th><th scope="col">Origin the bus checks</th><th scope="col">Your application provides</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>PostMessageTransport</code></td><td data-label="Connects">Windows, iframes, workers</td><td data-label="Origin">The real event origin, plus a source-window check</td><td data-label="You provide">The target window or worker and exact origins</td></tr>
+                            <tr><td><code>MessageChannelTransport</code></td><td data-label="Connects">Two <code>MessagePort</code>s</td><td data-label="Origin"><code>channel</code></td><td data-label="You provide">An authenticated way to hand over the remote port</td></tr>
+                            <tr><td><code>BroadcastChannelTransport</code></td><td data-label="Connects">Same-origin tabs and frames</td><td data-label="Origin"><code>broadcast</code></td><td data-label="You provide">A channel name; all tabs share one bound peer</td></tr>
+                            <tr><td><code>SharedWorkerTransport</code></td><td data-label="Connects">Tabs and a shared worker</td><td data-label="Origin"><code>sharedworker</code></td><td data-label="You provide">The worker script and its routing</td></tr>
+                            <tr><td><code>ServiceWorkerTransport</code></td><td data-label="Connects">Pages and a service worker</td><td data-label="Origin"><code>serviceworker</code></td><td data-label="You provide">A registered worker and its routing</td></tr>
+                            <tr><td><code>WebSocketTransport</code></td><td data-label="Connects">Browser and server</td><td data-label="Origin">The origin you pass to <code>addTransport()</code></td><td data-label="You provide">A compatible JSON backend</td></tr>
+                            <tr><td><code>NativeBridgeTransport</code></td><td data-label="Connects">JavaScript and a native host</td><td data-label="Origin">The origin you pass to <code>addTransport()</code></td><td data-label="You provide">The <a class="prose-link" href="https://github.com/GiuseppeScottoLavina/crossbus/blob/master/native/README.md">Swift (WKWebView) or Java (AndroidX) adapter</a></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="section" aria-labelledby="security-title">
+                <header class="section-head">
+                    <h2 id="security-title">Trust boundaries you configure, not assume</h2>
+                    <p><code>CrossBus.createSecure()</code> starts strict. What the library enforces, and what stays with your application, is written down.</p>
+                </header>
+                <div class="grid-2">
+                    <div class="surface ledger-card">
+                        <h3 class="panel-title">CrossBus enforces</h3>
+                        <ul class="checks">
+                            <li><div><strong>Exact origins</strong>Missing or wildcard allowlists are rejected. Window transports also verify the source window.</div></li>
+                            <li><div><strong>Channel-bound identity</strong>A response must come from the peer that was asked. <code>allowedPeers</code> authorizes callers by the channel they arrive on.</div></li>
+                            <li><div><strong>Fail-closed hooks</strong>A hook or validator that throws stops the message, so a rejected request never runs its handler.</div></li>
+                            <li><div><strong>Budgets by default</strong>1 MiB payloads, 100 pending requests and 30-second deadlines, plus per-handler rate limits. <code>destroy()</code> closes every transport.</div></li>
+                        </ul>
+                    </div>
+                    <div class="surface ledger-card">
+                        <h3 class="panel-title">Your application remains responsible for</h3>
+                        <ul class="checks yours">
+                            <li><div><strong>Authentication</strong>Users and the initial channel setup, such as how a <code>MessagePort</code> is handed over.</div></li>
+                            <li><div><strong>Keys</strong>Generating and distributing keys for the encryption plugin.</div></li>
+                            <li><div><strong>Forwarding</strong>Authorizing any routing between peers. <code>isHub</code> does not forward on its own.</div></li>
+                            <li><div><strong>Telling tabs apart</strong>On BroadcastChannel all tabs share one bound peer.</div></li>
+                        </ul>
+                    </div>
+                </div>
+                <p class="fine">These are project-maintained checks, not an independent security certification. Read the <a href="https://github.com/GiuseppeScottoLavina/crossbus/blob/master/SECURITY.md">security guide</a> and the <a href="doc.html?file=AUDIT.md">audit record</a>.</p>
+            </section>
+
+            <section class="section" aria-labelledby="demos-title">
+                <header class="section-head">
+                    <h2 id="demos-title">See it run in your browser</h2>
+                    <p>Each demo runs the published bundle across real boundaries and draws the envelopes it sends.</p>
+                </header>
+                <div class="grid-3">
+                    <a class="surface demo-card" href="demos/worker-pool.html">
+                        <figure class="demo-figure" aria-hidden="true">
+                            <svg viewBox="0 0 320 180">
+                                <text x="16" y="94" class="lbl">main</text>
+                                <line x1="64" y1="90" x2="300" y2="90" class="lane"/>
+                                <g class="fan">
+                                    <path d="M110 90 L230 30" style="stroke:var(--req)"/><path d="M110 90 L230 70" style="stroke:var(--req)"/>
+                                    <path d="M110 90 L230 110" style="stroke:var(--req)"/><path d="M110 90 L230 150" style="stroke:var(--req)"/>
+                                    <path d="M244 36 L124 96" style="stroke:var(--res)"/><path d="M244 116 L124 98" style="stroke:var(--res)"/>
+                                </g>
+                                <g class="nodes">
+                                    <rect x="230" y="20" width="70" height="20" rx="4"/><text x="265" y="34">w1</text>
+                                    <rect x="230" y="60" width="70" height="20" rx="4"/><text x="265" y="74">w2</text>
+                                    <rect x="230" y="100" width="70" height="20" rx="4"/><text x="265" y="114">w3</text>
+                                    <rect x="230" y="140" width="70" height="20" rx="4"/><text x="265" y="154">w4</text>
+                                </g>
+                            </svg>
+                        </figure>
+                        <p class="demo-kind">Web Workers · request/response</p>
+                        <h3>Render a fractal across Web Workers</h3>
+                        <p>Every tile is a request to a Worker that answers with its pixels.</p>
+                        <span class="go">Open the worker pool →</span>
+                    </a>
+                    <a class="surface demo-card" href="demos/tabs.html">
+                        <figure class="demo-figure" aria-hidden="true">
+                            <svg viewBox="0 0 320 180">
+                                <g class="nodes">
+                                    <rect x="24" y="30" width="84" height="54" rx="6"/><text x="66" y="61">tab A</text>
+                                    <rect x="212" y="30" width="84" height="54" rx="6"/><text x="254" y="61">tab B</text>
+                                    <rect x="118" y="112" width="84" height="54" rx="6"/><text x="160" y="143">tab C</text>
+                                </g>
+                                <g class="fan">
+                                    <path d="M108 52 L212 62" style="stroke:var(--sig)"/>
+                                    <path d="M90 84 L130 112" style="stroke:var(--sig)"/>
+                                    <path d="M230 84 L190 112" style="stroke:var(--sig)"/>
+                                </g>
+                                <text x="160" y="22" class="lbl" text-anchor="middle">crossbus-demo:tabs</text>
+                            </svg>
+                        </figure>
+                        <p class="demo-kind">BroadcastChannel · signals</p>
+                        <h3>Draw in one tab, see it in every tab</h3>
+                        <p>Strokes, cursors and presence travel between tabs as signals.</p>
+                        <span class="go">Open tabs in sync →</span>
+                    </a>
+                    <a class="surface demo-card" href="demos/secure-channel.html">
+                        <figure class="demo-figure" aria-hidden="true">
+                            <svg viewBox="0 0 320 180">
+                                <g class="nodes">
+                                    <rect x="16" y="66" width="80" height="48" rx="6"/><text x="56" y="94">client</text>
+                                    <rect x="224" y="66" width="80" height="48" rx="6"/><text x="264" y="94">server</text>
+                                </g>
+                                <line x1="96" y1="90" x2="224" y2="90" class="lane"/>
+                                <g class="fan">
+                                    <path d="M100 80 L220 80" style="stroke:var(--req)"/><path d="M220 100 L100 100" style="stroke:var(--res)"/>
+                                    <path d="M160 30 L214 82" style="stroke:var(--bad)" class="dashed"/>
+                                </g>
+                                <text x="160" y="24" class="lbl" text-anchor="middle">attacker</text>
+                                <path d="M208 76 l12 12 m0 -12 l-12 12" style="stroke:var(--bad)" class="cross"/>
+                            </svg>
+                        </figure>
+                        <p class="demo-kind">withEncryption · hooks</p>
+                        <h3>Try to break an encrypted channel</h3>
+                        <p>Replay, forge or tamper with a payment and watch each attempt refused.</p>
+                        <span class="go">Open the secure channel →</span>
+                    </a>
+                </div>
+            </section>
+
+            <section class="section" aria-labelledby="modules-title">
+                <header class="section-head">
+                    <h2 id="modules-title">Load only what you use</h2>
+                    <p>The package has no runtime dependencies. Optional modules are separate subpaths, so a bundler leaves out what you never import.</p>
+                </header>
+                <div class="modules">
+                    <div class="module"><code>crossbus</code><span class="tag">ESM + CJS</span><p>The bus, emitters, every transport, streams, presence and ordering utilities.</p></div>
+                    <div class="module"><code>crossbus/core</code><p>The <code>CrossBus</code> class with its event API, without transports.</p></div>
+                    <div class="module"><code>crossbus/nano</code><p>A minimal local event emitter.</p></div>
+                    <div class="module"><code>crossbus/plugins/encryption</code><p>AES-256-GCM through Web Crypto. Key distribution is up to you.</p></div>
+                    <div class="module"><code>crossbus/plugins/retry</code><p>Retries with <code>withRetry</code> and <code>createRetryWrapper</code>.</p></div>
+                    <div class="module"><code>crossbus/plugins/circuit-breaker</code><p>A circuit breaker, per peer if you need it.</p></div>
+                    <div class="module"><code>crossbus/plugins/rate-limiter</code><p><code>RateLimiter</code> and <code>withRateLimiter</code>.</p></div>
+                    <div class="module"><code>crossbus/plugins/compression</code><p>Payload compression with a cap on decompressed size.</p></div>
+                    <div class="module"><code>crossbus/plugins/batch</code><p>Batching for senders; receivers turn on unbatching.</p></div>
+                    <div class="module"><code>crossbus/plugins/schema-validation</code><p>A documented subset of JSON Schema, not a full validator.</p></div>
+                    <div class="module"><code>crossbus/enterprise</code><p>Tracing, metrics, backpressure and message versioning.</p></div>
+                    <div class="module"><code>crossbus/testing</code><p><code>MockTransport</code> and connected mocks for tests.</p></div>
+                </div>
+            </section>
+
+            <section class="section" aria-labelledby="evidence-title">
+                <header class="section-head">
+                    <h2 id="evidence-title">Measured, with the method attached</h2>
+                    <p>CrossBus publishes measurements instead of speed claims. Each study keeps exact builds, raw samples and unchanged competitor controls, and CI re-verifies the retained data.</p>
+                </header>
+                <div class="grid-2">
+                    <div class="surface evidence">
+                        <h3 class="panel-title">Evidence</h3>
+                        <ul class="link-list">
+                            <li><a href="doc.html?file=BENCHMARKS.md">Benchmarks <span>Method, raw samples, reruns</span></a></li>
+                            <li><a href="doc.html?file=PERFORMANCE.md">Performance engineering <span>Where the time goes</span></a></li>
+                            <li><a href="doc.html?file=AUDIT.md">Verification and limits <span>Audit findings and their tests</span></a></li>
+                            <li><a href="doc.html?file=QUALIFICATION.md">Browser and device qualification <span>Real browsers and devices</span></a></li>
+                            <li><a href="doc.html?file=COMPETITOR_ANALYSIS.md">Competitor study <span>Design differences at exact versions</span></a></li>
+                        </ul>
+                    </div>
+                    <div class="surface">
+                        <h3 class="panel-title" style="margin: 22px 22px 6px">Compatibility</h3>
+                        <dl class="compat">
+                            <div><dt>Node.js</dt><dd>18 and later. CI installs the packed package on Node 18, 20, 22 and 24.</dd></div>
+                            <div><dt>Bun</dt><dd>Used for development and the test suites.</dd></div>
+                            <div><dt>Browsers</dt><dd>Chrome is tested in CI. The 0.1.5 qualification passed on Chrome, Firefox, Safari and iPad Safari.</dd></div>
+                            <div><dt>TypeScript</dt><dd>Bundled declarations, checked with strict consumers on TypeScript 6.0 and 5.9.</dd></div>
+                            <div><dt>iOS, macOS</dt><dd>Swift adapter for WKWebView, iOS 15+ and macOS 12+.</dd></div>
+                            <div><dt>Android</dt><dd>Java adapter for AndroidX WebView, API 23+.</dd></div>
+                        </dl>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section" aria-labelledby="choose-title">
+                <header class="section-head">
+                    <h2 id="choose-title">When something simpler fits</h2>
+                    <p>CrossBus suits applications that connect several kinds of contexts and want the same origin checks, authorization, budgets and teardown everywhere. For narrower jobs these are good choices:</p>
+                </header>
+                <div class="grid-3">
+                    <div class="surface alt"><h3><a href="https://github.com/GoogleChromeLabs/comlink">Comlink</a></h3><p>Proxy-style remote objects, typically for a single worker.</p></div>
+                    <div class="surface alt"><h3><a href="https://github.com/antfu-collective/birpc">birpc</a></h3><p>Minimal function RPC over a transport you supply.</p></div>
+                    <div class="surface alt"><h3><a href="https://github.com/Aaronius/penpal">Penpal</a></h3><p>Parent and iframe connections with a built-in handshake.</p></div>
+                </div>
+                <p class="fine">The <a href="doc.html?file=COMPETITOR_ANALYSIS.md">source-reviewed comparison</a> records design differences and measured trade-offs at exact versions.</p>
+            </section>
+
+            <section class="surface closing" aria-labelledby="start-title">
+                <div>
+                    <h2 id="start-title">Start with one bus and one channel</h2>
+                    <p>The getting started guide connects two peers over a MessageChannel, then across real contexts.</p>
+                </div>
+                <div>
+                    <div class="install">
+                        <code><span>$ </span>npm install crossbus</code>
+                        <button class="copy" type="button" data-copy="npm install crossbus" aria-label="Copy the install command">Copy</button>
+                    </div>
+                    <div class="btn-row">
+                        <a class="btn" href="doc.html?file=GETTING_STARTED.md">Get started</a>
+                        <a class="btn ghost" href="doc.html?file=API.md">API reference</a>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="foot">
+        <div class="wrap foot-grid">
+            <div class="foot-brand">
+                <a class="brand" href="./"><img src="logo-400.png" alt="" width="24" height="24">CrossBus</a>
+                <p>Signals, RPC and bounded streams between windows, iframes, workers, tabs and native WebViews.</p>
             </div>
+            <nav aria-label="Learn">
+                <h2>Learn</h2>
+                <a href="doc.html?file=GETTING_STARTED.md">Getting started</a>
+                <a href="doc.html?file=API.md">API reference</a>
+                <a href="doc.html?file=EXAMPLES.md">Examples</a>
+                <a href="doc.html?file=STREAMING.md">Streaming</a>
+            </nav>
+            <nav aria-label="Try">
+                <h2>Try</h2>
+                <a href="demos/">Live demos</a>
+                <a href="playground.html">Playground</a>
+                <a href="https://github.com/GiuseppeScottoLavina/crossbus/tree/master/examples">Example apps</a>
+            </nav>
+            <nav aria-label="Project">
+                <h2>Project</h2>
+                <a href="https://github.com/GiuseppeScottoLavina/crossbus">GitHub</a>
+                <a href="https://www.npmjs.com/package/crossbus">npm</a>
+                <a href="https://github.com/GiuseppeScottoLavina/crossbus/blob/master/SECURITY.md">Security</a>
+                <a href="https://github.com/GiuseppeScottoLavina/crossbus/blob/master/CHANGELOG.md">Changelog</a>
+            </nav>
         </div>
-    </section>
-
-    <section class="features" id="features">
-        <div class="container">
-            <h2 class="section-title">Messaging building blocks.</h2>
-            <p class="section-subtitle">
-                7 transport types, configurable validation, integration guides and optional plugins.
-            </p>
-
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">🔒</div>
-                    <h3>Explicit security configuration</h3>
-                    <p>createSecure() requires explicit origins. Handler permissions and payload limits are configurable; encryption is an optional plugin.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">⚡</div>
-                    <h3>Fast</h3>
-                    <p>Synchronous local events and cross-context RPC, with reproducible benchmarks. Separate local callback throughput from transport and serialization costs.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🤖</div>
-                    <h3>Agent-Ready Design</h3>
-                    <p>llms.txt and integration guides describe application patterns. Schema validation supports a documented subset of JSON Schema.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📡</div>
-                    <h3>7 Transport Types</h3>
-                    <p>PostMessage, BroadcastChannel, SharedWorker, ServiceWorker, WebSocket, NativeBridge,
-                        MessageChannel.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🔌</div>
-                    <h3>Plugin Ecosystem</h3>
-                    <p>Retry, Circuit Breaker, Rate Limiter, Compression, Batching, Encryption. All tree-shakeable.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🏢</div>
-                    <h3>Observability utilities</h3>
-                    <p>Distributed tracing, Prometheus metrics, backpressure control, message versioning with migration.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="code-section" id="code">
-        <div class="container">
-            <h2 class="section-title">Run the complete iframe example</h2>
-            <p class="section-subtitle">Node.js 18+ and Git. This command starts both local origins and serves the HTML, modules and import maps.</p>
-            <div class="code-block"><pre><code>git clone https://github.com/GiuseppeScottoLavina/crossbus.git
-cd crossbus
-node examples/quickstart/server.js</code></pre></div>
-            <p>Open <code>http://127.0.0.1:8780/</code>. The widget at port 8781 displays <code>{"id":123,"status":"ready"}</code> after a real RPC. Both ports must be free. Stop with Ctrl+C.</p>
-            <p><a href="https://github.com/GiuseppeScottoLavina/crossbus/tree/master/examples/quickstart">Complete example files and instructions</a> · <a href="demos/">Live demos</a> · <a href="playground.html">Interactive connections</a></p>
-        </div>
-    </section>
-
-    <section class="comparison" id="comparison">
-        <div class="container">
-            <h2 class="section-title">What CrossBus provides</h2>
-            <p class="section-subtitle">
-                Signals, RPC, optional plugins and native WebView adapters.
-            </p>
-
-            <p>Review the <a href="doc.html?file=ARCHITECTURE.md">architecture</a>,
-                <a href="doc.html?file=BENCHMARKS.md">benchmark methodology and results</a>,
-                and <a href="https://github.com/giuseppescottolavina/crossbus/tree/master/native">native adapter sources</a>.
-                No independent security rating or universal performance ranking is claimed.</p>
-            <p>Version 0.1.7 fixes the issues found by a <a href="doc.html?file=AUDIT.md">local security audit</a> and speeds up sequential RPC.
-                Version 0.1.6 added opt-in <a href="doc.html?file=RPC_WIRE_V2.md">compact-v2 MessageChannel RPC</a>
-                and a faster Node base64 stream fallback; 0.1.5 added <a href="doc.html?file=STREAMING.md">bounded streaming</a>
-                and local native SDK packaging, with <a href="doc.html?file=QUALIFICATION.md">physical iPad/Pixel and browser qualification</a>.
-                See the <a href="doc.html?file=RELEASING.md">release record</a> for registry publication status.</p>
-        </div>
-    </section>
-
-    <section class="final-cta" id="install">
-        <div class="container">
-            <h2>Ready to build?</h2>
-            <p class="section-subtitle" style="margin-bottom: 0;">
-                Install CrossBus and start building secure cross-context applications.
-            </p>
-
-            <div class="install-command">
-                <code>npm install crossbus</code>
-                <button class="copy-btn" onclick="navigator.clipboard.writeText('npm install crossbus')">Copy</button>
-            </div>
-
-            <div style="display: flex; gap: 16px; justify-content: center;">
-                <a href="https://github.com/giuseppescottolavina/crossbus" class="cta-button">⭐ Star on GitHub</a>
-                <a href="./doc.html?file=API.md" class="secondary-button">Read the Docs →</a>
-            </div>
-        </div>
-    </section>
-
-    <footer>
-        <div class="container">
-            <p>
-                <a href="https://github.com/giuseppescottolavina/crossbus">GitHub</a>
-                <a href="./doc.html?file=API.md">Documentation</a>
-                <a href="https://www.npmjs.com/package/crossbus">NPM</a>
-                <a href="https://github.com/GiuseppeScottoLavina/crossbus/blob/master/LICENSE">Apache 2.0 License</a>
-            </p>
-            <p style="margin-top: 16px;">Built with ❤️ for developers who care about security and performance.</p>
-        </div>
+        <div class="wrap foot-legal">CrossBus is released under the <a href="https://github.com/GiuseppeScottoLavina/crossbus/blob/master/LICENSE">Apache-2.0 license</a>.</div>
     </footer>
 
-    <script>
-        // Smooth scroll for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
-    </script>
+    <script type="module" src="home.js"></script>
 </body>
-
 </html>

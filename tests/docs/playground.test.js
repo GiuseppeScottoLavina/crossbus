@@ -11,7 +11,7 @@ describe('actual browser playground',()=>{
    try{
     const path=new URL(`.${new URL(req.url,'http://local').pathname}`,root);
     if(!path.href.startsWith(root.href)){res.writeHead(403);res.end();return;}
-    const type=path.pathname.endsWith('.js')?'text/javascript':path.pathname.endsWith('.png')?'image/png':'text/html';
+    const type=path.pathname.endsWith('.js')?'text/javascript':path.pathname.endsWith('.png')?'image/png':path.pathname.endsWith('.css')?'text/css':'text/html';
     res.setHeader('Content-Type',type);res.end(await readFile(path));
    }catch{res.writeHead(404);res.end();}
   });
@@ -20,7 +20,7 @@ describe('actual browser playground',()=>{
    try{
     const source=new URL(`docs${new URL(req.url,'http://local').pathname}`,root);
     if(!source.href.startsWith(new URL('docs/',root).href)){res.writeHead(403);res.end();return;}
-    res.setHeader('Content-Type',source.pathname.endsWith('.js')?'text/javascript':'text/html');
+    res.setHeader('Content-Type',source.pathname.endsWith('.js')?'text/javascript':source.pathname.endsWith('.css')?'text/css':'text/html');
     res.end(await readFile(source));
    }catch{res.writeHead(404);res.end();}
   });
