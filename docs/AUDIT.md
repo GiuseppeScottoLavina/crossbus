@@ -1,5 +1,9 @@
 # Local audit
 
+## 0.1.8 publication record
+
+On 19 November 2026, npm **0.1.8** and its `latest` tag were verified against the exact archive from [CI 44520872350](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/44520872350), source commit `7bc55be0395e5bbba6bdd489d3bbc1015391033e`. The downloaded registry tarball matches that archive byte for byte (SHA-256 `daf897aa4f97c6ef43ffda424c77e3de652a9c2809a0b8d2e4dd0d1c43403a95`), and a local `npm pack` of the same commit reproduces it. Isolated registry consumers passed on Node 18.20.8, 20.20.0, 22.19.0 and 24.15.0, including encrypted RPC with `crossbus@0.1.7` in both directions; on Node 18 the encryption check needs `--experimental-global-webcrypto`, as in earlier versions. The jsDelivr copy of `dist/crossbus.min.js` matches the archive. The [GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.8) preserves the archive, checksum and release manifest.
+
 ## Review after 0.1.7 — 19 November 2026
 
 A follow-up local review looked at three areas: encryption replay handling, teardown on `destroy()` and peer loss, and stream flow control. Each finding was reproduced against the source and has a regression test. The fixes are in 0.1.8.
