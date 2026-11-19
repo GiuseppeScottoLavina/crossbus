@@ -55,7 +55,7 @@ CrossBus needs Node.js 18+ or a modern browser. To use it in the browser without
 
 ```html
 <script type="importmap">
-  { "imports": { "crossbus": "https://cdn.jsdelivr.net/npm/crossbus@0.1.7/dist/crossbus.min.js" } }
+  { "imports": { "crossbus": "https://cdn.jsdelivr.net/npm/crossbus@0.1.8/dist/crossbus.min.js" } }
 </script>
 <script type="module">
   import { CrossBus } from 'crossbus';
@@ -242,8 +242,8 @@ Worker transports do not add persistence or an offline queue. `MessageChannelTra
 
 | Import | Contents | Minified + gzip (level 9) |
 |---|---|---:|
-| `crossbus` | Bus, emitters, all transports, streams, presence, ordering utilities | 23,329 B |
-| `crossbus/core` | The `CrossBus` class alone (with its event API); no transports | 12,735 B |
+| `crossbus` | Bus, emitters, all transports, streams, presence, ordering utilities | 23,677 B |
+| `crossbus/core` | The `CrossBus` class alone (with its event API); no transports | 12,960 B |
 | `crossbus/nano` | `createNanoEmitter()`, a minimal local emitter | 331 B |
 
 Sizes are measured on the current development build with `node tests/benchmarks/sizes.js`. A default `import` resolves the unminified ESM build, and bundlers can tree-shake unused exports. `require('crossbus')` is available for the root entry. Subpaths are ESM-only.
@@ -333,7 +333,8 @@ CrossBus is pre-1.0. Read the [changelog](CHANGELOG.md) before upgrading. Wire f
 
 | Version | Status | Main changes | Evidence |
 |---|---|---|---|
-| [0.1.7](https://www.npmjs.com/package/crossbus/v/0.1.7) | npm `latest` ([publication record](docs/RELEASING.md)) | Security fixes for the encryption, compression, schema, rate-limiter and tracing plugins and the iOS adapter; faster sequential RPC. Encrypted endpoints must upgrade together | [security audit](docs/AUDIT.md), [deadline-timer record](https://github.com/GiuseppeScottoLavina/crossbus/tree/master/benchmarks/deadline-timer-0.1.7), [changelog](CHANGELOG.md) |
+| [0.1.8](https://www.npmjs.com/package/crossbus/v/0.1.8) | Current release ([publication record](docs/RELEASING.md)) | Encryption replay fix (concurrent copies and a full cache); opt-in `goodbye` for one-to-one transports; `StreamManager.closePeer()`; teardown and stream error fixes. Interoperates with 0.1.7 | [review after 0.1.7](docs/AUDIT.md), [changelog](CHANGELOG.md) |
+| [0.1.7](https://www.npmjs.com/package/crossbus/v/0.1.7) | Published; affected by the encryption replay issue fixed in 0.1.8 | Security fixes for the encryption, compression, schema, rate-limiter and tracing plugins and the iOS adapter; faster sequential RPC. Encrypted endpoints must upgrade together | [security audit](docs/AUDIT.md), [deadline-timer record](https://github.com/GiuseppeScottoLavina/crossbus/tree/master/benchmarks/deadline-timer-0.1.7), [changelog](CHANGELOG.md) |
 | [0.1.6](https://www.npmjs.com/package/crossbus/v/0.1.6) | Published | Opt-in `compact-v2` MessageChannel RPC (0.1.6+ receivers); faster Node base64 streams | [compact-v2 study](docs/RPC_WIRE_V2.md), [optimization snapshot](docs/OPTIMIZATION_016.md), [audit](docs/AUDIT.md) |
 | [0.1.5](https://www.npmjs.com/package/crossbus/v/0.1.5) | Published | Bounded streams with flow control; shared RPC timeout timer; native SDK packaging | [release comparison](docs/NEXT_RELEASE.md), [qualification](docs/QUALIFICATION.md), [publication record](docs/RELEASING.md) |
 | [0.1.4](https://www.npmjs.com/package/crossbus/v/0.1.4) | Published | Pooled browser UUIDs; serializer and transfer fixes | [Worker RPC study](docs/WORKER_RPC.md) |
@@ -369,7 +370,7 @@ bun run test:experiments   # repository-only prototypes
 bun run test:native        # Swift/Java adapter compile check (requires native SDKs)
 ```
 
-Browser tests need Chrome; set `CHROME_PATH` if it is not found automatically. The 0.1.7 release qualification passed 1,301 tests across 89 files with zero failures. Source line coverage was 96.68%; this is line coverage, not branch coverage. See the [audit record](docs/AUDIT.md) for scope, plus the [development](docs/DEVELOPMENT.md), [contributing](https://github.com/GiuseppeScottoLavina/crossbus/blob/master/CONTRIBUTING.md) and [release](docs/RELEASING.md) guides.
+Browser tests need Chrome; set `CHROME_PATH` if it is not found automatically. The 0.1.8 release qualification passed 1,345 tests across 94 files with zero failures. Source line coverage was 96.75%; this is line coverage, not branch coverage. See the [audit record](docs/AUDIT.md) for scope, plus the [development](docs/DEVELOPMENT.md), [contributing](https://github.com/GiuseppeScottoLavina/crossbus/blob/master/CONTRIBUTING.md) and [release](docs/RELEASING.md) guides.
 
 ## License
 

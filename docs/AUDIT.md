@@ -2,7 +2,7 @@
 
 ## Review after 0.1.7 — 19 November 2026
 
-A follow-up local review looked at three areas: encryption replay handling, teardown on `destroy()` and peer loss, and stream flow control. Each finding was reproduced against the source and has a regression test. Fixes are unreleased until the next version.
+A follow-up local review looked at three areas: encryption replay handling, teardown on `destroy()` and peer loss, and stream flow control. Each finding was reproduced against the source and has a regression test. The fixes are in 0.1.8.
 
 | Finding | Severity (local assessment) | Fix |
 |---|---|---|
@@ -17,6 +17,18 @@ A follow-up local review looked at three areas: encryption replay handling, tear
 Probing `destroy()` with work in flight found no leaked timer or port (checked from a separate Node process), no unhandled rejection and no handler running after destruction. Peers that vanish without notice (a terminated Worker, a removed iframe) are still detected only by deadlines. The stream credit, acknowledgement and reassembly logic held up in the seeded fuzz test: the writer never exceeded its window, duplicates and reordering were absorbed, and both sides always settled.
 
 The AES-GCM IVs were already random 96-bit values from `crypto.getRandomValues`; no IV reuse was found. The remaining bound is the NIST limit of 2³² messages per key with random IVs, now enforced per session and documented in [SECURITY.md](../SECURITY.md#encryption-plugin).
+
+Release qualification for 0.1.8 (19 November 2026, Node 24.15.0, Bun 1.3.14):
+- **Checks:** `npm ci`, `release:check`, `test:all`, `test:experiments` and `test:native` (Swift and Java compilation) pass. So do the consumer declaration checks on TypeScript 7.0, 6.0 and 5.9, the Chrome browser qualification and the evidence reports.
+- **Suites:** 1,345 tests across 94 files with zero failures:
+  - 1,174 unit/package;
+  - 93 e2e;
+  - 12 integration;
+  - 22 documentation;
+  - 44 experimental.
+- **Coverage:** source line coverage is 96.75% (5,362/5,542).
+- **Size:** the minified root is 23,677 bytes gzip level 9 (0.1.7: 23,329), and the core is 12,960 (0.1.7: 12,735).
+- **Devices:** no physical device was qualified for 0.1.8.
 
 ## 0.1.7 publication record
 
