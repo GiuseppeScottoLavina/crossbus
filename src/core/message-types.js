@@ -36,8 +36,11 @@ function envelope(type, payload, meta, id) {
 
 /**
  * Delivery status constants.
+ * @typedef {string} DeliveryStatus
+ */
+/**
+ * Delivery status constants.
  * @readonly
- * @enum {string}
  */
 export const DeliveryStatus = Object.freeze({
   /** Delivered to local listeners only */
@@ -52,8 +55,11 @@ export const DeliveryStatus = Object.freeze({
 
 /**
  * Peer connection status constants.
+ * @typedef {string} PeerStatus
+ */
+/**
+ * Peer connection status constants.
  * @readonly
- * @enum {string}
  */
 export const PeerStatus = Object.freeze({
   /** Connection in progress */
@@ -68,8 +74,11 @@ export const PeerStatus = Object.freeze({
 
 /**
  * Peer type constants.
+ * @typedef {string} PeerType
+ */
+/**
+ * Peer type constants.
  * @readonly
- * @enum {string}
  */
 export const PeerType = Object.freeze({
   /** iframe element */

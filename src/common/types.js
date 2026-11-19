@@ -20,8 +20,11 @@ export const PROTOCOL_VERSION = 1;
 
 /**
  * Message type codes (compact for wire efficiency).
+ * @typedef {string} MessageType
+ */
+/**
+ * Message type codes (compact for wire efficiency).
  * @readonly
- * @enum {string}
  */
 export const MessageType = Object.freeze({
     /** Signal - one-way message */
@@ -49,8 +52,11 @@ export const MessageType = Object.freeze({
 
 /**
  * Handshake phase codes.
+ * @typedef {string} HandshakePhase
+ */
+/**
+ * Handshake phase codes.
  * @readonly
- * @enum {string}
  */
 export const HandshakePhase = Object.freeze({
     INIT: 'init',
@@ -62,8 +68,11 @@ export const HandshakePhase = Object.freeze({
 
 /**
  * Peer connection status.
+ * @typedef {string} PeerStatus
+ */
+/**
+ * Peer connection status.
  * @readonly
- * @enum {string}
  */
 export const PeerStatus = Object.freeze({
     CONNECTING: 'connecting',
@@ -75,8 +84,11 @@ export const PeerStatus = Object.freeze({
 
 /**
  * Peer type (transport mechanism).
+ * @typedef {string} PeerType
+ */
+/**
+ * Peer type (transport mechanism).
  * @readonly
- * @enum {string}
  */
 export const PeerType = Object.freeze({
     IFRAME: 'iframe',
@@ -88,8 +100,11 @@ export const PeerType = Object.freeze({
 
 /**
  * Delivery status for emit results.
+ * @typedef {string} DeliveryStatus
+ */
+/**
+ * Delivery status for emit results.
  * @readonly
- * @enum {string}
  */
 export const DeliveryStatus = Object.freeze({
     /** Delivered to local listeners only */

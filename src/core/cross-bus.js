@@ -987,6 +987,7 @@ export class CrossBus extends EventEmitter {
         const handler = this.#handlers.get(handlerName);
         /** @type {{ code: string, message: string } | null} */
         let failure = null;
+        /** @type {ReturnType<typeof createResponseMessage> | null} */
         let response = null;
 
         if (!handler) {

@@ -1,23 +1,17 @@
 /**
- * Creates a pair of connected mock transports for testing.
- * Messages sent to one are received by the other.
- *
- * @param {string} peerId1 - First peer ID
- * @param {string} peerId2 - Second peer ID
- * @returns {{ transport1: MockTransport, transport2: MockTransport }}
- *
- * @example
- * const { transport1, transport2 } = createConnectedMocks('hub', 'widget');
- * // Messages sent via transport1 are received by transport2
- */
-export function createConnectedMocks(peerId1: string, peerId2: string): {
-    transport1: MockTransport;
-    transport2: MockTransport;
-};
-/**
  * @fileoverview Mock transport for testing CrossBus without browser APIs.
  * @module testing/mock-transport
  */
+export type CapturedMessage = {
+    /**
+     * - The message sent
+     */
+    message: any;
+    /**
+     * - When it was sent
+     */
+    timestamp: number;
+};
 /**
  * @typedef {Object} CapturedMessage
  * @property {Object} message - The message sent
@@ -39,7 +33,8 @@ export function createConnectedMocks(peerId1: string, peerId2: string): {
  * // Check what was sent
  * expect(mock.getLastSent()).toEqual({ ... });
  */
-export class MockTransport {
+export declare class MockTransport {
+    #private;
     /**
      * Creates a new mock transport.
      * @param {string} peerId - Peer ID to simulate
@@ -47,7 +42,7 @@ export class MockTransport {
      * @param {number} [options.latencyMs=0] - Simulated latency in ms
      */
     constructor(peerId: string, options?: {
-        latencyMs?: number | undefined;
+        latencyMs?: number;
     });
     /**
      * Gets the peer ID.
@@ -76,7 +71,7 @@ export class MockTransport {
      * @param {number} [options.delay] - Override latency for this message
      */
     simulateMessage(message: any, options?: {
-        delay?: number | undefined;
+        delay?: number;
     }): Promise<void>;
     /**
      * Simulates a disconnect.
@@ -136,15 +131,20 @@ export class MockTransport {
      * Resets the mock to initial state.
      */
     reset(): void;
-    #private;
 }
-export type CapturedMessage = {
-    /**
-     * - The message sent
-     */
-    message: any;
-    /**
-     * - When it was sent
-     */
-    timestamp: number;
+/**
+ * Creates a pair of connected mock transports for testing.
+ * Messages sent to one are received by the other.
+ *
+ * @param {string} peerId1 - First peer ID
+ * @param {string} peerId2 - Second peer ID
+ * @returns {{ transport1: MockTransport, transport2: MockTransport }}
+ *
+ * @example
+ * const { transport1, transport2 } = createConnectedMocks('hub', 'widget');
+ * // Messages sent via transport1 are received by transport2
+ */
+export declare function createConnectedMocks(peerId1: string, peerId2: string): {
+    transport1: MockTransport;
+    transport2: MockTransport;
 };

@@ -1,3 +1,18 @@
+export type NativeBridgeTransportOptions = {
+    androidInterface?: string;
+    iosHandler?: string;
+    /**
+     * - Must match the native adapter.
+     */
+    callbackName?: string;
+    initTimeout?: number;
+    /**
+     * - Optional transport heartbeat.
+     */
+    heartbeatInterval?: number;
+    queueWhileInit?: boolean;
+    maxQueueSize?: number;
+};
 /**
  * @typedef {Object} NativeBridgeTransportOptions
  * @property {string} [androidInterface='CrossBus']
@@ -8,9 +23,10 @@
  * @property {boolean} [queueWhileInit=true]
  * @property {number} [maxQueueSize=100]
  */
-export class NativeBridgeTransport {
+export declare class NativeBridgeTransport {
+    #private;
     /** @param {NativeBridgeTransportOptions} [options] */
-    static detectBridge(options?: NativeBridgeTransportOptions): "none" | "android" | "ios";
+    static detectBridge(options?: NativeBridgeTransportOptions): "android" | "ios" | "none";
     /** @param {NativeBridgeTransportOptions} [options] */
     static isSupported(options?: NativeBridgeTransportOptions): boolean;
     /** @param {NativeBridgeTransportOptions} [options] */
@@ -25,20 +41,4 @@ export class NativeBridgeTransport {
     get bridgeType(): string;
     get isReady(): boolean;
     get ready(): Promise<void>;
-    #private;
 }
-export type NativeBridgeTransportOptions = {
-    androidInterface?: string | undefined;
-    iosHandler?: string | undefined;
-    /**
-     * - Must match the native adapter.
-     */
-    callbackName?: string | undefined;
-    initTimeout?: number | undefined;
-    /**
-     * - Optional transport heartbeat.
-     */
-    heartbeatInterval?: number | undefined;
-    queueWhileInit?: boolean | undefined;
-    maxQueueSize?: number | undefined;
-};

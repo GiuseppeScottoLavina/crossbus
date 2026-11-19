@@ -140,9 +140,17 @@ Target modern browser engines and keep runtime dependencies optional. The packag
 
 ## Development toolchain
 
-Use Node 24 and Bun, and install the committed lockfile with `npm ci --legacy-peer-deps`. The development toolchain is separate from the runtime package's Node >=18 requirement. The lockfile currently resolves @eslint/js 10.0.1, globals 17.14.0, @rollup/plugin-terser 1.0.2, rollup-plugin-visualizer 7.1.3 and TypeScript 6.0.3. Update `package.json` and `package-lock.json` together; changing only a dependency range breaks clean CI installation.
+Use Node 24 and Bun, and install the committed lockfile with `npm ci --legacy-peer-deps`. The development toolchain is separate from the runtime package's Node >=18 requirement. The lockfile currently resolves @eslint/js 10.0.1, globals 17.14.0, @rollup/plugin-terser 1.0.2, rollup-plugin-visualizer 7.1.3 and TypeScript 7.0.2. Update `package.json` and `package-lock.json` together; changing only a dependency range breaks clean CI installation.
 
-TypeScript 6 requires explicit `types: ["node"]` and `rootDir: "./src"` for this project. These preserve existing environment declarations and the package's declaration paths. `bun run test:types` uses its own strict consumer configuration in `tests/package/tsconfig.json`; it does not inherit the source-only output root. CI also compiles that consumer with TypeScript 5.9.3. See the [official TypeScript migration notes](https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/) for the changed defaults. No type-checking rules or runtime assertions were relaxed for the upgrade.
+TypeScript 6 and later require explicit `types: ["node"]` and `rootDir: "./src"` for this project. These preserve existing environment declarations and the package's declaration paths. `bun run test:types` uses its own strict consumer configuration in `tests/package/tsconfig.json`; it does not inherit the source-only output root. CI also compiles that consumer with TypeScript 6.0.3 and 5.9.3. See the [official TypeScript migration notes](https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/) for the changed defaults. No type-checking rules or runtime assertions were relaxed for the upgrade.
+
+TypeScript 7 reads JSDoc more strictly than TypeScript 6. Follow these rules in `src/` so both versions type-check the same source:
+
+- For an enum-like frozen object, declare the type beside it with `@typedef {string} Name` and the same name. TypeScript 7 ignores `@enum`.
+- Write function types in TypeScript syntax, such as `(data: any) => string`. Closure forms such as `function(*): string` are not parsed.
+- Annotate variables that start as `null` and are assigned later, such as `/** @type {Foo | null} */ let value = null;`. TypeScript 7 no longer widens them to `any`.
+
+Moving the build from TypeScript 6.0.3 to 7.0.2 kept the bundled minified files byte-identical. Only the formatting of the generated declarations changed. A checker-based comparison of every export of all 44 declaration modules with TypeScript 6 found the same value and type surface. The declaration form of six exports changed from function or value-only namespace to `const`, with identical types. `CrossBusError#toString(): string` is now declared explicitly, and the `[FAST_ONLY]` member, keyed by a module-private symbol, is no longer emitted.
 
 The additional tooling refresh resolves ESLint 10.14.0, Rollup 4.68.2, Prettier 3.9.10 and Puppeteer Core 25.17.0. Browser integrations are checked against the complete combined lockfile.
 

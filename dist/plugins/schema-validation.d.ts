@@ -1,4 +1,76 @@
 /**
+ * @fileoverview Schema validation plugin for CrossBus.
+ * Provides automatic JSON Schema validation for handler payloads.
+ * @module plugins/schema-validation
+ */
+export type ValidationResult = {
+    /**
+     * - Whether validation passed
+     */
+    valid: boolean;
+    /**
+     * - Validation errors
+     */
+    errors?: Array<{
+        path: string;
+        message: string;
+    }>;
+};
+export type JSONSchema = {
+    /**
+     * - Schema identifier
+     */
+    $id?: string;
+    /**
+     * - Data type
+     */
+    type?: string;
+    /**
+     * - Object properties
+     */
+    properties?: Record<string, JSONSchema>;
+    /**
+     * - Required properties
+     */
+    required?: string[];
+    /**
+     * - Array item schema
+     */
+    items?: JSONSchema;
+    /**
+     * - Minimum number value
+     */
+    minimum?: number;
+    /**
+     * - Maximum number value
+     */
+    maximum?: number;
+    /**
+     * - Minimum string length
+     */
+    minLength?: number;
+    /**
+     * - Maximum string length
+     */
+    maxLength?: number;
+    /**
+     * - Minimum array length
+     */
+    minItems?: number;
+    /**
+     * - Maximum array length
+     */
+    maxItems?: number;
+    /**
+     * - Regex pattern for strings
+     */
+    pattern?: string;
+    /**
+     * - Allowed values
+     */
+    enum?: any[];
+};
+/**
  * @typedef {Object} ValidationResult
  * @property {boolean} valid - Whether validation passed
  * @property {Array<{path: string, message: string}>} [errors] - Validation errors
@@ -26,7 +98,8 @@
  * @param {JSONSchema} schema - JSON Schema to validate against
  * @returns {Validator} Validator function
  */
-export function createValidator(schema: JSONSchema): Validator;
+export declare function createValidator(schema: JSONSchema): Validator;
+export type Validator = (data: any, path?: string) => ValidationResult;
 /**
  * Wraps a handler with JSON Schema validation.
  * Validates the payload before calling the handler.
@@ -53,7 +126,7 @@ export function createValidator(schema: JSONSchema): Validator;
  *   return await createUser(payload);
  * }));
  */
-export function withSchemaValidation(schema: JSONSchema, handler: Function): Function;
+export declare function withSchemaValidation(schema: JSONSchema, handler: Function): Function;
 /**
  * Creates a validation hook that validates all inbound messages.
  *
@@ -71,76 +144,4 @@ export function withSchemaValidation(schema: JSONSchema, handler: Function): Fun
  *
  * bus.addInboundHook(createValidationHook(schemas));
  */
-export function createValidationHook(schemas: {
-    [x: string]: JSONSchema;
-}): Function;
-export type ValidationResult = {
-    /**
-     * - Whether validation passed
-     */
-    valid: boolean;
-    /**
-     * - Validation errors
-     */
-    errors?: {
-        path: string;
-        message: string;
-    }[] | undefined;
-};
-export type JSONSchema = {
-    /**
-     * - Schema identifier
-     */
-    $id?: string | undefined;
-    /**
-     * - Data type
-     */
-    type?: string | undefined;
-    /**
-     * - Object properties
-     */
-    properties?: {
-        [x: string]: JSONSchema;
-    } | undefined;
-    /**
-     * - Required properties
-     */
-    required?: string[] | undefined;
-    /**
-     * - Array item schema
-     */
-    items?: JSONSchema | undefined;
-    /**
-     * - Minimum number value
-     */
-    minimum?: number | undefined;
-    /**
-     * - Maximum number value
-     */
-    maximum?: number | undefined;
-    /**
-     * - Minimum string length
-     */
-    minLength?: number | undefined;
-    /**
-     * - Maximum string length
-     */
-    maxLength?: number | undefined;
-    /**
-     * - Minimum array length
-     */
-    minItems?: number | undefined;
-    /**
-     * - Maximum array length
-     */
-    maxItems?: number | undefined;
-    /**
-     * - Regex pattern for strings
-     */
-    pattern?: string | undefined;
-    /**
-     * - Allowed values
-     */
-    enum?: any[] | undefined;
-};
-export type Validator = (data: any, path?: string | undefined) => ValidationResult;
+export declare function createValidationHook(schemas: Record<string, JSONSchema>): Function;

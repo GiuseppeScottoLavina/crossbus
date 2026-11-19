@@ -1,4 +1,51 @@
 /**
+ * @fileoverview Message router for hub-based routing.
+ * Routes messages between peers through a central hub.
+ * @module router/message-router
+ */
+import { PeerStatus } from '../common/types.js';
+import { EventEmitter } from '../core/event-emitter.js';
+export type RoutingEntry = {
+    /**
+     * - Peer identifier.
+     */
+    peerId: string;
+    /**
+     * - Function to send to this peer.
+     */
+    sendFn: Function;
+    /**
+     * - Peer metadata.
+     */
+    meta: any;
+    /**
+     * - Peer origin.
+     */
+    origin: string;
+    /**
+     * - Connection status.
+     */
+    status: PeerStatus;
+    /**
+     * - Connection timestamp.
+     */
+    connectedAt: number;
+};
+export type RouteResult = {
+    /**
+     * - Whether routing succeeded.
+     */
+    success: boolean;
+    /**
+     * - Number of peers message was delivered to.
+     */
+    delivered: number;
+    /**
+     * - Peer IDs that failed delivery.
+     */
+    failed: string[];
+};
+/**
  * @typedef {Object} RoutingEntry
  * @property {string} peerId - Peer identifier.
  * @property {Function} sendFn - Function to send to this peer.
@@ -40,7 +87,12 @@
  * // Route broadcast
  * router.broadcast({ payload: data });
  */
-export class MessageRouter extends EventEmitter {
+export declare class MessageRouter extends EventEmitter {
+    #private;
+    /**
+     * Creates a new message router.
+     */
+    constructor();
     /**
      * Adds a peer to the routing table.
      *
@@ -58,7 +110,7 @@ export class MessageRouter extends EventEmitter {
      */
     addPeer(peerId: string, sendFn: (message: any) => void, options?: {
         meta?: any;
-        origin?: string | undefined;
+        origin?: string;
     }): void;
     /**
      * Removes a peer from the routing table.
@@ -97,10 +149,10 @@ export class MessageRouter extends EventEmitter {
      * @returns {RouteResult}
      */
     route(message: {
-        target?: string | undefined;
+        target?: string;
         payload: any;
     }, options?: {
-        exclude?: string[] | undefined;
+        exclude?: string[];
     }): RouteResult;
     /**
      * Broadcasts a message to all peers.
@@ -112,8 +164,8 @@ export class MessageRouter extends EventEmitter {
      * @returns {RouteResult}
      */
     broadcast(payload: any, options?: {
-        exclude?: string[] | undefined;
-        include?: string[] | undefined;
+        exclude?: string[];
+        include?: string[];
     }): RouteResult;
     /**
      * Gets the next sequence number for a peer.
@@ -134,47 +186,4 @@ export class MessageRouter extends EventEmitter {
      * Clears all peers.
      */
     clearPeers(): void;
-    #private;
 }
-export type RoutingEntry = {
-    /**
-     * - Peer identifier.
-     */
-    peerId: string;
-    /**
-     * - Function to send to this peer.
-     */
-    sendFn: Function;
-    /**
-     * - Peer metadata.
-     */
-    meta: any;
-    /**
-     * - Peer origin.
-     */
-    origin: string;
-    /**
-     * - Connection status.
-     */
-    status: PeerStatus;
-    /**
-     * - Connection timestamp.
-     */
-    connectedAt: number;
-};
-export type RouteResult = {
-    /**
-     * - Whether routing succeeded.
-     */
-    success: boolean;
-    /**
-     * - Number of peers message was delivered to.
-     */
-    delivered: number;
-    /**
-     * - Peer IDs that failed delivery.
-     */
-    failed: string[];
-};
-import { EventEmitter } from '../core/event-emitter.js';
-import { PeerStatus } from '../common/types.js';

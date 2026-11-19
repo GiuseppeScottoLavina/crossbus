@@ -1,4 +1,26 @@
 /**
+ * @fileoverview BroadcastChannel transport for same-origin tab communication.
+ * Uses the BroadcastChannel API for efficient pub/sub across browser contexts.
+ * @module transports/broadcast-channel
+ */
+export type BroadcastChannelTransportOptions = {
+    /**
+     * - Name of the broadcast channel.
+     */
+    channelName?: string;
+    /**
+     * - Serialization format.
+     */
+    contentType?: string;
+};
+export type MessageContext = {
+    /**
+     * - Always 'broadcast' for this transport.
+     */
+    origin: string;
+};
+export type MessageHandler = (message: any, context: MessageContext) => any;
+/**
  * @typedef {Object} BroadcastChannelTransportOptions
  * @property {string} [channelName='crossbus:default'] - Name of the broadcast channel.
  * @property {string} [contentType='application/json'] - Serialization format.
@@ -42,7 +64,8 @@
  * // Cleanup
  * transport.destroy();
  */
-export class BroadcastChannelTransport {
+export declare class BroadcastChannelTransport {
+    #private;
     /**
      * Checks if BroadcastChannel API is available.
      *
@@ -95,22 +118,4 @@ export class BroadcastChannelTransport {
      * @returns {boolean}
      */
     get isDestroyed(): boolean;
-    #private;
 }
-export type BroadcastChannelTransportOptions = {
-    /**
-     * - Name of the broadcast channel.
-     */
-    channelName?: string | undefined;
-    /**
-     * - Serialization format.
-     */
-    contentType?: string | undefined;
-};
-export type MessageContext = {
-    /**
-     * - Always 'broadcast' for this transport.
-     */
-    origin: string;
-};
-export type MessageHandler = (message: any, context: MessageContext) => any;

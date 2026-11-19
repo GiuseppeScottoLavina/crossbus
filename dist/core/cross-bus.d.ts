@@ -1,4 +1,181 @@
 /**
+ * @fileoverview CrossBus - Main facade for cross-context messaging.
+ * Provides a unified API for inter-context communication.
+ * @module core/cross-bus
+ */
+import { EventEmitter } from './event-emitter.js';
+export type PeerStatus = import('../common/types.js').PeerStatus;
+export type CrossBusOptions = {
+    /**
+     * - Unique peer identifier (auto-generated if not specified).
+     */
+    peerId?: string;
+    /**
+     * - Whether this instance is the hub.
+     */
+    isHub?: boolean;
+    /**
+     * - Default request timeout in ms.
+     */
+    requestTimeout?: number;
+    /**
+     * - Handshake timeout in ms.
+     */
+    handshakeTimeout?: number;
+    /**
+     * - Allowed origins for incoming connections.
+     */
+    allowedOrigins?: string[];
+    /**
+     * - Metadata to share with peers.
+     */
+    meta?: any;
+    /**
+     * - Supported capabilities.
+     */
+    capabilities?: string[];
+    /**
+     * - Preferred serialization format.
+     */
+    contentType?: string;
+    /**
+     * - Maximum payload size in bytes (default: 1MB).
+     */
+    maxPayloadSize?: number;
+    /**
+     * - Maximum concurrent pending requests.
+     */
+    maxPendingRequests?: number;
+    /**
+     * - Enforce strict security (disallows wildcard origins).
+     */
+    strictMode?: boolean;
+    /**
+     * - Enable verbose debug logging.
+     */
+    debug?: boolean;
+    /**
+     * - Prefix for debug log messages.
+     */
+    debugPrefix?: string;
+};
+export type HandlerOptions = {
+    /**
+     * - Peer IDs allowed to call this handler.
+     */
+    allowedPeers?: string[];
+    /**
+     * - Max calls per second from each peer.
+     */
+    rateLimit?: number;
+    /**
+     * - Custom payload validator function.
+     */
+    validatePayload?: Function;
+};
+export type PeerInfo = {
+    /**
+     * - Peer identifier.
+     */
+    peerId: string;
+    /**
+     * - Peer origin.
+     */
+    origin: string;
+    /**
+     * - Peer metadata.
+     */
+    meta: any;
+    /**
+     * - Connection status.
+     */
+    status: PeerStatus;
+    /**
+     * - Connection timestamp.
+     */
+    connectedAt: number;
+};
+export type RequestOptions = {
+    /**
+     * - Request timeout in ms.
+     */
+    timeout?: number;
+};
+export type BroadcastRequestOptions = {
+    /**
+     * - Per-peer timeout in ms.
+     */
+    timeout?: number;
+    /**
+     * - Peer IDs to exclude.
+     */
+    exclude?: string[];
+    /**
+     * - Whether to ignore peer errors.
+     */
+    ignoreErrors?: boolean;
+};
+export type HookContext = {
+    /**
+     * - Message type. `error`
+     * is passed only to hooks registered with `{ errors: true }`.
+     */
+    type: 'signal' | 'request' | 'response' | 'error';
+    /**
+     * - Bound peer ID (if applicable).
+     */
+    peerId?: string;
+    /**
+     * - Handler name for requests, or the signal name.
+     */
+    handlerName?: string;
+    /**
+     * - Request ID for requests, responses and errors.
+     */
+    requestId?: string;
+    /**
+     * - Handler name of the request a response or
+     * error answers. Inbound, it is taken from the local pending request.
+     */
+    requestName?: string;
+    /**
+     * - Inbound responses: the response success flag.
+     */
+    success?: boolean;
+    /**
+     * - Inbound signals re-dispatched locally from a
+     * batch whose envelope already passed the inbound hooks.
+     */
+    batched?: boolean;
+    /**
+     * - Hook direction.
+     */
+    direction: 'inbound' | 'outbound';
+};
+export type HookOptions = {
+    /**
+     * - Also run this hook on RPC error objects
+     * (`{ code, message }`) with context type `error`, in both directions.
+     */
+    errors?: boolean;
+};
+export type MessageHook = (payload: any, context: HookContext) => any | Promise<any>;
+export type HookEntry = {
+    /**
+     * - Hook function.
+     */
+    fn: MessageHook;
+    /**
+     * - Execution priority (lower = first).
+     */
+    priority: number;
+    /**
+     * - Whether the hook also transforms RPC errors.
+     */
+    errors: boolean;
+};
+export type RequestHandler = (payload: any, context: any) => Promise<any> | any;
+/**
  * @callback RequestHandler
  * @param {*} payload - Request payload.
  * @param {Object} context - Request context (peerId, meta, etc).
@@ -20,30 +197,8 @@
  * const result = await bus.request('widget', 'getData', { id: 1 });
  * bus.destroy();
  */
-export class CrossBus extends EventEmitter {
-    /**
-     * Creates a pre-configured secure CrossBus instance.
-     * Recommended for production use by AI agents.
-     *
-     * Enforces:
-     * - strictMode (no wildcard origins)
-     * - 1MB max payload size (overridable; 0 is rejected)
-     * - 100 max pending requests (overridable; 0 is rejected)
-     * - 30s request timeout
-     *
-     * @param {CrossBusOptions} options - Configuration options
-     * @returns {CrossBus} Configured instance
-     * @throws {Error} If allowedOrigins contains '*' or is missing
-     *
-     * @example
-     * // For production use
-     * const hub = CrossBus.createSecure({
-     *   peerId: 'my-hub',
-     *   isHub: true,
-     *   allowedOrigins: ['https://trusted-domain.com']
-     * });
-     */
-    static createSecure(options?: CrossBusOptions): CrossBus;
+export declare class CrossBus extends EventEmitter {
+    #private;
     /**
      * Creates a new CrossBus instance.
      *
@@ -90,7 +245,7 @@ export class CrossBus extends EventEmitter {
      * bus.signal('user:login', { userId: 123 });
      */
     signal(signalName: string, payload?: any, options?: {
-        exclude?: string[] | undefined;
+        exclude?: string[];
     }): Promise<{
         success: boolean;
         delivered: number;
@@ -243,8 +398,8 @@ export class CrossBus extends EventEmitter {
      * cleanup();
      */
     addTransport(transport: any, options?: {
-        peerId?: string | undefined;
-        origin?: string | undefined;
+        peerId?: string;
+        origin?: string;
     }): Function;
     /**
      * Registers synchronous resource cleanup for bus destruction.
@@ -313,6 +468,29 @@ export class CrossBus extends EventEmitter {
      */
     healthCheck(): any;
     /**
+     * Creates a pre-configured secure CrossBus instance.
+     * Recommended for production use by AI agents.
+     *
+     * Enforces:
+     * - strictMode (no wildcard origins)
+     * - 1MB max payload size (overridable; 0 is rejected)
+     * - 100 max pending requests (overridable; 0 is rejected)
+     * - 30s request timeout
+     *
+     * @param {CrossBusOptions} options - Configuration options
+     * @returns {CrossBus} Configured instance
+     * @throws {Error} If allowedOrigins contains '*' or is missing
+     *
+     * @example
+     * // For production use
+     * const hub = CrossBus.createSecure({
+     *   peerId: 'my-hub',
+     *   isHub: true,
+     *   allowedOrigins: ['https://trusted-domain.com']
+     * });
+     */
+    static createSecure(options?: CrossBusOptions): CrossBus;
+    /**
      * Performs diagnostics and returns troubleshooting suggestions.
      * Designed to help AI agents identify and fix common issues.
      *
@@ -326,177 +504,4 @@ export class CrossBus extends EventEmitter {
      * }
      */
     diagnose(): any;
-    #private;
 }
-export type PeerStatus = import("../common/types.js").PeerStatus;
-export type CrossBusOptions = {
-    /**
-     * - Unique peer identifier (auto-generated if not specified).
-     */
-    peerId?: string | undefined;
-    /**
-     * - Whether this instance is the hub.
-     */
-    isHub?: boolean | undefined;
-    /**
-     * - Default request timeout in ms.
-     */
-    requestTimeout?: number | undefined;
-    /**
-     * - Handshake timeout in ms.
-     */
-    handshakeTimeout?: number | undefined;
-    /**
-     * - Allowed origins for incoming connections.
-     */
-    allowedOrigins?: string[] | undefined;
-    /**
-     * - Metadata to share with peers.
-     */
-    meta?: any;
-    /**
-     * - Supported capabilities.
-     */
-    capabilities?: string[] | undefined;
-    /**
-     * - Preferred serialization format.
-     */
-    contentType?: string | undefined;
-    /**
-     * - Maximum payload size in bytes (default: 1MB).
-     */
-    maxPayloadSize?: number | undefined;
-    /**
-     * - Maximum concurrent pending requests.
-     */
-    maxPendingRequests?: number | undefined;
-    /**
-     * - Enforce strict security (disallows wildcard origins).
-     */
-    strictMode?: boolean | undefined;
-    /**
-     * - Enable verbose debug logging.
-     */
-    debug?: boolean | undefined;
-    /**
-     * - Prefix for debug log messages.
-     */
-    debugPrefix?: string | undefined;
-};
-export type HandlerOptions = {
-    /**
-     * - Peer IDs allowed to call this handler.
-     */
-    allowedPeers?: string[] | undefined;
-    /**
-     * - Max calls per second from each peer.
-     */
-    rateLimit?: number | undefined;
-    /**
-     * - Custom payload validator function.
-     */
-    validatePayload?: Function | undefined;
-};
-export type PeerInfo = {
-    /**
-     * - Peer identifier.
-     */
-    peerId: string;
-    /**
-     * - Peer origin.
-     */
-    origin: string;
-    /**
-     * - Peer metadata.
-     */
-    meta: any;
-    /**
-     * - Connection status.
-     */
-    status: PeerStatus;
-    /**
-     * - Connection timestamp.
-     */
-    connectedAt: number;
-};
-export type RequestOptions = {
-    /**
-     * - Request timeout in ms.
-     */
-    timeout?: number | undefined;
-};
-export type BroadcastRequestOptions = {
-    /**
-     * - Per-peer timeout in ms.
-     */
-    timeout?: number | undefined;
-    /**
-     * - Peer IDs to exclude.
-     */
-    exclude?: string[] | undefined;
-    /**
-     * - Whether to ignore peer errors.
-     */
-    ignoreErrors?: boolean | undefined;
-};
-export type HookContext = {
-    /**
-     * - Message type. `error`
-     * is passed only to hooks registered with `{ errors: true }`.
-     */
-    type: "signal" | "request" | "response" | "error";
-    /**
-     * - Bound peer ID (if applicable).
-     */
-    peerId?: string | undefined;
-    /**
-     * - Handler name for requests, or the signal name.
-     */
-    handlerName?: string | undefined;
-    /**
-     * - Request ID for requests, responses and errors.
-     */
-    requestId?: string | undefined;
-    /**
-     * - Handler name of the request a response or
-     * error answers. Inbound, it is taken from the local pending request.
-     */
-    requestName?: string | undefined;
-    /**
-     * - Inbound responses: the response success flag.
-     */
-    success?: boolean | undefined;
-    /**
-     * - Inbound signals re-dispatched locally from a
-     * batch whose envelope already passed the inbound hooks.
-     */
-    batched?: boolean | undefined;
-    /**
-     * - Hook direction.
-     */
-    direction: "inbound" | "outbound";
-};
-export type HookOptions = {
-    /**
-     * - Also run this hook on RPC error objects
-     * (`{ code, message }`) with context type `error`, in both directions.
-     */
-    errors?: boolean | undefined;
-};
-export type MessageHook = (payload: any, context: HookContext) => any | Promise<any>;
-export type HookEntry = {
-    /**
-     * - Hook function.
-     */
-    fn: MessageHook;
-    /**
-     * - Execution priority (lower = first).
-     */
-    priority: number;
-    /**
-     * - Whether the hook also transforms RPC errors.
-     */
-    errors: boolean;
-};
-export type RequestHandler = (payload: any, context: any) => Promise<any> | any;
-import { EventEmitter } from './event-emitter.js';

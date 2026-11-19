@@ -1,4 +1,41 @@
 /**
+ * @fileoverview Causal Orderer for message delivery with causal consistency.
+ *
+ * Buffers out-of-order messages and delivers them only when their
+ * causal dependencies have been satisfied.
+ *
+ * @module ordering/causal-orderer
+ */
+import { VectorClock } from './vector-clock.js';
+export type CausalOrdererOptions = {
+    /**
+     * - Callback when message is delivered
+     */
+    onDeliver?: Function;
+    /**
+     * - Maximum buffered messages
+     */
+    maxBufferSize?: number;
+    /**
+     * - Called when buffer is full
+     */
+    onBufferOverflow?: Function;
+};
+export type BufferedMessage = {
+    /**
+     * - Message sender ID
+     */
+    senderId: string;
+    /**
+     * - Original message
+     */
+    message: any;
+    /**
+     * - Message's vector clock
+     */
+    clock: VectorClock;
+};
+/**
  * @typedef {Object} CausalOrdererOptions
  * @property {Function} [onDeliver] - Callback when message is delivered
  * @property {number} [maxBufferSize=1000] - Maximum buffered messages
@@ -30,7 +67,8 @@
  * const clock = orderer.tick();
  * send({ ...data, clock: clock.toJSON() });
  */
-export class CausalOrderer {
+export declare class CausalOrderer {
+    #private;
     /**
      * Creates a new CausalOrderer.
      *
@@ -73,34 +111,4 @@ export class CausalOrderer {
      * Clears the buffer (e.g., on disconnect).
      */
     clear(): void;
-    #private;
 }
-export type CausalOrdererOptions = {
-    /**
-     * - Callback when message is delivered
-     */
-    onDeliver?: Function | undefined;
-    /**
-     * - Maximum buffered messages
-     */
-    maxBufferSize?: number | undefined;
-    /**
-     * - Called when buffer is full
-     */
-    onBufferOverflow?: Function | undefined;
-};
-export type BufferedMessage = {
-    /**
-     * - Message sender ID
-     */
-    senderId: string;
-    /**
-     * - Original message
-     */
-    message: any;
-    /**
-     * - Message's vector clock
-     */
-    clock: VectorClock;
-};
-import { VectorClock } from './vector-clock.js';

@@ -1,4 +1,40 @@
 /**
+ * @fileoverview PostMessage transport for iframes, popups, and workers.
+ * Handles message serialization, origin validation, and bidirectional communication.
+ * @module transports/postmessage
+ */
+export type PostMessageTarget = Window | Worker | ServiceWorker | MessagePort;
+export type PostMessageTransportOptions = {
+    /**
+     * - Expected origin for outgoing messages.
+     */
+    targetOrigin?: string;
+    /**
+     * - Allowed origins for incoming messages.
+     *    Empty = same origin only.
+     */
+    allowedOrigins?: string[];
+    /**
+     * - Auto-detect and transfer transferable objects.
+     */
+    autoTransfer?: boolean;
+    /**
+     * - Serialization format.
+     */
+    contentType?: string;
+};
+export type MessageSource = {
+    /**
+     * - Origin of the message.
+     */
+    origin: string;
+    /**
+     * - The window/worker that sent the message.
+     */
+    source: PostMessageTarget;
+};
+export type MessageHandler = (message: any, source: MessageSource) => any;
+/**
  * @typedef {Window|Worker|ServiceWorker|MessagePort} PostMessageTarget
  * Target that supports postMessage API.
  */
@@ -45,7 +81,8 @@
  * // Cleanup
  * transport.destroy();
  */
-export class PostMessageTransport {
+export declare class PostMessageTransport {
+    #private;
     /**
      * Checks if PostMessage API is available.
      *
@@ -109,39 +146,4 @@ export class PostMessageTransport {
      * @returns {string}
      */
     get targetOrigin(): string;
-    #private;
 }
-/**
- * Target that supports postMessage API.
- */
-export type PostMessageTarget = Window | Worker | ServiceWorker | MessagePort;
-export type PostMessageTransportOptions = {
-    /**
-     * - Expected origin for outgoing messages.
-     */
-    targetOrigin?: string | undefined;
-    /**
-     * - Allowed origins for incoming messages.
-     *    Empty = same origin only.
-     */
-    allowedOrigins?: string[] | undefined;
-    /**
-     * - Auto-detect and transfer transferable objects.
-     */
-    autoTransfer?: boolean | undefined;
-    /**
-     * - Serialization format.
-     */
-    contentType?: string | undefined;
-};
-export type MessageSource = {
-    /**
-     * - Origin of the message.
-     */
-    origin: string;
-    /**
-     * - The window/worker that sent the message.
-     */
-    source: PostMessageTarget;
-};
-export type MessageHandler = (message: any, source: MessageSource) => any;

@@ -1,4 +1,32 @@
 /**
+ * @fileoverview Backpressure and flow control for CrossBus.
+ * Prevents slow receivers from causing memory issues.
+ * @module enterprise/backpressure
+ */
+export type BackpressureStrategy = 'drop-oldest' | 'drop-newest' | 'reject' | 'pause';
+export type QueueStats = {
+    /**
+     * - Current queue size
+     */
+    size: number;
+    /**
+     * - Maximum queue size
+     */
+    maxSize: number;
+    /**
+     * - Messages dropped
+     */
+    dropped: number;
+    /**
+     * - Messages processed
+     */
+    processed: number;
+    /**
+     * - Whether queue is paused
+     */
+    isPaused: boolean;
+};
+/**
  * Backpressure controller for CrossBus.
  * Manages per-peer message queues with configurable strategies.
  *
@@ -16,7 +44,8 @@
  *   console.warn('widget-1 is falling behind');
  * }
  */
-export class BackpressureController {
+export declare class BackpressureController {
+    #private;
     /**
      * Creates a new backpressure controller.
      * @param {Object} [options={}] - Options
@@ -25,9 +54,9 @@ export class BackpressureController {
      * @param {number} [options.checkIntervalMs=1000] - Interval to check queues
      */
     constructor(options?: {
-        maxQueueSize?: number | undefined;
-        strategy?: BackpressureStrategy | undefined;
-        checkIntervalMs?: number | undefined;
+        maxQueueSize?: number;
+        strategy?: BackpressureStrategy;
+        checkIntervalMs?: number;
     });
     /**
      * Wraps a peer's send function with backpressure control.
@@ -39,8 +68,8 @@ export class BackpressureController {
      * @returns {(message: Object) => { success: boolean, queued: boolean, dropped: boolean }}
      */
     wrap(peerId: string, sendFn: (message: any) => void, options?: {
-        maxQueueSize?: number | undefined;
-        strategy?: BackpressureStrategy | undefined;
+        maxQueueSize?: number;
+        strategy?: BackpressureStrategy;
     }): (message: any) => {
         success: boolean;
         queued: boolean;
@@ -84,9 +113,7 @@ export class BackpressureController {
      * Gets stats for all peers.
      * @returns {Object<string, QueueStats>}
      */
-    getAllStats(): {
-        [x: string]: QueueStats;
-    };
+    getAllStats(): Record<string, QueueStats>;
     /**
      * Subscribes to backpressure events.
      * @param {(peerId: string, stats: QueueStats) => void} callback
@@ -102,28 +129,4 @@ export class BackpressureController {
      * Clears all queues and stops monitoring.
      */
     destroy(): void;
-    #private;
 }
-export type BackpressureStrategy = "drop-oldest" | "drop-newest" | "reject" | "pause";
-export type QueueStats = {
-    /**
-     * - Current queue size
-     */
-    size: number;
-    /**
-     * - Maximum queue size
-     */
-    maxSize: number;
-    /**
-     * - Messages dropped
-     */
-    dropped: number;
-    /**
-     * - Messages processed
-     */
-    processed: number;
-    /**
-     * - Whether queue is paused
-     */
-    isPaused: boolean;
-};

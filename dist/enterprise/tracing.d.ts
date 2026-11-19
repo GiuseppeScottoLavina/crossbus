@@ -1,14 +1,41 @@
 /**
- * Creates a CrossBus plugin that automatically traces messages.
- *
- * @param {Tracer} tracer - Tracer instance
- * @returns {Object} Plugin with inbound/outbound hooks
- *
- * @example
- * const tracer = new Tracer('my-app');
- * const unhook = bus.addOutboundHook(tracingPlugin(tracer).outbound);
+ * @fileoverview Distributed tracing for CrossBus.
+ * W3C Trace Context compatible for cross-context message tracing.
+ * @module enterprise/tracing
  */
-export function tracingPlugin(tracer: Tracer): any;
+export type SpanContext = {
+    /**
+     * - 32-char hex trace ID
+     */
+    traceId: string;
+    /**
+     * - 16-char hex span ID
+     */
+    spanId: string;
+    /**
+     * - Parent span ID
+     */
+    parentSpanId?: string;
+    /**
+     * - Trace flags (1 = sampled)
+     */
+    traceFlags: number;
+};
+export type SpanEvent = {
+    /**
+     * - Event name
+     */
+    name: string;
+    /**
+     * - Unix timestamp in ms
+     */
+    timestamp: number;
+    /**
+     * - Event attributes
+     */
+    attributes?: any;
+};
+export type SpanStatus = 'unset' | 'ok' | 'error';
 /**
  * @typedef {Object} SpanContext
  * @property {string} traceId - 32-char hex trace ID
@@ -28,7 +55,8 @@ export function tracingPlugin(tracer: Tracer): any;
 /**
  * Represents a single span in a distributed trace.
  */
-export class Span {
+export declare class Span {
+    #private;
     /**
      * @param {Tracer} tracer - Parent tracer
      * @param {string} name - Span name
@@ -88,7 +116,6 @@ export class Span {
      * @returns {Object}
      */
     toJSON(): any;
-    #private;
 }
 /**
  * Distributed tracer for CrossBus.
@@ -109,7 +136,8 @@ export class Span {
  *   span.end();
  * }
  */
-export class Tracer {
+export declare class Tracer {
+    #private;
     /**
      * Creates a new tracer.
      * @param {string} [serviceName='crossbus'] - Service name for traces
@@ -119,9 +147,9 @@ export class Tracer {
      * @param {boolean} [options.sampled=true] - Whether to record traces
      */
     constructor(serviceName?: string, options?: {
-        maxSpans?: number | undefined;
-        maxTraces?: number | undefined;
-        sampled?: boolean | undefined;
+        maxSpans?: number;
+        maxTraces?: number;
+        sampled?: boolean;
     });
     /**
      * Starts a new span.
@@ -132,7 +160,7 @@ export class Tracer {
      * @returns {Span}
      */
     startSpan(name: string, options?: {
-        parent?: Span | undefined;
+        parent?: Span;
         attributes?: any;
     }): Span;
     /**
@@ -166,7 +194,7 @@ export class Tracer {
      * @returns {Object}
      */
     exportTraces(options?: {
-        traceId?: string | undefined;
+        traceId?: string;
     }): any;
     /**
      * Clears all traces.
@@ -183,42 +211,19 @@ export class Tracer {
      * @param {Span} span
      */
     _onSpanEnd(span: Span): void;
-    #private;
 }
+/**
+ * Creates a CrossBus plugin that automatically traces messages.
+ *
+ * @param {Tracer} tracer - Tracer instance
+ * @returns {Object} Plugin with inbound/outbound hooks
+ *
+ * @example
+ * const tracer = new Tracer('my-app');
+ * const unhook = bus.addOutboundHook(tracingPlugin(tracer).outbound);
+ */
+export declare function tracingPlugin(tracer: Tracer): any;
 /**
  * Default global tracer instance.
  */
-export const globalTracer: Tracer;
-export type SpanContext = {
-    /**
-     * - 32-char hex trace ID
-     */
-    traceId: string;
-    /**
-     * - 16-char hex span ID
-     */
-    spanId: string;
-    /**
-     * - Parent span ID
-     */
-    parentSpanId?: string | undefined;
-    /**
-     * - Trace flags (1 = sampled)
-     */
-    traceFlags: number;
-};
-export type SpanEvent = {
-    /**
-     * - Event name
-     */
-    name: string;
-    /**
-     * - Unix timestamp in ms
-     */
-    timestamp: number;
-    /**
-     * - Event attributes
-     */
-    attributes?: any;
-};
-export type SpanStatus = "unset" | "ok" | "error";
+export declare const globalTracer: Tracer;

@@ -1,4 +1,71 @@
 /**
+ * @fileoverview Secure handshake protocol for peer negotiation.
+ * Handles connection establishment, authentication, and capability exchange.
+ * @module security/handshake
+ */
+export type HandshakeConfig = {
+    /**
+     * - Our peer ID (auto-generated if not specified).
+     */
+    peerId?: string;
+    /**
+     * - Handshake timeout in ms.
+     */
+    timeout?: number;
+    /**
+     * - Metadata to share with peer.
+     */
+    meta?: any;
+    /**
+     * - Supported capabilities.
+     */
+    capabilities?: string[];
+};
+export type PeerInfo = {
+    /**
+     * - Remote peer's ID.
+     */
+    peerId: string;
+    /**
+     * - Remote peer's origin.
+     */
+    origin: string;
+    /**
+     * - Remote peer's type (iframe, worker, etc).
+     */
+    type: string;
+    /**
+     * - Remote peer's metadata.
+     */
+    meta: any;
+    /**
+     * - Remote peer's capabilities.
+     */
+    capabilities: string[];
+    /**
+     * - Connection timestamp.
+     */
+    connectedAt: number;
+};
+export type HandshakeResult = {
+    /**
+     * - Whether handshake succeeded.
+     */
+    success: boolean;
+    /**
+     * - Peer info if successful.
+     */
+    peer?: PeerInfo;
+    /**
+     * - Error code if failed.
+     */
+    error?: string;
+    /**
+     * - Error reason if failed.
+     */
+    reason?: string;
+};
+/**
  * @typedef {Object} HandshakeConfig
  * @property {string} [peerId] - Our peer ID (auto-generated if not specified).
  * @property {number} [timeout=10000] - Handshake timeout in ms.
@@ -43,7 +110,8 @@
  *     │  ✓ Connected                      │
  * ```
  */
-export class Handshake {
+export declare class Handshake {
+    #private;
     /** Maximum responder handshakes awaiting completion. */
     static MAX_PENDING_RESPONSES: number;
     /**
@@ -113,67 +181,4 @@ export class Handshake {
      * Cancels all pending handshakes.
      */
     cancelAll(): void;
-    #private;
 }
-export type HandshakeConfig = {
-    /**
-     * - Our peer ID (auto-generated if not specified).
-     */
-    peerId?: string | undefined;
-    /**
-     * - Handshake timeout in ms.
-     */
-    timeout?: number | undefined;
-    /**
-     * - Metadata to share with peer.
-     */
-    meta?: any;
-    /**
-     * - Supported capabilities.
-     */
-    capabilities?: string[] | undefined;
-};
-export type PeerInfo = {
-    /**
-     * - Remote peer's ID.
-     */
-    peerId: string;
-    /**
-     * - Remote peer's origin.
-     */
-    origin: string;
-    /**
-     * - Remote peer's type (iframe, worker, etc).
-     */
-    type: string;
-    /**
-     * - Remote peer's metadata.
-     */
-    meta: any;
-    /**
-     * - Remote peer's capabilities.
-     */
-    capabilities: string[];
-    /**
-     * - Connection timestamp.
-     */
-    connectedAt: number;
-};
-export type HandshakeResult = {
-    /**
-     * - Whether handshake succeeded.
-     */
-    success: boolean;
-    /**
-     * - Peer info if successful.
-     */
-    peer?: PeerInfo | undefined;
-    /**
-     * - Error code if failed.
-     */
-    error?: string | undefined;
-    /**
-     * - Error reason if failed.
-     */
-    reason?: string | undefined;
-};

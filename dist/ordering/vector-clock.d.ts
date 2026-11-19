@@ -26,28 +26,15 @@
  *   deliver(message);
  * }
  */
-export class VectorClock {
-    /**
-     * Deserializes from JSON object.
-     *
-     * @param {{ ownId: string, counters: Object<string, number> }} json
-     * @returns {VectorClock}
-     */
-    static fromJSON(json: {
-        ownId: string;
-        counters: {
-            [x: string]: number;
-        };
-    }): VectorClock;
+export declare class VectorClock {
+    #private;
     /**
      * Creates a new vector clock.
      *
      * @param {string} ownId - This node's unique identifier
      * @param {Object<string, number>} [initial={}] - Initial counter values
      */
-    constructor(ownId: string, initial?: {
-        [x: string]: number;
-    });
+    constructor(ownId: string, initial?: Record<string, number>);
     /**
      * Gets this node's ID.
      * @returns {string}
@@ -121,14 +108,21 @@ export class VectorClock {
      */
     toJSON(): {
         ownId: string;
-        counters: {
-            [x: string]: number;
-        };
+        counters: Record<string, number>;
     };
+    /**
+     * Deserializes from JSON object.
+     *
+     * @param {{ ownId: string, counters: Object<string, number> }} json
+     * @returns {VectorClock}
+     */
+    static fromJSON(json: {
+        ownId: string;
+        counters: Record<string, number>;
+    }): VectorClock;
     /**
      * Returns human-readable representation.
      * @returns {string}
      */
     toString(): string;
-    #private;
 }

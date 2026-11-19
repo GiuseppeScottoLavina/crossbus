@@ -311,7 +311,7 @@ CrossBus ran with its default guards and 30-second deadlines. The other librarie
 | Node.js | 18+. CI installs the packed package on Node 18, 20, 22 and 24. |
 | Bun | Used for development and the test suites. |
 | Browsers | Chrome is tested in CI. The 0.1.5 focused qualification passed on Chrome 155, Firefox 160, Safari 27.2 and physical iPad Safari 27.2 ([receipts](docs/QUALIFICATION.md)). |
-| TypeScript | Bundled declarations are checked with strict consumers on TypeScript 6.0 and 5.9. |
+| TypeScript | Bundled declarations are checked with strict consumers on TypeScript 7.0, 6.0 and 5.9. |
 | iOS / macOS | Swift adapter for WKWebView, iOS 15+ / macOS 12+ (SwiftPM or CocoaPods from source) |
 | Android | Java adapter for AndroidX WebView, API 23+ (local Gradle AAR) |
 

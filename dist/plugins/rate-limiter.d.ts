@@ -1,17 +1,27 @@
 /**
- * Helper to rate limit a CrossBus instance.
+ * @fileoverview Rate Limiter plugin for CrossBus.
+ * Prevents message flooding with configurable rate limits.
  *
- * @param {import("../core/cross-bus.js").CrossBus} bus - CrossBus instance
- * @param {RateLimiterOptions} options - Rate limiter options
- * @returns {RateLimiter} The rate limiter (for inspection)
- *
- * @example
- * const limiter = withRateLimiter(bus, {
- *   maxRequests: 50,
- *   windowMs: 1000
- * });
+ * @module plugins/rate-limiter
  */
-export function withRateLimiter(bus: import("../core/cross-bus.js").CrossBus, options?: RateLimiterOptions): RateLimiter;
+export type RateLimiterOptions = {
+    /**
+     * - Maximum requests per window
+     */
+    maxRequests?: number;
+    /**
+     * - Time window in milliseconds
+     */
+    windowMs?: number;
+    /**
+     * - 'sliding' or 'fixed' window
+     */
+    strategy?: string;
+    /**
+     * - Called when limit exceeded
+     */
+    onLimitExceeded?: Function | null;
+};
 /**
  * Rate limiter using token bucket algorithm.
  *
@@ -33,7 +43,8 @@ export function withRateLimiter(bus: import("../core/cross-bus.js").CrossBus, op
  * // Or use as hook
  * bus.addOutboundHook(limiter.createHook());
  */
-export class RateLimiter {
+export declare class RateLimiter {
+    #private;
     /**
      * Creates a new rate limiter.
      *
@@ -84,30 +95,25 @@ export class RateLimiter {
     createHook(options?: {
         perPeer?: boolean;
         throwOnLimit?: boolean;
-    }): import("../core/cross-bus.js").MessageHook;
+    }): import('../core/cross-bus.js').MessageHook;
     /**
      * Cleans up per-peer limiters for disconnected peers.
      *
      * @param {string[]} activePeers - List of currently active peer IDs
      */
     cleanup(activePeers: string[]): void;
-    #private;
 }
-export type RateLimiterOptions = {
-    /**
-     * - Maximum requests per window
-     */
-    maxRequests?: number | undefined;
-    /**
-     * - Time window in milliseconds
-     */
-    windowMs?: number | undefined;
-    /**
-     * - 'sliding' or 'fixed' window
-     */
-    strategy?: string | undefined;
-    /**
-     * - Called when limit exceeded
-     */
-    onLimitExceeded?: Function | null | undefined;
-};
+/**
+ * Helper to rate limit a CrossBus instance.
+ *
+ * @param {import("../core/cross-bus.js").CrossBus} bus - CrossBus instance
+ * @param {RateLimiterOptions} options - Rate limiter options
+ * @returns {RateLimiter} The rate limiter (for inspection)
+ *
+ * @example
+ * const limiter = withRateLimiter(bus, {
+ *   maxRequests: 50,
+ *   windowMs: 1000
+ * });
+ */
+export declare function withRateLimiter(bus: import("../core/cross-bus.js").CrossBus, options?: RateLimiterOptions): RateLimiter;

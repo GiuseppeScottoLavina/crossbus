@@ -5,8 +5,11 @@
 
 /**
  * Error codes for CrossBus.
+ * @typedef {string} ErrorCode
+ */
+/**
+ * Error codes for CrossBus.
  * @readonly
- * @enum {string}
  */
 const ErrorCode = Object.freeze({
     // Connection errors

@@ -8,8 +8,11 @@
 
 /**
  * Error codes for CrossBus.
+ * @typedef {string} ErrorCode
+ */
+/**
+ * Error codes for CrossBus.
  * @readonly
- * @enum {string}
  */
 const ErrorCode = Object.freeze({
     // Connection errors
@@ -761,7 +764,7 @@ function measurePayload(root, limit) {
         }
         if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
         if (!pending?.length) return;
-        value = pending.pop();
+        value = /** @type {object} */ (pending.pop());
     }
 }
 
@@ -1492,8 +1495,11 @@ const PROTOCOL_VERSION = 1;
 
 /**
  * Message type codes (compact for wire efficiency).
+ * @typedef {string} MessageType
+ */
+/**
+ * Message type codes (compact for wire efficiency).
  * @readonly
- * @enum {string}
  */
 const MessageType = Object.freeze({
     /** Signal - one-way message */
@@ -1521,8 +1527,11 @@ const MessageType = Object.freeze({
 
 /**
  * Handshake phase codes.
+ * @typedef {string} HandshakePhase
+ */
+/**
+ * Handshake phase codes.
  * @readonly
- * @enum {string}
  */
 const HandshakePhase = Object.freeze({
     INIT: 'init',
@@ -1534,8 +1543,11 @@ const HandshakePhase = Object.freeze({
 
 /**
  * Peer connection status.
+ * @typedef {string} PeerStatus
+ */
+/**
+ * Peer connection status.
  * @readonly
- * @enum {string}
  */
 const PeerStatus = Object.freeze({
     CONNECTING: 'connecting',
@@ -1547,8 +1559,11 @@ const PeerStatus = Object.freeze({
 
 /**
  * Peer type (transport mechanism).
+ * @typedef {string} PeerType
+ */
+/**
+ * Peer type (transport mechanism).
  * @readonly
- * @enum {string}
  */
 const PeerType = Object.freeze({
     IFRAME: 'iframe',
@@ -1560,8 +1575,11 @@ const PeerType = Object.freeze({
 
 /**
  * Delivery status for emit results.
+ * @typedef {string} DeliveryStatus
+ */
+/**
+ * Delivery status for emit results.
  * @readonly
- * @enum {string}
  */
 const DeliveryStatus = Object.freeze({
     /** Delivered to local listeners only */
@@ -4125,6 +4143,7 @@ class CrossBus extends EventEmitter {
         const handler = this.#handlers.get(handlerName);
         /** @type {{ code: string, message: string } | null} */
         let failure = null;
+        /** @type {ReturnType<typeof createResponseMessage> | null} */
         let response = null;
 
         if (!handler) {
@@ -5922,8 +5941,8 @@ function createPresence(bus, options = {}) {
 /**
  * @typedef {Object} Serializer
  * @property {string} contentType - MIME type of the serialization format.
- * @property {function(*): string} serialize - Encodes data.
- * @property {function(string): *} deserialize - Decodes data.
+ * @property {(data: any) => string} serialize - Encodes data.
+ * @property {(data: string) => any} deserialize - Decodes data.
  */
 
 /**

@@ -1,10 +1,11 @@
-export function streamFailure(message: any, code?: string): Error & {
+export declare const FLOW_VERSION = 1;
+export declare function streamFailure(message: any, code?: string): Error & {
     code: string;
 };
-export function positiveInteger(value: any, name: any, allowZero?: boolean): any;
-export const FLOW_VERSION: 1;
+export declare function positiveInteger(value: any, name: any, allowZero?: boolean): any;
 /** A single waiter/timer per writer, with cumulative acknowledgements. */
-export class StreamWindow {
+export declare class StreamWindow {
+    #private;
     constructor(windowSize: any, timeout: any);
     start(): void;
     close(): void;
@@ -15,5 +16,4 @@ export class StreamWindow {
     ready(): Promise<void>;
     credit(): Promise<void>;
     ended(): Promise<void>;
-    #private;
 }

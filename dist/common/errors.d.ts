@@ -1,31 +1,17 @@
 /**
- * Checks if an error is a CrossBusError.
- *
- * @param {*} err - Value to check.
- * @returns {boolean}
- */
-export function isCrossBusError(err: any): boolean;
-/**
- * Checks if an error is retryable.
- *
- * @param {Error} err - Error to check.
- * @returns {boolean}
- */
-export function isRetryable(err: Error): boolean;
-/**
- * Error codes for CrossBus.
+ * @fileoverview Centralized error handling for CrossBus.
+ * @module common/errors
  */
 export type ErrorCode = string;
 /**
- * @fileoverview Centralized error handling for CrossBus.
- * @module common/errors
+ * Error codes for CrossBus.
+ * @typedef {string} ErrorCode
  */
 /**
  * Error codes for CrossBus.
  * @readonly
- * @enum {string}
  */
-export const ErrorCode: Readonly<{
+export declare const ErrorCode: Readonly<{
     HANDSHAKE_TIMEOUT: "ERR_HANDSHAKE_TIMEOUT";
     HANDSHAKE_REJECTED: "ERR_HANDSHAKE_REJECTED";
     ORIGIN_FORBIDDEN: "ERR_ORIGIN_FORBIDDEN";
@@ -80,39 +66,7 @@ export const ErrorCode: Readonly<{
  *   }
  * }
  */
-export class CrossBusError extends Error {
-    /**
-     * Creates error from code with default message.
-     *
-     * @param {ErrorCode} code - Error code.
-     * @param {Object} [details] - Error context.
-     * @returns {CrossBusError}
-     */
-    static from(code: ErrorCode, details?: any): CrossBusError;
-    /**
-     * Creates error from another error.
-     *
-     * @param {ErrorCode} code - Error code.
-     * @param {Error} cause - Original error.
-     * @param {Object} [details] - Additional context.
-     * @returns {CrossBusError}
-     */
-    static wrap(code: ErrorCode, cause: Error, details?: any): CrossBusError;
-    /**
-     * Creates a new CrossBusError.
-     *
-     * @param {ErrorCode} code - Error code.
-     * @param {string} [message] - Custom message (uses default if omitted).
-     * @param {Object} [options] - Additional options.
-     * @param {Object} [options.details={}] - Error context.
-     * @param {boolean} [options.retryable] - Override default retryable.
-     * @param {Error} [options.cause] - Original error.
-     */
-    constructor(code: ErrorCode, message?: string, options?: {
-        details?: any;
-        retryable?: boolean | undefined;
-        cause?: Error | undefined;
-    });
+export declare class CrossBusError extends Error {
     /**
      * Error code.
      * @type {ErrorCode}
@@ -139,8 +93,59 @@ export class CrossBusError extends Error {
      */
     timestamp: number;
     /**
+     * Creates a new CrossBusError.
+     *
+     * @param {ErrorCode} code - Error code.
+     * @param {string} [message] - Custom message (uses default if omitted).
+     * @param {Object} [options] - Additional options.
+     * @param {Object} [options.details={}] - Error context.
+     * @param {boolean} [options.retryable] - Override default retryable.
+     * @param {Error} [options.cause] - Original error.
+     */
+    constructor(code: ErrorCode, message?: string, options?: {
+        details?: any;
+        retryable?: boolean;
+        cause?: Error;
+    });
+    /**
+     * Creates error from code with default message.
+     *
+     * @param {ErrorCode} code - Error code.
+     * @param {Object} [details] - Error context.
+     * @returns {CrossBusError}
+     */
+    static from(code: ErrorCode, details?: any): CrossBusError;
+    /**
+     * Creates error from another error.
+     *
+     * @param {ErrorCode} code - Error code.
+     * @param {Error} cause - Original error.
+     * @param {Object} [details] - Additional context.
+     * @returns {CrossBusError}
+     */
+    static wrap(code: ErrorCode, cause: Error, details?: any): CrossBusError;
+    /**
      * Converts error to JSON-serializable object.
      * @returns {Object}
      */
     toJSON(): any;
+    /**
+     * String representation.
+     * @returns {string}
+     */
+    toString(): string;
 }
+/**
+ * Checks if an error is a CrossBusError.
+ *
+ * @param {*} err - Value to check.
+ * @returns {boolean}
+ */
+export declare function isCrossBusError(err: any): boolean;
+/**
+ * Checks if an error is retryable.
+ *
+ * @param {Error} err - Error to check.
+ * @returns {boolean}
+ */
+export declare function isRetryable(err: Error): boolean;

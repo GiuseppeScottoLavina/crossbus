@@ -263,6 +263,6 @@ function measurePayload(root, limit) {
         }
         if (bytes > limit) throw CrossBusError.from(ErrorCode.PAYLOAD_TOO_LARGE, { limit });
         if (!pending?.length) return;
-        value = pending.pop();
+        value = /** @type {object} */ (pending.pop());
     }
 }

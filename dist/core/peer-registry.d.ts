@@ -1,4 +1,74 @@
 /**
+ * @fileoverview Peer registry for managing connected peers.
+ * Tracks connection status, handles reconnection, and manages message queues.
+ * @module core/peer-registry
+ */
+export type PeerType = import('./message-types.js').PeerType;
+/** @typedef {import('./message-types.js').PeerType} PeerType */
+import { PeerStatus } from './message-types.js';
+export type PeerInfo = {
+    /**
+     * - Unique peer ID.
+     */
+    id: string;
+    /**
+     * - Type of peer (iframe, worker, etc).
+     */
+    type: PeerType;
+    /**
+     * - Peer's origin URL.
+     */
+    origin: string;
+    /**
+     * - Current connection status.
+     */
+    status: PeerStatus;
+    /**
+     * - Connection timestamp.
+     */
+    connectedAt: number;
+    /**
+     * - Last message received timestamp.
+     */
+    lastSeen?: number | null;
+    /**
+     * - Reference to the peer target (iframe, worker, etc).
+     */
+    target: any;
+    /**
+     * - MessagePort for direct communication.
+     */
+    port?: MessagePort | null;
+};
+export type QueuedMessage = {
+    /**
+     * - The protocol message.
+     */
+    message: any;
+    /**
+     * - When the message was queued.
+     */
+    timestamp: number;
+    /**
+     * - Number of retry attempts.
+     */
+    retries: number;
+};
+export type PeerRegistryConfig = {
+    /**
+     * - Max queued messages per peer.
+     */
+    maxQueueSize?: number;
+    /**
+     * - Max retry attempts for queued messages.
+     */
+    maxRetries?: number;
+    /**
+     * - Time (ms) before peer is considered stale.
+     */
+    staleTimeout?: number;
+};
+/**
  * @typedef {Object} PeerInfo
  * @property {string} id - Unique peer ID.
  * @property {PeerType} type - Type of peer (iframe, worker, etc).
@@ -41,7 +111,8 @@
  * // Update status
  * registry.updateStatus('widget-iframe', 'connected');
  */
-export class PeerRegistry {
+export declare class PeerRegistry {
+    #private;
     /**
      * Creates a new PeerRegistry.
      *
@@ -73,7 +144,7 @@ export class PeerRegistry {
         type: PeerType;
         origin: string;
         target: any;
-        port?: MessagePort | null | undefined;
+        port?: MessagePort | null;
     }): PeerInfo;
     /**
      * Gets a peer by ID.
@@ -171,7 +242,7 @@ export class PeerRegistry {
      * @param {EventListener} handler - Event handler.
      * @returns {Function} Unsubscribe function.
      */
-    on(event: "add" | "remove" | "statusChange", handler: EventListener): Function;
+    on(event: 'add' | 'remove' | 'statusChange', handler: EventListener): Function;
     /**
      * Finds stale peers (no activity for staleTimeout).
      *
@@ -182,69 +253,4 @@ export class PeerRegistry {
      * Clears all peers and queues.
      */
     clear(): void;
-    #private;
 }
-export type PeerType = import("./message-types.js").PeerType;
-export type PeerInfo = {
-    /**
-     * - Unique peer ID.
-     */
-    id: string;
-    /**
-     * - Type of peer (iframe, worker, etc).
-     */
-    type: PeerType;
-    /**
-     * - Peer's origin URL.
-     */
-    origin: string;
-    /**
-     * - Current connection status.
-     */
-    status: PeerStatus;
-    /**
-     * - Connection timestamp.
-     */
-    connectedAt: number;
-    /**
-     * - Last message received timestamp.
-     */
-    lastSeen?: number | null | undefined;
-    /**
-     * - Reference to the peer target (iframe, worker, etc).
-     */
-    target: any;
-    /**
-     * - MessagePort for direct communication.
-     */
-    port?: MessagePort | null | undefined;
-};
-export type QueuedMessage = {
-    /**
-     * - The protocol message.
-     */
-    message: any;
-    /**
-     * - When the message was queued.
-     */
-    timestamp: number;
-    /**
-     * - Number of retry attempts.
-     */
-    retries: number;
-};
-export type PeerRegistryConfig = {
-    /**
-     * - Max queued messages per peer.
-     */
-    maxQueueSize?: number | undefined;
-    /**
-     * - Max retry attempts for queued messages.
-     */
-    maxRetries?: number | undefined;
-    /**
-     * - Time (ms) before peer is considered stale.
-     */
-    staleTimeout?: number | undefined;
-};
-import { PeerStatus } from './message-types.js';

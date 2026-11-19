@@ -1,4 +1,40 @@
 /**
+ * @fileoverview MessageChannel transport for direct 1:1 peer communication.
+ * Uses the MessageChannel API for efficient, low-latency communication.
+ * @module transports/message-channel
+ */
+export type MessageChannelTransportOptions = {
+    /**
+     * - Auto-detect and transfer transferable objects.
+     */
+    autoTransfer?: boolean;
+    /**
+     * - Serialization format.
+     */
+    contentType?: string;
+    /**
+     * - Compact requires 0.1.3+ receivers; compact-v2 requires 0.1.6+ receivers.
+     */
+    wireFormat?: 'standard' | 'compact' | 'compact-v2';
+};
+export type ChannelPair = {
+    /**
+     * - Local port (we listen on this).
+     */
+    local: MessagePort;
+    /**
+     * - Remote port (send this to other context).
+     */
+    remote: MessagePort;
+};
+export type MessageContext = {
+    /**
+     * - Always 'channel' for this transport.
+     */
+    origin: string;
+};
+export type MessageHandler = (message: any, context: MessageContext) => any;
+/**
  * @typedef {Object} MessageChannelTransportOptions
  * @property {boolean} [autoTransfer=false] - Auto-detect and transfer transferable objects.
  * @property {string} [contentType='application/json'] - Serialization format.
@@ -51,7 +87,8 @@
  *   bus.addTransport(transport, { peerId: 'parent', origin: 'channel' });
  * });
  */
-export class MessageChannelTransport {
+export declare class MessageChannelTransport {
+    #private;
     /**
      * Checks if MessageChannel API is available.
      *
@@ -84,7 +121,7 @@ export class MessageChannelTransport {
      */
     get remotePort(): MessagePort | null;
     /** Gets the selected outgoing encoding. Receivers accept standard and both compact versions. */
-    get wireFormat(): "standard" | "compact" | "compact-v2";
+    get wireFormat(): "compact" | "compact-v2" | "standard";
     /**
      * Marks the remote port as transferred (called automatically when used).
      */
@@ -122,36 +159,4 @@ export class MessageChannelTransport {
      * @returns {boolean}
      */
     get isDestroyed(): boolean;
-    #private;
 }
-export type MessageChannelTransportOptions = {
-    /**
-     * - Auto-detect and transfer transferable objects.
-     */
-    autoTransfer?: boolean | undefined;
-    /**
-     * - Serialization format.
-     */
-    contentType?: string | undefined;
-    /**
-     * - Compact requires 0.1.3+ receivers; compact-v2 requires 0.1.6+ receivers.
-     */
-    wireFormat?: "standard" | "compact" | "compact-v2" | undefined;
-};
-export type ChannelPair = {
-    /**
-     * - Local port (we listen on this).
-     */
-    local: MessagePort;
-    /**
-     * - Remote port (send this to other context).
-     */
-    remote: MessagePort;
-};
-export type MessageContext = {
-    /**
-     * - Always 'channel' for this transport.
-     */
-    origin: string;
-};
-export type MessageHandler = (message: any, context: MessageContext) => any;

@@ -1,4 +1,22 @@
 /**
+ * @fileoverview ServiceWorker transport for messaging an application-provided worker.
+ * Storage, offline queues and background sync are application responsibilities.
+ * @module transports/service-worker
+ */
+export type ServiceWorkerTransportOptions = {
+    /**
+     * - Timeout waiting for ready state.
+     */
+    timeout?: number;
+};
+export type MessageContext = {
+    /**
+     * - Always 'serviceworker' for this transport.
+     */
+    origin: string;
+};
+export type MessageHandler = (message: any, context: MessageContext) => any;
+/**
  * @typedef {Object} ServiceWorkerTransportOptions
  * @property {number} [timeout=5000] - Timeout waiting for ready state.
  */
@@ -33,7 +51,8 @@
  * // Cleanup
  * transport.destroy();
  */
-export class ServiceWorkerTransport {
+export declare class ServiceWorkerTransport {
+    #private;
     /**
      * Checks if ServiceWorker API is available.
      *
@@ -79,18 +98,4 @@ export class ServiceWorkerTransport {
      * @returns {boolean}
      */
     get isDestroyed(): boolean;
-    #private;
 }
-export type ServiceWorkerTransportOptions = {
-    /**
-     * - Timeout waiting for ready state.
-     */
-    timeout?: number | undefined;
-};
-export type MessageContext = {
-    /**
-     * - Always 'serviceworker' for this transport.
-     */
-    origin: string;
-};
-export type MessageHandler = (message: any, context: MessageContext) => any;

@@ -7,8 +7,8 @@
 /**
  * @typedef {Object} Serializer
  * @property {string} contentType - MIME type of the serialization format.
- * @property {function(*): string} serialize - Encodes data.
- * @property {function(string): *} deserialize - Decodes data.
+ * @property {(data: any) => string} serialize - Encodes data.
+ * @property {(data: string) => any} deserialize - Decodes data.
  */
 
 /**

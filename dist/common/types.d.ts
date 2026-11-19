@@ -1,47 +1,28 @@
 /**
- * Checks if an object is a valid CrossBus message.
- *
- * @param {*} obj - Object to check.
- * @returns {boolean} True if valid protocol message.
+ * @fileoverview Common types and constants shared across all modules.
+ * This module is included in the common bundle to avoid duplication.
+ * @module common/types
  */
-export function isProtocolMessage(obj: any): boolean;
-/**
- * Checks if a value is transferable.
- *
- * @param {*} value - Value to check.
- * @returns {boolean} True if transferable.
- */
-export function isTransferable(value: any): boolean;
-/**
- * Finds transferable objects without recursive calls or per-value result arrays.
- * Typed views transfer their actual same-realm backing ArrayBuffer. Node Buffers
- * keep copy semantics because their backing storage may belong to a shared slab.
- *
- * @param {*} value - Value to search.
- * @param {Set<Transferable>} [found] - Set to collect transferables.
- * @returns {Transferable[]} Array of transferables found.
- */
-export function findTransferables(value: any, found?: Set<Transferable>, seen?: Set<any>): Transferable[];
 /**
  * Protocol marker for CrossBus messages.
  * @constant {string}
  */
-export const PROTOCOL_MARKER: "_cb";
+export declare const PROTOCOL_MARKER = "_cb";
 /**
  * Current protocol version.
  * @constant {number}
  */
-export const PROTOCOL_VERSION: 1;
-/**
- * Message type codes (compact for wire efficiency).
- */
+export declare const PROTOCOL_VERSION = 1;
 export type MessageType = string;
 /**
  * Message type codes (compact for wire efficiency).
- * @readonly
- * @enum {string}
+ * @typedef {string} MessageType
  */
-export const MessageType: Readonly<{
+/**
+ * Message type codes (compact for wire efficiency).
+ * @readonly
+ */
+export declare const MessageType: Readonly<{
     /** Signal - one-way message */
     SIGNAL: "sig";
     /** Request - expects response */
@@ -64,64 +45,64 @@ export const MessageType: Readonly<{
     /** Broadcast - message for all peers */
     BROADCAST: "bc";
 }>;
-/**
- * Handshake phase codes.
- */
 export type HandshakePhase = string;
 /**
  * Handshake phase codes.
- * @readonly
- * @enum {string}
+ * @typedef {string} HandshakePhase
  */
-export const HandshakePhase: Readonly<{
+/**
+ * Handshake phase codes.
+ * @readonly
+ */
+export declare const HandshakePhase: Readonly<{
     INIT: "init";
     INIT_SENT: "init_sent";
     ACK: "ack";
     ACK_SENT: "ack_sent";
     DONE: "done";
 }>;
-/**
- * Peer connection status.
- */
 export type PeerStatus = string;
 /**
  * Peer connection status.
- * @readonly
- * @enum {string}
+ * @typedef {string} PeerStatus
  */
-export const PeerStatus: Readonly<{
+/**
+ * Peer connection status.
+ * @readonly
+ */
+export declare const PeerStatus: Readonly<{
     CONNECTING: "connecting";
     CONNECTED: "connected";
     DISCONNECTED: "disconnected";
     RECONNECTING: "reconnecting";
     FAILED: "failed";
 }>;
-/**
- * Peer type (transport mechanism).
- */
 export type PeerType = string;
 /**
  * Peer type (transport mechanism).
- * @readonly
- * @enum {string}
+ * @typedef {string} PeerType
  */
-export const PeerType: Readonly<{
+/**
+ * Peer type (transport mechanism).
+ * @readonly
+ */
+export declare const PeerType: Readonly<{
     IFRAME: "iframe";
     WORKER: "worker";
     SERVICE_WORKER: "sw";
     WINDOW: "window";
     PORT: "port";
 }>;
-/**
- * Delivery status for emit results.
- */
 export type DeliveryStatus = string;
 /**
  * Delivery status for emit results.
- * @readonly
- * @enum {string}
+ * @typedef {string} DeliveryStatus
  */
-export const DeliveryStatus: Readonly<{
+/**
+ * Delivery status for emit results.
+ * @readonly
+ */
+export declare const DeliveryStatus: Readonly<{
     /** Delivered to local listeners only */
     LOCAL: "local";
     /** Sent to peer (no ACK requested) */
@@ -140,20 +121,44 @@ export const DeliveryStatus: Readonly<{
  * @readonly
  * @type {Object}
  */
-export const Defaults: any;
+export declare const Defaults: any;
+/**
+ * Checks if an object is a valid CrossBus message.
+ *
+ * @param {*} obj - Object to check.
+ * @returns {boolean} True if valid protocol message.
+ */
+export declare function isProtocolMessage(obj: any): boolean;
 /**
  * List of transferable types for auto-detection.
  * @constant {Function[]}
  */
-export const TransferableTypes: (ArrayBufferConstructor | {
+export declare const TransferableTypes: (ArrayBufferConstructor | {
     new (): MessagePort;
     prototype: MessagePort;
 })[];
+/**
+ * Checks if a value is transferable.
+ *
+ * @param {*} value - Value to check.
+ * @returns {boolean} True if transferable.
+ */
+export declare function isTransferable(value: any): boolean;
+/**
+ * Finds transferable objects without recursive calls or per-value result arrays.
+ * Typed views transfer their actual same-realm backing ArrayBuffer. Node Buffers
+ * keep copy semantics because their backing storage may belong to a shared slab.
+ *
+ * @param {*} value - Value to search.
+ * @param {Set<Transferable>} [found] - Set to collect transferables.
+ * @returns {Transferable[]} Array of transferables found.
+ */
+export declare function findTransferables(value: any, found?: Set<Transferable>, seen?: Set<any>): Transferable[];
 /** Shared immutable empty metadata for internally constructed envelopes. */
-export const EMPTY_MESSAGE_META: Readonly<{}>;
+export declare const EMPTY_MESSAGE_META: Readonly<{}>;
 /**
  * Marks a signal re-dispatched locally from an already-processed batch.
  * Symbol-keyed properties are dropped by structured clone and JSON, so a
  * remote peer cannot set it. The registry key keeps separate bundles in sync.
  */
-export const BATCHED_SIGNAL: unique symbol;
+export declare const BATCHED_SIGNAL: unique symbol;

@@ -3,6 +3,17 @@
  * Supports schema evolution with migration functions.
  * @module enterprise/versioning
  */
+export type VersionedMessage = {
+    /**
+     * - Message version
+     */
+    _v: number;
+    /**
+     * - Message payload
+     */
+    payload: any;
+};
+export type MigrationFn = (oldPayload: any) => Object;
 /**
  * @typedef {Object} VersionedMessage
  * @property {number} _v - Message version
@@ -27,14 +38,15 @@
  * // Migrate a message
  * const migrated = versioning.migrate('user:updated', oldPayload, 1, 2);
  */
-export class MessageVersioning {
+export declare class MessageVersioning {
+    #private;
     /**
      * Creates a new versioning system.
      * @param {Object} [options={}] - Options
      * @param {number} [options.defaultVersion=1] - Default version for new messages
      */
     constructor(options?: {
-        defaultVersion?: number | undefined;
+        defaultVersion?: number;
     });
     /**
      * Registers a migration from one version to another.
@@ -106,20 +118,8 @@ export class MessageVersioning {
      * Clears all migrations.
      */
     clear(): void;
-    #private;
 }
 /**
  * Default global versioning instance.
  */
-export const globalVersioning: MessageVersioning;
-export type VersionedMessage = {
-    /**
-     * - Message version
-     */
-    _v: number;
-    /**
-     * - Message payload
-     */
-    payload: any;
-};
-export type MigrationFn = (oldPayload: any) => any;
+export declare const globalVersioning: MessageVersioning;
