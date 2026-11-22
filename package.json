@@ -63,6 +63,7 @@
         "examples",
         "README.md",
         "AGENTS.md",
+        "skills/crossbus",
         "CHANGELOG.md",
         "CLAUDE.md",
         "GEMINI.md",

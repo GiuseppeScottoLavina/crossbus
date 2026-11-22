@@ -357,6 +357,7 @@ The `compact-v2` example ([rpc-compact-v2.mjs](examples/quickstart/rpc-compact-v
 | [Benchmarks](docs/BENCHMARKS.md) | Methodology and reproduction |
 | [Examples](docs/EXAMPLES.md) | Runnable demos and application scaffolds |
 | [AI agent guide](docs/AI-GUIDE.md) | Using CrossBus between agent contexts |
+| [CrossBus integration skill](skills/crossbus/SKILL.md) | A runnable two-peer example, transport selection, troubleshooting, and recipes for coding agents. Copy the `skills/crossbus/` directory to use it in another project. |
 
 ## Development
 

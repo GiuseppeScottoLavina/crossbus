@@ -1,9 +1,10 @@
 // Copy beside a clean consumer's node_modules after installing the packed tgz.
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { readFile, access } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { CrossBus, MessageChannelTransport, EventEmitter } from 'crossbus';
 const require = createRequire(import.meta.url);
 const root = resolve(dirname(require.resolve('crossbus')), '..');
@@ -29,6 +30,18 @@ for (const file of [
     'examples/quickstart/stream.mjs'
 ])
     await access(resolve(root, file));
+
+const skill = await readFile(resolve(root, 'skills/crossbus/SKILL.md'), 'utf8');
+const example = skill.match(/^```js\r?\n([\s\S]*?)\r?\n```$/m);
+assert.ok(example, 'The packaged CrossBus skill must include a runnable JavaScript example');
+const output = execFileSync(process.execPath, ['--input-type=module'], {
+    cwd: dirname(fileURLToPath(import.meta.url)),
+    input: example[1],
+    encoding: 'utf8',
+    timeout: 10000
+});
+assert.equal(output.trim(), '5', 'Unexpected result from the packaged skill example');
+
 async function checkStream(lib, binaryEncoding) {
     const left = new lib.MessageChannelTransport({ autoTransfer: binaryEncoding === 'native' });
     const right = lib.MessageChannelTransport.fromPort(left.remotePort);

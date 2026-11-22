@@ -3,6 +3,7 @@
 Cross-context signals and request/response for browser applications. No runtime npm dependencies.
 
 - Integration rules: AGENTS.md
+- CrossBus integration skill for coding agents: skills/crossbus/SKILL.md
 - Implemented API: docs/API.md
 - Working examples: docs/GETTING_STARTED.md
 - Architecture and boundaries: docs/ARCHITECTURE.md
