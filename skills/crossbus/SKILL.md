@@ -6,7 +6,7 @@ license: Apache-2.0
 
 # CrossBus
 
-Identify the caller, the receiver, and what the caller needs back. For a remote operation, wire both endpoints and register the receiving handler or listener before sending. These recipes target CrossBus 0.1.8. In an existing project, use the installed version's exports and types.
+Identify the caller, the receiver, and what the caller needs back. For a remote operation, wire both endpoints and register the receiving handler or listener before sending. These recipes target CrossBus 0.1.9. In an existing project, use the installed version's exports and types.
 
 ## Choose the operation
 
@@ -21,7 +21,7 @@ Identify the caller, the receiver, and what the caller needs back. For a remote 
 
 ## Run a two-peer example
 
-In a fresh project, install `crossbus@0.1.8`. Save this as `sum.mjs` and run `node sum.mjs` with Node 18+. It prints `5` after checking the reply, the signal received by the client, and the handler's call count after invalid input.
+In a fresh project, install `crossbus@0.1.9`. Save this as `sum.mjs` and run `node sum.mjs` with Node 18+. It prints `5` after checking the reply, the signal received by the client, and the handler's call count after invalid input.
 
 ```js
 import assert from 'node:assert/strict';
@@ -71,12 +71,12 @@ In `createSecure()`, `peerId` names this endpoint. In `addTransport(transport, {
 
 | Contexts | Transport | What to wire |
 | --- | --- | --- |
-| Parent and iframe or popup | `PostMessageTransport` | On each side, pass the remote window and its exact origin as `targetOrigin` and in both the transport and bus `allowedOrigins`. For an iframe, attach its `contentWindow` and the ready listener before setting `iframe.src`. [Both endpoints](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.8/README.md#parent-page-and-cross-origin-iframe) |
-| Page and dedicated Worker | `MessageChannelTransport` | Allow `channel` on both buses. Attach the local port and register the ready listener, then transfer `channel.remotePort` in both the message and transfer list. Call `channel.markRemoteTransferred()`. The Worker binds `MessageChannelTransport.fromPort(data.port)`, installs handlers, and signals ready. Wait for ready before the first RPC. Without a bundler, use a resolvable module URL inside the Worker. [Page and Worker code](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.8/README.md#web-worker) |
+| Parent and iframe or popup | `PostMessageTransport` | On each side, pass the remote window and its exact origin as `targetOrigin` and in both the transport and bus `allowedOrigins`. For an iframe, attach its `contentWindow` and the ready listener before setting `iframe.src`. [Both endpoints](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.9/README.md#parent-page-and-cross-origin-iframe) |
+| Page and dedicated Worker | `MessageChannelTransport` | Allow `channel` on both buses. Attach the local port and register the ready listener, then transfer `channel.remotePort` in both the message and transfer list. Call `channel.markRemoteTransferred()`. The Worker binds `MessageChannelTransport.fromPort(data.port)`, installs handlers, and signals ready. Wait for ready before the first RPC. Without a bundler, use a resolvable module URL inside the Worker. [Page and Worker code](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.9/README.md#web-worker) |
 | Same-origin tabs | `BroadcastChannelTransport` | Use the same channel name and allow `broadcast`. All senders share one bound peer ID. Use this for group notifications. Give peers individual authenticated channels when an action requires per-tab authorization. |
 | Page and SharedWorker or ServiceWorker | `SharedWorkerTransport` or `ServiceWorkerTransport` | Allow `sharedworker` or `serviceworker`, respectively. Provide the worker script and its routing. Await `transport.ready` for ServiceWorker. Implement persistence in the application when offline delivery is required. |
 | Browser and server | `WebSocketTransport` | Provide a compatible JSON backend. Authenticate the connection, set an explicit fallback origin label on the binding, allow it on the bus, and await `transport.connect()` before sending. |
-| WebView and native host | `NativeBridgeTransport` | Integrate the Swift WKWebView or Java AndroidX adapter, configure the fallback origin label on the binding and bus, and await `transport.ready`. [Native host setup](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.8/native/README.md) |
+| WebView and native host | `NativeBridgeTransport` | Integrate the Swift WKWebView or Java AndroidX adapter, configure the fallback origin label on the binding and bus, and await `transport.ready`. [Native host setup](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.9/native/README.md) |
 
 `createSecure()` requires an explicit allowlist and rejects wildcards. Window messages carry their actual origin. Fixed labels such as `channel` describe the transport. Use the `origin` option on `addTransport` as a fallback only when the transport provides no origin.
 
@@ -93,4 +93,4 @@ Call the cleanup function returned by `addTransport()` to disconnect one binding
 | `ERR_MAX_PENDING` or `ERR_PAYLOAD_TOO_LARGE` | Bound concurrency or split the data into a stream. Defaults are 100 pending requests and a 1 MiB estimated in-memory payload budget. |
 | A signal reports delivery but the UI stays stale | Register the receiver before sending. Inspect `event.data.source` and `event.data.payload` there. |
 
-For streams, hub forwarding, presence, causal order, optional plugins, local emitters, or MessageChannel tuning, read the relevant section of the [advanced recipes](references/advanced.md). Use the installed package's `docs/API.md` for exact options. The [versioned API reference](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.8/docs/API.md) is also available when this skill is copied into another project.
+For streams, hub forwarding, presence, causal order, optional plugins, local emitters, or MessageChannel tuning, read the relevant section of the [advanced recipes](references/advanced.md). Use the installed package's `docs/API.md` for exact options. The [versioned API reference](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.9/docs/API.md) is also available when this skill is copied into another project.

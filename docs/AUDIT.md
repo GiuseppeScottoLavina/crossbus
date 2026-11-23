@@ -1,5 +1,21 @@
 # Local audit
 
+## 0.1.9 release qualification — 23 November 2026
+
+0.1.9 is a packaging and documentation release. `src/`, the native adapters and their SDK files are unchanged from tag `v0.1.8`, and the built files in `dist/` differ only in their version banner. The package adds the coding-agent skill in `skills/crossbus/`. No new security review was performed for this version.
+
+Release qualification (Node 24.15.0, Bun 1.3.14):
+- **Checks:** `npm ci`, `release:check`, `test:all`, `test:experiments`, `test:native` (Swift and Java compilation) and `tests/qualification/check-receipts.js` pass. A locally packed archive passes the consumer smoke test, which now also runs the skill's example from the installed package.
+- **Suites:** 1,347 tests across 95 files with zero failures:
+  - 1,176 unit/package (two new skill tests);
+  - 93 e2e;
+  - 12 integration;
+  - 22 documentation;
+  - 44 experimental.
+- **Coverage:** source line coverage is 96.75% (5,362/5,542), as in 0.1.8.
+- **Size:** the minified root is 23,677 bytes gzip level 9 and the core 12,960, as in 0.1.8; nano is 330 (0.1.8: 331) because of the banner.
+- **Devices:** no physical device was qualified for 0.1.9.
+
 ## 0.1.8 publication record
 
 On 19 November 2026, npm **0.1.8** and its `latest` tag were verified against the exact archive from [CI 44520872350](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/44520872350), source commit `7bc55be0395e5bbba6bdd489d3bbc1015391033e`. The downloaded registry tarball matches that archive byte for byte (SHA-256 `daf897aa4f97c6ef43ffda424c77e3de652a9c2809a0b8d2e4dd0d1c43403a95`), and a local `npm pack` of the same commit reproduces it. Isolated registry consumers passed on Node 18.20.8, 20.20.0, 22.19.0 and 24.15.0, including encrypted RPC with `crossbus@0.1.7` in both directions; on Node 18 the encryption check needs `--experimental-global-webcrypto`, as in earlier versions. The jsDelivr copy of `dist/crossbus.min.js` matches the archive. The [GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.8) preserves the archive, checksum and release manifest.

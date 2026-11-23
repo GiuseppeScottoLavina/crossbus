@@ -1,4 +1,4 @@
-/*! CrossBus v0.1.8 | Apache-2.0 */
+/*! CrossBus v0.1.9 | Apache-2.0 */
 /**
  * CrossBus Nano - minimal synchronous event emitter.
  *
