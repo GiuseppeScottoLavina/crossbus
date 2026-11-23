@@ -11,7 +11,7 @@
 | 0.1.6 | Published release; affected by the plugin and iOS adapter issues fixed in 0.1.7 (see the audit) |
 | 0.1.7 | Published release; affected by the encryption replay issue fixed in 0.1.8 (see the audit). Physical iPad receipts cover 0.1.5 and 0.1.7 |
 | 0.1.8 | Published release; the review after 0.1.7 and its regression tests are recorded in the audit. Physical-device receipts do not cover 0.1.8 |
-| 0.1.9 | Release qualification; runtime code is unchanged from 0.1.8 and the package adds the coding-agent skill. Physical-device receipts do not cover 0.1.9 |
+| 0.1.9 | Published release; runtime code is unchanged from 0.1.8 and the package adds the coding-agent skill. Physical-device receipts do not cover 0.1.9 |
 
 See [the audit](docs/AUDIT.md) for measured coverage and outstanding browser/device qualification. A passing suite does not establish that a version has no vulnerabilities.
 
