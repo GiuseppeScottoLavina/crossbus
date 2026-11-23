@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+- **Skill declaration:** `package.json` declares the packaged skill as `"agents": { "skills": [{ "name": "crossbus", "path": "./skills/crossbus" }] }`, for tools that read declared skills before scanning `skills/<name>/SKILL.md`. The keywords gain `agent-skills`. `tests/package/skill.test.js` checks that each declared skill ships, holds a `SKILL.md` and carries the declared name.
+
 ## [0.1.9] - 2026-11-23
 
 Packaging and documentation release. Runtime code, wire formats and the native adapters are unchanged from 0.1.8; the built files in `dist/` differ only in their version banner.
