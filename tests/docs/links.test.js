@@ -9,7 +9,7 @@ it('resolves relative documentation links and images in the checkout', async () 
         if (info.isDirectory()) for (const file of await readdir(path)) await scan(resolve(path, file));
         else if (path.endsWith('.md')) files.push(path);
     };
-    for (const path of ['README.md', 'SECURITY.md', 'AGENTS.md', 'CLAUDE.md', 'GEMINI.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'docs', 'native']) await scan(resolve(root, path));
+    for (const path of ['README.md', 'SECURITY.md', 'AGENTS.md', 'CLAUDE.md', 'GEMINI.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'docs', 'native', 'skills']) await scan(resolve(root, path));
     const broken = [];
     for (const file of files) {
         const source = (await readFile(file, 'utf8')).replace(/```[\s\S]*?```/g, '');
