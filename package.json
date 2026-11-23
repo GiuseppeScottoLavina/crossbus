@@ -144,7 +144,8 @@
         "streams",
         "encryption",
         "typescript",
-        "browser"
+        "browser",
+        "agent-skills"
     ],
     "author": "Giuseppe Scotto Lavina",
     "license": "Apache-2.0",
@@ -156,6 +157,14 @@
         "url": "https://github.com/giuseppescottolavina/crossbus/issues"
     },
     "homepage": "https://giuseppescottolavina.github.io/crossbus/",
+    "agents": {
+        "skills": [
+            {
+                "name": "crossbus",
+                "path": "./skills/crossbus"
+            }
+        ]
+    },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
         "@rollup/plugin-terser": "^1.0.0",

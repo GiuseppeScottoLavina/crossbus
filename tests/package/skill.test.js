@@ -21,6 +21,20 @@ it('runs the first JavaScript example in SKILL.md against the checkout package',
     expect(output.trim()).toBe('5');
 });
 
+it('declares each packaged skill in package.json agents.skills', async () => {
+    const pkg = JSON.parse(await read('package.json'));
+    const declared = pkg.agents?.skills ?? [];
+    expect(declared.length).toBeGreaterThan(0);
+    for (const { name, path } of declared) {
+        const dir = path.replace(/^\.\//, '');
+        // The directory must ship, hold a SKILL.md, and carry the declared name.
+        expect(pkg.files).toContain(dir);
+        const skill = await read(`${dir}/SKILL.md`);
+        expect(skill.match(/^---\r?\nname: (\S+)\r?\n/)?.[1]).toBe(name);
+        expect(dir.split('/').pop()).toBe(name);
+    }
+});
+
 it('pins the skill recipes and links to the package.json version', async () => {
     const { version } = JSON.parse(await read('package.json'));
     const pins = [];
