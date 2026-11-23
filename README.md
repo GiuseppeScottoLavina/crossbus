@@ -333,7 +333,7 @@ CrossBus is pre-1.0. Read the [changelog](CHANGELOG.md) before upgrading. Wire f
 
 | Version | Status | Main changes | Evidence |
 |---|---|---|---|
-| [0.1.9](https://www.npmjs.com/package/crossbus/v/0.1.9) | Current release ([publication record](docs/RELEASING.md)) | Ships the coding-agent skill in `skills/crossbus/`, whose example the package tests execute. Runtime code is unchanged from 0.1.8 | [skill](skills/crossbus/SKILL.md), [changelog](CHANGELOG.md) |
+| [0.1.9](https://www.npmjs.com/package/crossbus/v/0.1.9) | npm `latest` ([publication record](docs/RELEASING.md)) | Ships the coding-agent skill in `skills/crossbus/`, whose example the package tests execute. Runtime code is unchanged from 0.1.8 | [skill](skills/crossbus/SKILL.md), [changelog](CHANGELOG.md) |
 | [0.1.8](https://www.npmjs.com/package/crossbus/v/0.1.8) | Published | Encryption replay fix (concurrent copies and a full cache); opt-in `goodbye` for one-to-one transports; `StreamManager.closePeer()`; teardown and stream error fixes. Interoperates with 0.1.7 | [review after 0.1.7](docs/AUDIT.md), [changelog](CHANGELOG.md) |
 | [0.1.7](https://www.npmjs.com/package/crossbus/v/0.1.7) | Published; affected by the encryption replay issue fixed in 0.1.8 | Security fixes for the encryption, compression, schema, rate-limiter and tracing plugins and the iOS adapter; faster sequential RPC. Encrypted endpoints must upgrade together | [security audit](docs/AUDIT.md), [deadline-timer record](https://github.com/GiuseppeScottoLavina/crossbus/tree/master/benchmarks/deadline-timer-0.1.7), [changelog](CHANGELOG.md) |
 | [0.1.6](https://www.npmjs.com/package/crossbus/v/0.1.6) | Published | Opt-in `compact-v2` MessageChannel RPC (0.1.6+ receivers); faster Node base64 streams | [compact-v2 study](docs/RPC_WIRE_V2.md), [optimization snapshot](docs/OPTIMIZATION_016.md), [audit](docs/AUDIT.md) |
@@ -358,7 +358,7 @@ The `compact-v2` example ([rpc-compact-v2.mjs](examples/quickstart/rpc-compact-v
 | [Benchmarks](docs/BENCHMARKS.md) | Methodology and reproduction |
 | [Examples](docs/EXAMPLES.md) | Runnable demos and application scaffolds |
 | [AI agent guide](docs/AI-GUIDE.md) | Using CrossBus between agent contexts |
-| [CrossBus integration skill](skills/crossbus/SKILL.md) | A runnable two-peer example, transport selection, troubleshooting, and recipes for coding agents. Since 0.1.9 the npm package ships it. For Claude Code, copy `node_modules/crossbus/skills/crossbus/` to `.claude/skills/crossbus/` in your project, or to `~/.claude/skills/crossbus/` for every project. Without installing, read it from [jsDelivr](https://cdn.jsdelivr.net/npm/crossbus@0.1.9/skills/crossbus/SKILL.md). |
+| [CrossBus integration skill](skills/crossbus/SKILL.md) | A runnable two-peer example, transport selection, troubleshooting, and recipes for coding agents. Since 0.1.9 the npm package ships it. For Claude Code, copy `node_modules/crossbus/skills/crossbus/` to `.claude/skills/crossbus/` in your project, or to `~/.claude/skills/crossbus/` for every project. It follows the `skills/<name>/SKILL.md` package layout that skill sync tools scan in `node_modules`. Without installing, read it from [jsDelivr](https://cdn.jsdelivr.net/npm/crossbus@0.1.9/skills/crossbus/SKILL.md). |
 
 ## Development
 

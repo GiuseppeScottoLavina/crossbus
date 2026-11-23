@@ -1,5 +1,9 @@
 # Local audit
 
+## 0.1.9 publication record
+
+On 23 November 2026, npm **0.1.9** and its `latest` tag were verified against the exact archive from [CI 45092067921](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/45092067921), source commit `a66422c21fdfe243ae378967c2f7652c6ef54101`. The downloaded registry tarball matches that archive byte for byte (SHA-256 `dca3cef06778a9f00e9a53855b6d31bff4ba4bbd28fef5c0382b22a0e07fffcb`), and a local `npm pack` of the same commit reproduces it. Isolated registry consumers passed the packaged smoke test, including the skill's example, on Node 18.18.0, 20.20.0, 22.19.0 and 24.15.0. The jsDelivr copies of `dist/crossbus.min.js` and both skill files match the archive. The [GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.9) preserves the archive, checksum and release manifest.
+
 ## 0.1.9 release qualification — 23 November 2026
 
 0.1.9 is a packaging and documentation release. `src/`, the native adapters and their SDK files are unchanged from tag `v0.1.8`, and the built files in `dist/` differ only in their version banner. The package adds the coding-agent skill in `skills/crossbus/`. No new security review was performed for this version.

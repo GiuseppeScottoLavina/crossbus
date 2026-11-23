@@ -1,8 +1,22 @@
 # Releasing CrossBus
 
-## 0.1.8 publication — 19 November 2026
+## 0.1.9 publication — 23 November 2026
 
-Version **0.1.8 is [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.8)** and is the `latest` tag. Its registry tarball was downloaded and compared byte for byte with the archive from [CI 44520872350](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/44520872350), which passed all seven jobs. A local `npm pack` of the same commit reproduces the archive.
+Version **0.1.9 is [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.9)** and is the `latest` tag. Its registry tarball was downloaded and compared byte for byte with the archive from [CI 45092067921](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/45092067921), which passed all seven jobs. A local `npm pack` of the same commit reproduces the archive.
+
+The registry version passed isolated consumers on Node 18.18.0, 20.20.0, 22.19.0 and 24.15.0, and each install contains `node_modules/crossbus/skills/crossbus/SKILL.md`. The jsDelivr copies of `dist/crossbus.min.js`, `skills/crossbus/SKILL.md` and `skills/crossbus/references/advanced.md` match the archive, and every pinned `blob/v0.1.9/` link in the skill resolves.
+
+Annotated tag **`v0.1.9`** pins tested source commit `a66422c21fdfe243ae378967c2f7652c6ef54101`. The [GitHub release](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.9) preserves `crossbus-0.1.9.tgz`, `SHA256SUMS` and `release-manifest.json`. Its archive SHA-256 is `dca3cef06778a9f00e9a53855b6d31bff4ba4bbd28fef5c0382b22a0e07fffcb`; registry integrity is `sha512-jo/K2AVKnD8ImR4OV0Q3uvQc/ZfmYiwYi9kksIBGczZ6Sguqg3v+jLGP0glqe3YAgFPZdrYVpdP5aOXUxUvj+A==`.
+
+0.1.9 changes no runtime code: `src/`, wire formats and the native adapters are identical to 0.1.8, and `dist/` differs only in its version banner. The native adapters are unchanged since 0.1.7 (SDK version 0.1.7). CocoaPods and Maven Central are not published by this npm release. No physical device was qualified for 0.1.9.
+
+A first `npm publish` from a non-interactive session stopped at the two-factor prompt (`EOTP`) and published nothing; the package owner then published the same archive from a terminal. After the upload was accepted, registry reads answered 404 for a few minutes ([Wait for registry availability](#wait-for-registry-availability)).
+
+## Earlier publication records
+
+### 0.1.8 — 19 November 2026
+
+Version **0.1.8 is [published on npm](https://www.npmjs.com/package/crossbus/v/0.1.8)**. Its registry tarball was downloaded and compared byte for byte with the archive from [CI 44520872350](https://github.com/GiuseppeScottoLavina/crossbus/actions/runs/44520872350), which passed all seven jobs. A local `npm pack` of the same commit reproduces the archive.
 
 The registry version passed isolated consumers on Node 18.20.8, 20.20.0, 22.19.0 and 24.15.0. On each runtime it also ran encrypted RPC against `crossbus@0.1.7` from npm in both directions; with every frame duplicated on the channel, the 0.1.8 handler ran once and the 0.1.7 handler twice. The jsDelivr copy of `dist/crossbus.min.js` matches the archive.
 
@@ -11,8 +25,6 @@ Annotated tag **`v0.1.8`** pins tested source commit `7bc55be0395e5bbba6bdd489d3
 Encrypted 0.1.7 and 0.1.8 endpoints interoperate in both directions. The native adapters are unchanged since 0.1.7 (SDK version 0.1.7). CocoaPods and Maven Central are not published by this npm release. No physical device was qualified for 0.1.8; the iPad receipts cover 0.1.5 and 0.1.7.
 
 After `npm publish` accepted the upload, registry reads answered 404 for about two minutes ([Wait for registry availability](#wait-for-registry-availability)), and the tarball URL kept a cached 404 at the CDN edge for a few minutes more.
-
-## Earlier publication records
 
 ### 0.1.7 — 15 November 2026
 
