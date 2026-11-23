@@ -1,6 +1,6 @@
 # Advanced CrossBus recipes
 
-Use the section that matches the feature you need. The linked library guides are pinned to CrossBus 0.1.8. For offline use, the same paths are available in the installed package.
+Use the section that matches the feature you need. The linked library guides are pinned to CrossBus 0.1.9. For offline use, the same paths are available in the installed package.
 
 ## Forward a request through a hub
 
@@ -16,7 +16,7 @@ const preview = await editor.request('hub', 'report:preview', { text: 'Draft' })
 
 The worker authorizes its immediate caller, `hub`. The hub authorizes `editor` before forwarding. `isHub` describes the role. The application owns forwarding policy and any calls to models or tools.
 
-For progress updates, the hub sees `worker` in `event.data.source`. If the hub forwards a signal, the editor sees `hub` as its source. For a job private to one editor, record the editor's bound `ctx.peerId` when accepting the job. Accept updates from the assigned worker and route them only to that editor. For example, register a `report:progress` handler on the editor restricted to `hub`, then call `hub.request(editorId, 'report:progress', update)`. [Integration patterns](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.8/docs/ADVANCED.md)
+For progress updates, the hub sees `worker` in `event.data.source`. If the hub forwards a signal, the editor sees `hub` as its source. For a job private to one editor, record the editor's bound `ctx.peerId` when accepting the job. Accept updates from the assigned worker and route them only to that editor. For example, register a `report:progress` handler on the editor restricted to `hub`, then call `hub.request(editorId, 'report:progress', update)`. [Integration patterns](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.9/docs/ADVANCED.md)
 
 ## Send a bounded stream
 
@@ -26,7 +26,7 @@ For progress updates, the hub sees `worker` in `event.data.source`. If the hub f
 4. Open the writer with `manager.createStream(name, peerId, options)`. For a slow consumer, set `flowControl: true` and finite `ackTimeout` and `timeout` values. Await `writer.write(data)` and `writer.end()`. In flow mode, completion acknowledges that the receiver pulled the chunks. Return a separate application receipt if durable storage matters.
 5. Use `binaryEncoding: 'native'` on compatible structured-clone transports and `'base64'` on JSON bridges. Destroy each manager on teardown. When the bus owns its lifetime, use `bus.addCleanup(() => manager.destroy())` and call `manager.closePeer(peerId)` when that peer disconnects.
 
-The runnable example checks every byte received and that the sender still owns its original buffer. [MessageChannel stream example](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.8/examples/quickstart/stream.mjs) · [Flow control, budgets and shared-bus wiring](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.8/docs/STREAMING.md)
+The runnable example checks every byte received and that the sender still owns its original buffer. [MessageChannel stream example](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.9/examples/quickstart/stream.mjs) · [Flow control, budgets and shared-bus wiring](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.9/docs/STREAMING.md)
 
 ## Add a plugin
 
@@ -40,13 +40,13 @@ Load the named export from its package subpath, for example `const { withRetry }
 | Limit call frequency | `rate-limiter` | `withRateLimiter(bus, options)` limits outbound traffic. For incoming RPC, set the handler's numeric `rateLimit` option in calls per second per peer. |
 | Batch frequent signals | `batch` | Enable `withBatching(bus)` on the sender and receiver. Signals with explicit routing options go out immediately. RPC uses its usual request path. |
 | Compress payloads | `compression` | Configure `withCompression(bus, options)` on both endpoints. Set the receiver's `maxDecompressedBytes` for the expected size. |
-| Encrypt payloads | `encryption` | Provision the same key to the two trusted endpoints. Install `withEncryption(bus, key)` on both before traffic starts. The application owns authentication and key distribution. [Encryption setup](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.8/SECURITY.md#encryption-plugin) |
+| Encrypt payloads | `encryption` | Provision the same key to the two trusted endpoints. Install `withEncryption(bus, key)` on both before traffic starts. The application owns authentication and key distribution. [Encryption setup](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.9/SECURITY.md#encryption-plugin) |
 
-An observing hook returns the payload. A validating hook throws to stop processing. For isolated tests, import `createConnectedMocks` from `crossbus/testing`. For tracing, metrics or backpressure, import the required utilities from `crossbus/enterprise` and connect them to the operations being measured or limited. [Plugin and utility API](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.8/docs/API.md#optional-plugins-and-utilities)
+An observing hook returns the payload. A validating hook throws to stop processing. For isolated tests, import `createConnectedMocks` from `crossbus/testing`. For tracing, metrics or backpressure, import the required utilities from `crossbus/enterprise` and connect them to the operations being measured or limited. [Plugin and utility API](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.9/docs/API.md#optional-plugins-and-utilities)
 
 ## Track presence and causal order
 
-- **Presence.** Call `createPresence(bus)` on each participating bus to wire heartbeats, incoming signals and cleanup. On a one-to-one link with 0.1.8 or later at both ends, setting `goodbye: true` on both transport bindings also lets a deliberate disconnect cancel pending calls promptly. Leave that option off on shared channels. [Connection lifecycle](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.8/docs/API.md#connections-and-lifecycle)
+- **Presence.** Call `createPresence(bus)` on each participating bus to wire heartbeats, incoming signals and cleanup. On a one-to-one link with 0.1.8 or later at both ends, setting `goodbye: true` on both transport bindings also lets a deliberate disconnect cancel pending calls promptly. Leave that option off on shared channels. [Connection lifecycle](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.9/docs/API.md#connections-and-lifecycle)
 - **Causal order.** Create `const orderer = new CausalOrderer(bus.peerId, { onDeliver })` on each endpoint. Include `clock: orderer.tick().toJSON()` in the outgoing payload. On receipt, call `orderer.receive(event.data.source, event.data.payload)`. Apply the change in `onDeliver` so the orderer can buffer it until its dependencies arrive. Use `VectorClock` directly when the application handles ordering itself.
 
 ## Select an emitter or wire format
@@ -58,4 +58,4 @@ An observing hook returns the payload. A validating hook throws to stop processi
 | Custom transport with a core-only import | Import `CrossBus` from `crossbus/core`. The root `crossbus` entry also exports the built-in transports. |
 | MessageChannel RPC | Start with the default `standard` encoding. Select `wireFormat: 'compact'` only with 0.1.3+ receivers and `'compact-v2'` with 0.1.6+ receivers. Configure each sending endpoint explicitly. There is no wire-format negotiation. |
 
-Measure the real payload, concurrency, runtime and transport before changing encoding. Local emitter benchmarks measure callback dispatch. To evaluate worker performance, include the round trip across the worker boundary. [Wire-format measurements](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.8/docs/RPC_WIRE_V2.md)
+Measure the real payload, concurrency, runtime and transport before changing encoding. Local emitter benchmarks measure callback dispatch. To evaluate worker performance, include the round trip across the worker boundary. [Wire-format measurements](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.9/docs/RPC_WIRE_V2.md)

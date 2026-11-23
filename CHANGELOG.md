@@ -5,9 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.9] - 2026-11-23
+
+Packaging and documentation release. Runtime code, wire formats and the native adapters are unchanged from 0.1.8; the built files in `dist/` differ only in their version banner.
 
 - **Coding-agent skill:** the package now ships `skills/crossbus/` (`SKILL.md` plus `references/advanced.md`). It covers choosing between request, signal and broadcast, a two-peer MessageChannel example, transport wiring, diagnosis by error code, and recipes for streams, hubs, plugins, presence and causal order. `bun run test` runs its example against the checkout and checks that its version pins match package.json; the packed-consumer smoke test runs the same example from the installed package.
+- **Agent metadata:** `agent.json` points to the skill as `agentSkill`, and the README explains where to copy it from `node_modules/crossbus/skills/crossbus/` or how to read it from jsDelivr.
 
 ## [0.1.8] - 2026-11-19
 

@@ -1,49 +1,49 @@
 {
-  "timestamp": "2026-11-19T11:33:34.880Z",
+  "timestamp": "2026-11-23T00:36:38.544Z",
   "runtime": "v24.15.0",
   "gzipLevel": 9,
   "sizes": [
     {
       "file": "dist/crossbus.js",
       "rawBytes": 293024,
-      "gzipBytes": 62752,
-      "brotliBytes": 51504,
-      "sha256": "afbbb2086e6890887a3672093888ec1ea3532a0a871a61f73fa4374b9982854a"
+      "gzipBytes": 62753,
+      "brotliBytes": 51502,
+      "sha256": "ae6939711ca5e52f2be9f454987844703eb93941c3e7e47b0f248c2fb9c11394"
     },
     {
       "file": "dist/crossbus.min.js",
       "rawBytes": 78643,
       "gzipBytes": 23677,
-      "brotliBytes": 21000,
-      "sha256": "7b23490862216a8520291f2c4320835733c07db2ba5f49bb01a5551db1342a12"
+      "brotliBytes": 21013,
+      "sha256": "c2125b5e19cb267e8152524834e67fa6d5e1e161cf0fbeff0a26c4b6060a583a"
     },
     {
       "file": "dist/crossbus.core.js",
       "rawBytes": 156511,
       "gzipBytes": 35376,
-      "brotliBytes": 29675,
-      "sha256": "a95222f83f217b27771e3c79de8a17459c04b4dd41d7e1415d25f20d6ab739cf"
+      "brotliBytes": 29648,
+      "sha256": "07f5c8a7bef8f4d395a09c5164eefa5d4c8abc1f11bf75f93418b2fc22cc6b0c"
     },
     {
       "file": "dist/crossbus.core.min.js",
       "rawBytes": 39388,
       "gzipBytes": 12960,
-      "brotliBytes": 11492,
-      "sha256": "d3deb1ae4af307398991fa47dbb88abc7e6565fb8c4ce78d3b8e54374d2d839d"
+      "brotliBytes": 11476,
+      "sha256": "63f1208a49091bbb372fa6f812a0fb89b3fda02b23489aade422b211a8a73688"
     },
     {
       "file": "dist/nano.js",
       "rawBytes": 963,
-      "gzipBytes": 468,
+      "gzipBytes": 467,
       "brotliBytes": 439,
-      "sha256": "b046a44fb275eb67b2e50dc4b172b5ba71dbabbb53d7bb734d2e5cb121afdaf7"
+      "sha256": "923f674512c073385ed6c8ed29ec5b5ac4b21b16a030581cfe911c282134c2f9"
     },
     {
       "file": "dist/nano.min.js",
       "rawBytes": 535,
-      "gzipBytes": 331,
+      "gzipBytes": 330,
       "brotliBytes": 315,
-      "sha256": "8e268dd4ab23c911923fe97388d7dc92192e1614b71ba88d4afc94ec015bc494"
+      "sha256": "392daaee5fbb9c9ce7db97f95ea0b06c7de557924b22325e642f961c99832b84"
     },
     {
       "file": "dist/plugins/retry.js",
@@ -64,7 +64,7 @@
       "rawBytes": 23306,
       "gzipBytes": 5941,
       "brotliBytes": 5041,
-      "sha256": "fda726fe269886e23f3a61436ed5395e2fcdf98acd54f1857b17e230ce35d1be"
+      "sha256": "13f485c24b745b03b8d5831bed4627eb8471bbd38718e615c534288e8f4ad5e6"
     }
   ]
 }

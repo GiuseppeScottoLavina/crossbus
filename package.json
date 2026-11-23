@@ -1,6 +1,6 @@
 {
     "name": "crossbus",
-    "version": "0.1.8",
+    "version": "0.1.9",
     "description": "Signals, RPC and bounded streams between browser windows, iframes, Web Workers, tabs and native WebViews: one API over postMessage, MessageChannel, BroadcastChannel and WebSocket",
     "type": "module",
     "main": "dist/crossbus.cjs",

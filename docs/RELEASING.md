@@ -50,7 +50,7 @@ The RPC grouping experiments and their tests/data remain in the repository, excl
 
 ## Validate and pack a future release
 
-Use Node 24 and Bun for development. Package metadata is **0.1.8**. Its [release assets](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.8) identify the exact tested archive. Earlier npm versions and their release archives remain unchanged. Qualification and tagging are separate from registry publication; check the publication record and registry availability before declaring completion. Review the [security audit](AUDIT.md) (including the review after 0.1.7), the [deadline-timer record](https://github.com/GiuseppeScottoLavina/crossbus/tree/master/benchmarks/deadline-timer-0.1.7), the 0.1.6 studies ([optimization snapshot](OPTIMIZATION_016.md) and [compact-v2](RPC_WIRE_V2.md)), [stream compatibility](STREAMING.md) and [qualification receipts](QUALIFICATION.md) before releasing. Install the committed dependency versions and validate that checkout:
+Use Node 24 and Bun for development. Package metadata is **0.1.9**. Its [release assets](https://github.com/GiuseppeScottoLavina/crossbus/releases/tag/v0.1.9) identify the exact tested archive. Earlier npm versions and their release archives remain unchanged. Qualification and tagging are separate from registry publication; check the publication record and registry availability before declaring completion. Review the [security audit](AUDIT.md) (including the review after 0.1.7), the [deadline-timer record](https://github.com/GiuseppeScottoLavina/crossbus/tree/master/benchmarks/deadline-timer-0.1.7), the 0.1.6 studies ([optimization snapshot](OPTIMIZATION_016.md) and [compact-v2](RPC_WIRE_V2.md)), [stream compatibility](STREAMING.md) and [qualification receipts](QUALIFICATION.md) before releasing. Install the committed dependency versions and validate that checkout:
 
 ```sh
 npm ci --legacy-peer-deps
@@ -66,7 +66,7 @@ shasum -a 256 "artifacts/crossbus-${RELEASE_VERSION}.tgz"
 
 Before tagging, update the README for the new version. That means:
 
-- the pinned CDN version in the import-map example;
+- the pinned CDN versions in the import-map example and the skill link;
 - the **Versions and status** table;
 - the entry-point sizes (`node tests/benchmarks/sizes.js`);
 - the test and coverage figures under **Development**.

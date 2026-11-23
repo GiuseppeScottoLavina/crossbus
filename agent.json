@@ -1,6 +1,6 @@
 {
   "name": "CrossBus",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Cross-context signals and RPC for browser applications. No runtime npm dependencies.",
   "homepage": "https://github.com/giuseppescottolavina/crossbus",
   "documentation": "https://giuseppescottolavina.github.io/crossbus/",
@@ -208,9 +208,10 @@
     "prerequisite": "Create channel with new MessageChannelTransport(); see examples/quickstart/rpc.mjs for all imports and cleanup."
   },
   "aiGuide": "./docs/AI-GUIDE.md",
+  "agentSkill": "./skills/crossbus/SKILL.md",
   "geminiMd": "./GEMINI.md",
   "license": "Apache-2.0",
-  "lastUpdated": "2026-11-19",
+  "lastUpdated": "2026-11-23",
   "kind": "library-metadata",
-  "qualification": "Version 0.1.8: encryption replay, teardown and stream fixes from the review after 0.1.7, with regression tests and a seeded stream fuzz test, in docs/AUDIT.md. Version 0.1.7: security audit fixes; sequential RPC timer change in benchmarks/deadline-timer-0.1.7. RPC and browser checks for compact-v2 are in docs/RPC_WIRE_V2.md. Retained physical-device receipts in docs/QUALIFICATION.md cover iPad for 0.1.5 and 0.1.7 and Pixel for 0.1.5; none cover 0.1.8. Publication records are in docs/RELEASING.md."
+  "qualification": "Version 0.1.9: runtime code unchanged from 0.1.8; the package adds the coding-agent skill in skills/crossbus/, whose example is executed by the package tests. Version 0.1.8: encryption replay, teardown and stream fixes from the review after 0.1.7, with regression tests and a seeded stream fuzz test, in docs/AUDIT.md. Version 0.1.7: security audit fixes; sequential RPC timer change in benchmarks/deadline-timer-0.1.7. RPC and browser checks for compact-v2 are in docs/RPC_WIRE_V2.md. Retained physical-device receipts in docs/QUALIFICATION.md cover iPad for 0.1.5 and 0.1.7 and Pixel for 0.1.5; none cover 0.1.8. Publication records are in docs/RELEASING.md."
 }
