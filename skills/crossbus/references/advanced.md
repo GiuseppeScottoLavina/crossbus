@@ -46,7 +46,7 @@ An observing hook returns the payload. A validating hook throws to stop processi
 
 ## Track presence and causal order
 
-- **Presence.** Call `createPresence(bus)` on each participating bus to wire heartbeats, incoming signals and cleanup. On a one-to-one link with 0.1.8 at both ends, setting `goodbye: true` on both transport bindings also lets a deliberate disconnect cancel pending calls promptly. Leave that option off on shared channels. [Connection lifecycle](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.8/docs/API.md#connections-and-lifecycle)
+- **Presence.** Call `createPresence(bus)` on each participating bus to wire heartbeats, incoming signals and cleanup. On a one-to-one link with 0.1.8 or later at both ends, setting `goodbye: true` on both transport bindings also lets a deliberate disconnect cancel pending calls promptly. Leave that option off on shared channels. [Connection lifecycle](https://github.com/GiuseppeScottoLavina/crossbus/blob/v0.1.8/docs/API.md#connections-and-lifecycle)
 - **Causal order.** Create `const orderer = new CausalOrderer(bus.peerId, { onDeliver })` on each endpoint. Include `clock: orderer.tick().toJSON()` in the outgoing payload. On receipt, call `orderer.receive(event.data.source, event.data.payload)`. Apply the change in `onDeliver` so the orderer can buffer it until its dependencies arrive. Use `VectorClock` directly when the application handles ordering itself.
 
 ## Select an emitter or wire format

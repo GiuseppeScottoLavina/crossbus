@@ -71,6 +71,8 @@ Before tagging, update the README for the new version. That means:
 - the entry-point sizes (`node tests/benchmarks/sizes.js`);
 - the test and coverage figures under **Development**.
 
+Also update the CrossBus version pinned in `skills/crossbus/` (recipes, `crossbus@` install line and `blob/v…` links); `tests/package/skill.test.js` fails until it matches package.json.
+
 `bun run test:docs` executes the README's Node and browser snippets.
 
 `release:check` runs lint, source type checking, the build, unit/package tests, consumer declaration checks and the source coverage gate. Browser tests require Chrome and local HTTP servers. Native checks compile the source adapters; they do not qualify physical WebViews.
